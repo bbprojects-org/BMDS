@@ -1,0 +1,84 @@
+object MemoryForm: TMemoryForm
+  Left = 0
+  Height = 280
+  Top = 0
+  Width = 336
+  ClientHeight = 280
+  ClientWidth = 336
+  Color = clBtnFace
+  Constraints.MaxWidth = 336
+  Constraints.MinHeight = 128
+  Constraints.MinWidth = 336
+  ParentColor = False
+  TabOrder = 0
+  DesignLeft = 1316
+  DesignTop = 405
+  object DrawGrid1: TDrawGrid
+    Left = 8
+    Height = 234
+    Top = 8
+    Width = 320
+    Anchors = [akTop, akLeft, akBottom]
+    ColCount = 1
+    DefaultColWidth = 300
+    DefaultRowHeight = 14
+    ExtendedSelect = False
+    FixedCols = 0
+    FixedRows = 0
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Monaco'
+    GridLineWidth = 0
+    ParentFont = False
+    RowCount = 8192
+    ScrollBars = ssVertical
+    TabOrder = 0
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -12
+    TitleFont.Name = 'Monaco'
+    OnDrawCell = DrawGrid1DrawCell
+  end
+  object btnSpare3: TButton
+    Left = 32
+    Height = 17
+    Top = 250
+    Width = 68
+    Anchors = [akRight, akBottom]
+    Caption = '3'
+    OnClick = btnSetAddressClick
+    TabOrder = 1
+    Visible = False
+  end
+  object btnSpare2: TButton
+    Left = 105
+    Height = 17
+    Top = 250
+    Width = 68
+    Anchors = [akRight, akBottom]
+    Caption = '2'
+    OnClick = btnSetAddressClick
+    TabOrder = 2
+    Visible = False
+  end
+  object btnSpare1: TButton
+    Left = 178
+    Height = 17
+    Top = 250
+    Width = 68
+    Anchors = [akRight, akBottom]
+    Caption = '1'
+    OnClick = btnSetAddressClick
+    TabOrder = 3
+    Visible = False
+  end
+  object btnSetAddress: TButton
+    Left = 251
+    Height = 17
+    Top = 250
+    Width = 68
+    Anchors = [akRight, akBottom]
+    Caption = 'Address'
+    OnClick = btnSetAddressClick
+    TabOrder = 4
+  end
+end

@@ -1,0 +1,83 @@
+object MemoryFrame: TMemoryFrame
+  Left = 0
+  Height = 286
+  Top = 0
+  Width = 332
+  Align = alClient
+  ChildSizing.LeftRightSpacing = 4
+  ChildSizing.TopBottomSpacing = 4
+  ClientHeight = 286
+  ClientWidth = 332
+  TabOrder = 0
+  DesignLeft = 2601
+  DesignTop = 408
+  object btnSpare3: TButton
+    Left = 32
+    Height = 17
+    Top = 260
+    Width = 68
+    Anchors = [akRight, akBottom]
+    Caption = '3'
+    OnClick = btnClick
+    TabOrder = 0
+    Visible = False
+  end
+  object btnSpare2: TButton
+    Left = 105
+    Height = 17
+    Top = 260
+    Width = 68
+    Anchors = [akRight, akBottom]
+    Caption = '2'
+    OnClick = btnClick
+    TabOrder = 1
+    Visible = False
+  end
+  object btnSpare1: TButton
+    Left = 178
+    Height = 17
+    Top = 260
+    Width = 68
+    Anchors = [akRight, akBottom]
+    Caption = '1'
+    OnClick = btnClick
+    TabOrder = 2
+    Visible = False
+  end
+  object btnSetAddress: TButton
+    Left = 251
+    Height = 17
+    Top = 260
+    Width = 68
+    Anchors = [akRight, akBottom]
+    Caption = 'Address'
+    OnClick = btnSetAddressClick
+    TabOrder = 3
+  end
+  object DrawGrid1: TDrawGrid
+    Left = 4
+    Height = 248
+    Top = 4
+    Width = 324
+    Align = alTop
+    Anchors = [akTop, akLeft, akBottom]
+    ColCount = 1
+    DefaultColWidth = 300
+    DefaultRowHeight = 14
+    ExtendedSelect = False
+    FixedCols = 0
+    FixedRows = 0
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Monaco'
+    GridLineWidth = 0
+    ParentFont = False
+    RowCount = 8192
+    ScrollBars = ssVertical
+    TabOrder = 4
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -12
+    TitleFont.Name = 'Monaco'
+    OnDrawCell = DrawGrid1DrawCell
+  end
+end

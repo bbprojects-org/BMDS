@@ -1,0 +1,53 @@
+object TraceFrame: TTraceFrame
+  Left = 0
+  Height = 480
+  Top = 0
+  Width = 530
+  Align = alClient
+  ClientHeight = 480
+  ClientWidth = 530
+  TabOrder = 0
+  DesignLeft = 2601
+  DesignTop = 723
+  object DrawGrid1: TDrawGrid
+    Left = 4
+    Height = 442
+    Top = 4
+    Width = 522
+    Align = alClient
+    BorderSpacing.Bottom = 30
+    BorderSpacing.Around = 4
+    ColCount = 1
+    Columns = <    
+      item
+        Title.Caption = 'Title'
+      end>
+    DefaultColWidth = 400
+    DefaultRowHeight = 14
+    ExtendedSelect = False
+    FixedCols = 0
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Monaco'
+    GridLineWidth = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goSmoothScroll]
+    ParentFont = False
+    ScrollBars = ssVertical
+    TabOrder = 0
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -12
+    TitleFont.Name = 'Monaco'
+    OnDrawCell = DrawGrid1DrawCell
+  end
+  object btnClear: TButton
+    Left = 424
+    Height = 17
+    Top = 454
+    Width = 90
+    Anchors = [akRight, akBottom]
+    Caption = 'Clear Trace'
+    Enabled = False
+    OnClick = btnClearClick
+    TabOrder = 1
+  end
+end

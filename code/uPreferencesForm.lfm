@@ -1,0 +1,78 @@
+object PreferencesForm: TPreferencesForm
+  Left = 2624
+  Height = 480
+  Top = 429
+  Width = 640
+  BorderIcons = []
+  BorderStyle = bsDialog
+  Caption = 'Preferences'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormStyle = fsStayOnTop
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '2.0.1.0'
+  object btnOK: TButton
+    Left = 552
+    Height = 22
+    Top = 440
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    OnClick = btnOKClick
+    TabOrder = 0
+  end
+  object btnCancel: TButton
+    Left = 464
+    Height = 22
+    Top = 440
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'Cancel'
+    OnClick = btnCancelClick
+    TabOrder = 1
+  end
+  object PageControl1: TPageControl
+    Left = 8
+    Height = 424
+    Top = 8
+    Width = 619
+    ActivePage = TabSheetMachineConfig
+    TabIndex = 2
+    TabOrder = 2
+    object TabSheetMain: TTabSheet
+      Caption = 'Main'
+      ClientHeight = 385
+      ClientWidth = 613
+      object GroupBox1: TGroupBox
+        Left = 8
+        Height = 64
+        Top = 8
+        Width = 592
+        Caption = 'Data Path:'
+        ClientHeight = 42
+        ClientWidth = 584
+        TabOrder = 0
+        object edDataPath: TLabeledEdit
+          Left = 8
+          Height = 22
+          Top = 8
+          Width = 568
+          EditLabel.Height = 16
+          EditLabel.Width = 4
+          EditLabel.Caption = ' '
+          EditLabel.ParentColor = False
+          LabelPosition = lpLeft
+          TabOrder = 0
+          Text = 'edDataPath'
+        end
+      end
+    end
+    object TabSheetAssembler: TTabSheet
+      Caption = 'Assembler'
+    end
+    object TabSheetMachineConfig: TTabSheet
+      Caption = 'Machine Config'
+    end
+  end
+end

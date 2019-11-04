@@ -1,0 +1,64 @@
+object BreakpointsFrame: TBreakpointsFrame
+  Left = 0
+  Height = 140
+  Top = 0
+  Width = 342
+  ClientHeight = 140
+  ClientWidth = 342
+  TabOrder = 0
+  DesignLeft = 2586
+  DesignTop = 1073
+  object edAddress: TLabeledEdit
+    Tag = 100
+    Left = 16
+    Height = 22
+    Top = 26
+    Width = 80
+    EditLabel.Height = 16
+    EditLabel.Width = 80
+    EditLabel.Caption = 'Address: $'
+    EditLabel.ParentColor = False
+    TabOrder = 0
+    OnExit = edAddressExit
+  end
+  object btnAddBkpt: TButton
+    Left = 128
+    Height = 21
+    Top = 16
+    Width = 60
+    Caption = 'Add'
+    OnClick = btnAddBkptClick
+    TabOrder = 1
+  end
+  object btnDeleteBkpt: TButton
+    Left = 128
+    Height = 21
+    Top = 42
+    Width = 60
+    Caption = 'Delete'
+    Enabled = False
+    OnClick = btnDeleteBkptClick
+    TabOrder = 2
+  end
+  object btnClearBkpts: TButton
+    Left = 128
+    Height = 21
+    Top = 104
+    Width = 60
+    Caption = 'Clear'
+    Enabled = False
+    OnClick = btnClearBkptsClick
+    TabOrder = 3
+  end
+  object lbBreakpoints: TListBox
+    Left = 200
+    Height = 128
+    Top = 8
+    Width = 128
+    ItemHeight = 0
+    MultiSelect = True
+    OnClick = lbBreakpointsClick
+    Sorted = True
+    TabOrder = 4
+  end
+end

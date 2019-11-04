@@ -1,0 +1,56 @@
+object TraceForm: TTraceForm
+  Left = 2602
+  Height = 222
+  Top = 449
+  Width = 528
+  BorderIcons = [biSystemMenu]
+  Caption = 'Execution Trace'
+  ClientHeight = 222
+  ClientWidth = 528
+  Color = clBtnFace
+  Constraints.MinHeight = 162
+  Constraints.MinWidth = 424
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  ParentFont = True
+  LCLVersion = '2.0.1.0'
+  object DrawGrid1: TDrawGrid
+    Left = 4
+    Height = 180
+    Top = 4
+    Width = 520
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    BorderSpacing.Around = 4
+    ColCount = 1
+    Columns = <    
+      item
+        Title.Caption = 'Title'
+      end>
+    DefaultColWidth = 400
+    DefaultRowHeight = 14
+    ExtendedSelect = False
+    FixedCols = 0
+    Font.Color = clWindowText
+    Font.Height = -12
+    Font.Name = 'Monaco'
+    GridLineWidth = 0
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goSmoothScroll]
+    ParentFont = False
+    ScrollBars = ssVertical
+    TabOrder = 0
+    TitleFont.Color = clWindowText
+    TitleFont.Height = -12
+    TitleFont.Name = 'Monaco'
+    OnDrawCell = DrawGrid1DrawCell
+  end
+  object btnClear: TButton
+    Left = 16
+    Height = 17
+    Top = 192
+    Width = 68
+    Anchors = [akLeft, akBottom]
+    Caption = 'Clear'
+    OnClick = btnClearClick
+    TabOrder = 1
+  end
+end

@@ -1,0 +1,107 @@
+object DebugForm: TDebugForm
+  Left = 2785
+  Height = 680
+  Top = 156
+  Width = 1200
+  Caption = 'Debug'
+  ClientHeight = 680
+  ClientWidth = 1200
+  Constraints.MinHeight = 680
+  Constraints.MinWidth = 1200
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '2.0.1.0'
+  object panelLeft: TPanel
+    Left = 4
+    Height = 680
+    Top = 0
+    Width = 342
+    Align = alLeft
+    BorderSpacing.Left = 4
+    BorderSpacing.Right = 4
+    BevelOuter = bvNone
+    ClientHeight = 680
+    ClientWidth = 342
+    TabOrder = 0
+    object gbRegisters: TGroupBox
+      Left = 0
+      Height = 208
+      Top = 0
+      Width = 342
+      Align = alTop
+      Caption = 'Registers'
+      TabOrder = 0
+    end
+    object gbBreakpoints: TGroupBox
+      Left = 0
+      Height = 160
+      Top = 520
+      Width = 342
+      Align = alBottom
+      Caption = 'Breakpoints'
+      TabOrder = 1
+    end
+    object gbMemory: TGroupBox
+      Left = 0
+      Height = 312
+      Top = 208
+      Width = 342
+      Align = alClient
+      Caption = 'Memory'
+      TabOrder = 2
+    end
+  end
+  object panelMiddle: TPanel
+    Left = 350
+    Height = 680
+    Top = 0
+    Width = 440
+    Align = alLeft
+    BorderSpacing.Left = 4
+    BorderSpacing.Right = 4
+    BevelOuter = bvNone
+    ClientHeight = 680
+    ClientWidth = 440
+    TabOrder = 2
+    object gbWatches: TGroupBox
+      Left = 0
+      Height = 160
+      Top = 520
+      Width = 440
+      Align = alBottom
+      Caption = 'Watches'
+      TabOrder = 0
+    end
+    object gbTrace: TGroupBox
+      Left = 0
+      Height = 520
+      Top = 0
+      Width = 440
+      Align = alClient
+      Caption = 'Trace'
+      TabOrder = 1
+    end
+  end
+  object panelRight: TPanel
+    Left = 794
+    Height = 680
+    Top = 0
+    Width = 402
+    Align = alClient
+    BorderSpacing.Left = 4
+    BorderSpacing.Right = 4
+    BevelOuter = bvNone
+    ClientHeight = 680
+    ClientWidth = 402
+    TabOrder = 1
+    object gbEditor: TGroupBox
+      Left = 0
+      Height = 680
+      Top = 0
+      Width = 402
+      Align = alClient
+      Caption = 'Editor'
+      TabOrder = 0
+    end
+  end
+end
