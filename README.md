@@ -18,7 +18,7 @@ Functionality includes:
 
 ## Notes
 
-When compiling, Lazarus/FPC will put all build files in a "*_build*" folder, and the executable in a "*_bin*" folder. I put the underscore in front of these (and some other folders) to remind me which folders do not need to be pushed to GitHub.
+When compiling, Lazarus/FPC will put all build files in a "*_obj*" folder, and the executable in a "*_bin*" folder. I put the underscore in front of these (and some other folders) to remind me which folders do not need to be pushed to GitHub.
 
 ### Windows
 
@@ -30,7 +30,9 @@ Having cloned / downloaded the files there are some additional preparations requ
 
 - **Create App bundle**: create a ".app" bundle for *BMDS* via Lazarus' "*Project | Project Options*" and the "*Create Application Bundle*" button. This will put a ".app" file in the *_bin* folder with the *BMDS* executable
 
-Note: when ready to use the ".app" file elsewhere ensure you move the *BMDS* executable file into the *BMDS.app/Contents/MacOS* folder, replacing the alias put there by Lazarus. Put the ".app" file in a DMG file for distribution
+- **Copy resources to App bundle**: copy the Resources folder, with the machine ROMS etc, into the BMDS ".app" package (*BMDS.app/Contents/MacOS/* folder)
+
+Note: when ready to use the ".app" file elsewhere ensure you move the *BMDS* executable file into the *BMDS.app/Contents/MacOS/* folder, replacing the alias put there by Lazarus. Put the ".app" file in a DMG file for distribution
 
 ## License
 
