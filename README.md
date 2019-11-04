@@ -32,6 +32,11 @@ Having cloned / downloaded the files there are some additional preparations requ
 
 - **Copy resources to App bundle**: copy the Resources folder, with the machine ROMS etc, into the BMDS ".app" package (*BMDS.app/Contents/MacOS/* folder)
 
+- **Install SDL2 Framework**
+  - Download DMG from www.libsdl.org
+  - Copy *SDL2.framework* to */Library/Frameworks/*. If have issues with permissions then double click DMG, then in Terminal window type:
+    “sudo cp -r /Volumes/SDL2/SDL2.framework /Library/Frameworks/“ with admin password
+
 Note: when ready to use the ".app" file elsewhere ensure you move the *BMDS* executable file into the *BMDS.app/Contents/MacOS/* folder, replacing the alias put there by Lazarus. Put the ".app" file in a DMG file for distribution
 
 ## License
