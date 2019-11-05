@@ -147,7 +147,7 @@ implementation
 constructor TMachineSpaceInvaders.Create;
 begin
   fConfigFrame := TConfigSpaceInvaders.Create(nil);
-  fConfigFrame.Init;                    // Get config settings
+  fConfigFrame.Init(nil);               // Initialise callback, get config settings
 
   SetMachineInfo;
   CreateMemoryManager;

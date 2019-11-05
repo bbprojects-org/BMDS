@@ -87,10 +87,12 @@ type
     TexIdxCharacters: integer;          // Texture index for standard characters
     GraphicsSwitch: boolean;            // Graphic switch state flag
     GraphicsBits: TGraphicsBits;        // ... and state for all character elements
-    fFileMgr: TFileMgr;
     DelayedNmiCounter: integer;         // Used to support M65 delayed NMI processing
-
+                            
+    procedure DoConfigChange(idx: integer);
+    procedure BuildTextures;
     procedure CheckInput;
+    procedure GetROM;
     procedure SetMachineInfo;
     procedure CreateMemoryManager;
     procedure Create6502Cpu;
@@ -104,7 +106,7 @@ type
     function GetCPU: TCpuBase; override;
     function GetDescription: string; override;
     procedure SetScreenSize(aValue: TPoint); override;
-public
+  public
     constructor Create; override;
     destructor  Destroy; override;
     //
@@ -134,7 +136,7 @@ implementation
 constructor TMachineMicrotan.Create;
 begin
   fConfigFrame := TConfigMicrotan.Create(nil);
-  fConfigFrame.Init;                    // Get config settings
+  fConfigFrame.Init(@DoConfigChange);   // Initialise callback, get config settings
 
   SetMachineInfo;
   CreateMemoryManager;
@@ -171,46 +173,60 @@ var
   idx: integer;
 begin
   fMemoryMgr := TMemoryMgr.Create(0, MEM_SIZE_64K);
-  fFileMgr := TFileMgr.Create;
-  try
-    case ((fConfigFrame as TConfigMicrotan).RomIndex) of
+  GetROM;
+  case ((fConfigFrame as TConfigMicrotan).RomIndex) of
 
-      // Basic machine, 1K RAM, 1K TANBUG
-      0: begin
-           fInfo.HasCodeToExecute := fFileMgr.LoadROM('tanbug.rom', @fMemoryMgr.Memory[$FC00], $400, $C1E45F1A);
-           for idx := 0 to $3FF do
+    // Basic machine, 1K RAM, 1K TANBUG
+    0: begin
+         for idx := 0 to $3FF do
            begin
              // Microtan had limited address decoding, so Tanbug repeated at 1K intervals
              fMemoryMgr.Memory[$F000 + idx] := fMemoryMgr.Memory[$FC00 + idx];
              fMemoryMgr.Memory[$F400 + idx] := fMemoryMgr.Memory[$FC00 + idx];
              fMemoryMgr.Memory[$F800 + idx] := fMemoryMgr.Memory[$FC00 + idx];
            end;
-           // Set memory read/write accesses, 1K RAM, 1K ROM. No write to ROM area
-           fMemoryMgr.AddRead($0000, $03FF, nil, '');
-           // 512B work RAM + stack, 512B video RAM
-           fMemoryMgr.AddRead($FC00, $FFFF, nil, '1K Tanbug ROM');
-           fMemoryMgr.AddWrite($0000, $01FF, nil, 'RAM');
-           fInfo.MemoryButtons := 'Stack=01FF,ROM=F800';
-         end;
+         // Set memory read/write accesses, 1K RAM, 1K ROM. No write to ROM area
+         fMemoryMgr.AddRead($0000, $03FF, nil, '');
+         // 512B work RAM + stack, 512B video RAM
+         fMemoryMgr.AddRead($FC00, $FFFF, nil, '1K Tanbug ROM');
+         fMemoryMgr.AddWrite($0000, $01FF, nil, 'RAM');
+       end;
 
-      // Expanded machine, 8K RAM, 16K ROM
-      1: begin
-           fInfo.HasCodeToExecute := fFileMgr.LoadROM('microtan.rom', @fMemoryMgr.Memory[$C000], $4000, $0E4CD26E);
-           // Set memory read/write accesses, 8K RAM, 16K ROM. No write to ROM area
-           fMemoryMgr.AddRead($0000, $1FFF, nil, '8K RAM');
-           fMemoryMgr.AddRead($C000, $FFFF, nil, '16K ROM, XBUG + BASIC');
-           fMemoryMgr.AddWrite($0000, $01FF, nil, 'Standard RAM write, lo');
-           fMemoryMgr.AddWrite($0400, $1FFF, nil, 'Standard RAM write, hi');
-           fInfo.MemoryButtons := 'Stack=01FF,ROM=C000';
-         end;
-    end;
-  finally
-    fFileMgr.Free;
+    // Expanded machine, 8K RAM, 16K ROM
+    1: begin
+         // Set memory read/write accesses, 8K RAM, 16K ROM. No write to ROM area
+         fMemoryMgr.AddRead($0000, $1FFF, nil, '8K RAM');
+         fMemoryMgr.AddRead($C000, $FFFF, nil, '16K ROM, XBUG + BASIC');
+         fMemoryMgr.AddWrite($0000, $01FF, nil, 'Standard RAM write, lo');
+         fMemoryMgr.AddWrite($0400, $1FFF, nil, 'Standard RAM write, hi');
+       end;
   end;
   // Common accesses for I/O addresses, and video RAM
   fMemoryMgr.AddRead($BFF0, $BFF3, @ReadBFFx, 'Graphics on / Read keyboard');
   fMemoryMgr.AddWrite($0200, $03FF, @WriteVRAM, 'Write to Video RAM');
   fMemoryMgr.AddWrite($BFF0, $BFF3, @WriteBFFx, 'Reset keyboard, Delayed NMI, Graphics off');
+end;
+
+
+procedure TMachineMicrotan.GetROM;
+var
+  fFileMgr: TFileMgr;
+begin
+  fFileMgr := TFileMgr.Create;
+  try
+    case ((fConfigFrame as TConfigMicrotan).RomIndex) of
+      0: begin
+           fInfo.HasCodeToExecute := fFileMgr.LoadROM('tanbug.rom', @fMemoryMgr.Memory[$FC00], $400, $C1E45F1A);
+           fInfo.MemoryButtons := 'Stack=01FF,ROM=F800';
+         end;
+      1: begin
+           fInfo.HasCodeToExecute := fFileMgr.LoadROM('microtan.rom', @fMemoryMgr.Memory[$C000], $4000, $0E4CD26E);
+           fInfo.MemoryButtons := 'Stack=01FF,ROM=C000';
+         end;
+    end;
+  finally  
+    fFileMgr.Free;
+  end;
 end;
 
 
@@ -232,22 +248,14 @@ var
   idx: integer;
 begin
   Gfx := TGfxManager.Create;
-  case ((fConfigFrame as TConfigMicrotan).ColourIndex) of
-    0: Gfx.Palette := MICROTAN_PALETTE_G; // Green pixels on black
-    1: Gfx.Palette := MICROTAN_PALETTE_A; // Amber pixels on black
-    2: Gfx.Palette := MICROTAN_PALETTE_W; // White pixels on black
-  end;
-
   Gfx.SetWindowSize(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
   TexIdxScreen := Gfx.GetTexture(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
   TexIdxChunkyChars := 0;               // No textures assigned yet
-  TexIdxCharacters := 0;
-  BuildChunkyCharacters;                // Build bitmaps for graphics chars
-  BuildCharacterSet;                    // and normal font characters
+  TexIdxCharacters := 0;                                                                               
   GraphicsSwitch := False;
   for idx := $200 to $3FF do            // Randomize graphics bits
     GraphicsBits[idx] := ((Random(256) and 1) = 0);
-  ScreenRefresh;                        // and display screen
+  BuildTextures;                        // Build bitmaps for graphics chars and normal font characters
 end;
 
 
@@ -314,6 +322,7 @@ var
   CyclesPerFrame, CyclesDone: integer;   
   IsBrkpt: boolean;
 begin
+  SDL_StartTextInput();
   TimeBetweenFramesMS := trunc(1000 / FPS);
   LastTime := DateTimeToTimeStamp(Now).Time; // Current time
 
@@ -356,6 +365,7 @@ begin
             Sleep(SleepMS);
         end;
     end;
+  SDL_StopTextInput();
 end;
 
 
@@ -383,24 +393,43 @@ end;
 procedure TMachineMicrotan.CheckInput;
 var
   sdlEvent: PSDL_Event;
-  thisKey: word;
+  thisKey: longint;
+  validKey: boolean;
+  isCTRL: boolean;
 begin
   New(sdlEvent);
   while (SDL_PollEvent(sdlEvent) = 1) do
     begin
-      if (SdlEvent^.type_ = SDL_KEYDOWN) then
+      validKey := False;
+      if (sdlEvent^.type_ = SDL_KEYDOWN) then
+        // Look for special keys first (non text)
         begin
-          (*
-          case Ord(Key) of                      // Translate keys...
-            38: Key := Chr(27);                 // Up arrow -> ESC
-            40: Key := Chr(10);                 // Down arrow -> LF
-            74: Key := Chr(12);                 // Ctrl-J -> LF
-            77: Key := Chr(13);                 // Ctrl-M -> CR
-          end;
-          *)
           thisKey := sdlEvent^.key.keysym.sym;
-          if ((thisKey >= $61) and (thisKey <= $7A)) then
-            thisKey := thisKey and $DF; // Only uppercase letter
+          validKey := True;
+          isCTRL := (SDL_GetModState and KMOD_CTRL) > 0;
+          case thisKey of
+            $A, $D, $1B, $7F: ;         // LF, CR, ESC, DEL ok
+            // Translate keys                                         
+            SDLK_DOWN: thisKey := $A;   // Down-arrow -> LF (forward)
+            SDLK_UP: thiskey := $1B;    // Up-arrow -> ESC (reverse)
+            SDLK_j: if isCTRL then thisKey := $A; // Ctrl-J -> LF
+            SDLK_m: if isCTRL then thisKey := $D; // Ctrl-M -> CR
+          else
+            validKey := False;
+          end;
+        end;
+
+      if (sdlEvent^.type_ = SDL_TEXTINPUT) then
+        // Else check if it is actual text input
+        begin
+          thisKey := ord(sdlEvent^.text.text[0]);
+          if (thisKey >= $61) and (thisKey <= $7A) then
+            thisKey := thisKey and $DF; // Ensure letters are uppercase
+          validKey := True;
+        end;
+
+      if (validKey) then
+        begin
           KeyboardPort := thisKey;
           KeyboardFlipFlop := True;
           fCPU.Interrupt(IRQ_IDX);      // Raise IRQ
@@ -512,6 +541,32 @@ begin
 end;
 
 
+{ MICROTAN CONFIG CHANGE }
+
+procedure TMachineMicrotan.DoConfigChange(idx: integer);
+begin
+  case idx of
+    0: ;                                // Dynamic load of ROM not allowed
+    1: BuildTextures;
+  end;
+end;
+
+
+{ BUILD TEXTURES }
+
+procedure TMachineMicrotan.BuildTextures;
+begin
+  case ((fConfigFrame as TConfigMicrotan).ColourIndex) of
+    0: Gfx.Palette := MICROTAN_PALETTE_G; // Green pixels on black
+    1: Gfx.Palette := MICROTAN_PALETTE_A; // Amber pixels on black
+    2: Gfx.Palette := MICROTAN_PALETTE_W; // White pixels on black
+  end;
+  BuildChunkyCharacters;                // Build bitmaps for graphics chars
+  BuildCharacterSet;                    // and normal font characters
+  ScreenRefresh;
+end;
+
+
 { BUILD CHUNKY CHARACTERS }
 
 { Creates a texture and builds 'sprites' of each of 256 chunky characters
@@ -556,7 +611,8 @@ end;
     - Texture is 128*8 wide, by 16 pixels high to make selection easier }
 
 procedure TMachineMicrotan.BuildCharacterSet;
-var
+var                              
+  fFileMgr: TFileMgr;
   row, col, ch, offset: integer;
   CharByte: byte;
   CharsetStream: TMemoryStream;  
@@ -566,6 +622,7 @@ begin
     TexIdxCharacters := Gfx.GetTexture(8*128, 16);
 
   offset := 0;
+  fFileMgr := TFileMgr.Create;
   CharsetStream := TMemoryStream.Create;
   try
     fFileMgr.OpenStream(CharsetStream, 'charset.rom', 2048, $3B3C5360);
@@ -588,6 +645,7 @@ begin
 
   finally
     CharsetStream.Free;
+    fFileMgr.Free;
   end;
   Gfx.UpdateTexture(TexIdxCharacters);
 end;

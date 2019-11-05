@@ -31,11 +31,14 @@ interface
 uses
   Classes, SysUtils, Forms, Controls;
 
-type
+type         
+  TConfigChange = procedure(idx: integer) of object;
+
   TMachineConfigFrame = class(TFrame)
-  private
+  protected
+    fOnChange: TConfigChange;
   public
-    procedure Init; virtual; abstract;
+    procedure Init(OnChange: TConfigChange); virtual; abstract;
     destructor Destroy; override;
   end;
 

@@ -68,7 +68,7 @@ var
   AboutForm: TAboutForm;
 
 const
-  APP_NAME    = 'BMDS - Beyond the Microtan65 Development System';
+  APP_NAME    = 'BMDS';
   APP_COPY    = 'Copyright RC Beveridge, 2002-2019';
 
 

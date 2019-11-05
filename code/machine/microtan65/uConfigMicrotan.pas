@@ -46,12 +46,14 @@ type
     rgColour: TRadioGroup;
     rgRom: TRadioGroup;
     procedure btnResetDefaultsClick(Sender: TObject);
+    procedure rgColourClick(Sender: TObject);
+    procedure rgRomClick(Sender: TObject);
   private
     function GetRomIndex: integer;
     function GetColourIndex: integer;
     procedure ReadIniItems;
   public
-    procedure Init; override;
+    procedure Init(OnChange: TConfigChange); override;
     destructor Destroy; override;
     //
     property RomIndex: integer read GetRomIndex;
@@ -70,9 +72,10 @@ const
 
 { INITIALISE CONFIG FRAME... read settings }
 
-procedure TConfigMicrotan.Init;
+procedure TConfigMicrotan.Init(OnChange: TConfigChange);
 begin
   ReadIniItems;
+  fOnChange := OnChange;                // Must be after INI items changed
 end;
 
 
@@ -107,6 +110,21 @@ begin
 end;
 
 
+{ ON CLICK... notify machine of change }
+
+procedure TConfigMicrotan.rgRomClick(Sender: TObject);
+begin
+  // Cannot change ROM dynamically, need to rerun the program (or change machine and back)
+end;
+
+
+procedure TConfigMicrotan.rgColourClick(Sender: TObject);
+begin
+  if Assigned(fOnChange) then
+    fOnChange(1);
+end;
+
+
 { RESET DEFAULTS }
 
 procedure TConfigMicrotan.btnResetDefaultsClick(Sender: TObject);
@@ -118,6 +136,7 @@ begin
       ReadIniItems;
     end;
 end;
+
 
 end.
 

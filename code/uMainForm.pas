@@ -71,7 +71,6 @@ uses
   uMachineInfoForm;
 
 type
-  TProcParameter = procedure(sender: TObject) of Object;
 
   { TMainForm }
 
@@ -275,6 +274,7 @@ begin
     menuHelpWindows.Visible := True;    // Default for these is not visible
   {$endif}
 
+  Height := 92;
   GlobalVars.MachineDataFolder := '';   { TODO : Replace all global vars }
   CreateAppIni;
   ReadIniSettings;
@@ -453,7 +453,7 @@ begin
   Machine.ScreenCaption := Format('%s (%d)', [Machine.Info.Name, Machine.Info.Year]);
   Machine.Reset;
 
-  Caption := Format('%s [%s]',  [APP_NAME, Machine.Info.Name]);
+  Caption := Format('%s - %s',  [APP_NAME, Machine.Info.Name]);
   menuSelect.Items[CurrentMachineId].Checked := True;
   actRun.Enabled := Machine.Info.HasCodeToExecute; // Enabled if ROMS loaded
   actMachineConfig.Enabled := (Machine.ConfigFrame <> nil);
@@ -536,12 +536,12 @@ end;
 
 procedure TMainForm.ShowFormsState;
 begin
-  //if (DeveloperMode) then
-    //begin
-      actShowDebug.Checked := DeveloperMode and DebugForm.Visible;
-      actShowDisassembler.Checked := DeveloperMode and DisassemblerForm.Visible;
-      actShowCompare.Checked := DeveloperMode and CompareForm.Visible;
-    //end;
+  if (DeveloperMode) then
+    begin
+      actShowDebug.Checked := DebugForm.Visible;
+      actShowDisassembler.Checked := DisassemblerForm.Visible;
+      actShowCompare.Checked := CompareForm.Visible;
+    end;
   actMode.Checked := DeveloperMode;
   DebugToolbar.Visible := DeveloperMode;
   menuDebug.Visible := DeveloperMode;

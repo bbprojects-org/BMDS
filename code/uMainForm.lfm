@@ -1,12 +1,13 @@
 object MainForm: TMainForm
-  Left = 4424
-  Height = 480
-  Top = 386
-  Width = 640
+  Left = 1154
+  Height = 274
+  Top = 326
+  Width = 600
   BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsDialog
   Caption = 'BMDS'
-  ClientHeight = 480
-  ClientWidth = 640
+  ClientHeight = 274
+  ClientWidth = 600
   Color = clBtnFace
   Font.Height = -10
   KeyPreview = True
@@ -21,8 +22,8 @@ object MainForm: TMainForm
   object StatusBar: TStatusBar
     Left = 0
     Height = 18
-    Top = 462
-    Width = 640
+    Top = 256
+    Width = 600
     Panels = <    
       item
         Width = 120
@@ -42,11 +43,11 @@ object MainForm: TMainForm
     Left = 0
     Height = 28
     Top = 0
-    Width = 640
+    Width = 600
     Align = alTop
     BevelOuter = bvNone
     ClientHeight = 28
-    ClientWidth = 640
+    ClientWidth = 600
     TabOrder = 1
     object MainToolBar: TToolBar
       Left = 1
@@ -160,11 +161,11 @@ object MainForm: TMainForm
   object panelButtons: TPanel
     Left = 0
     Height = 40
-    Top = 422
-    Width = 640
+    Top = 216
+    Width = 600
     Align = alBottom
     ClientHeight = 40
-    ClientWidth = 640
+    ClientWidth = 600
     TabOrder = 2
     object btnDebug: TButton
       Left = 16
@@ -176,7 +177,7 @@ object MainForm: TMainForm
       TabOrder = 0
     end
     object btnAssemble: TButton
-      Left = 528
+      Left = 488
       Height = 22
       Top = 8
       Width = 90
@@ -195,8 +196,8 @@ object MainForm: TMainForm
   end
   object MainMenu: TMainMenu
     Images = ImageList1
-    left = 128
-    top = 56
+    left = 56
+    top = 48
     object menuMac: TMenuItem
       Caption = 'BMDS'
       object menuAboutMac: TMenuItem
@@ -326,7 +327,6 @@ object MainForm: TMainForm
     object menuEditor: TMenuItem
       Caption = 'Editor'
       object menuNewFile: TMenuItem
-        Action = EditorForm.actNewFile
         Bitmap.Data = {
           36040000424D3604000000000000360000002800000010000000100000000100
           2000000000000004000064000000640000000000000000000000000000000000
@@ -365,7 +365,6 @@ object MainForm: TMainForm
         }
       end
       object menuOpenFile: TMenuItem
-        Action = EditorForm.actOpenFile
         Bitmap.Data = {
           36040000424D3604000000000000360000002800000010000000100000000100
           2000000000000004000064000000640000000000000000000000000000000000
@@ -407,7 +406,6 @@ object MainForm: TMainForm
         Caption = 'Open Recent'
       end
       object menuSaveFile: TMenuItem
-        Action = EditorForm.actSaveFile
         Bitmap.Data = {
           36040000424D3604000000000000360000002800000010000000100000000100
           2000000000000004000064000000640000000000000000000000000000000000
@@ -446,7 +444,6 @@ object MainForm: TMainForm
         }
       end
       object menuSaveFileAs: TMenuItem
-        Action = EditorForm.actSaveFileAs
         Bitmap.Data = {
           36040000424D3604000000000000360000002800000010000000100000000100
           2000000000000004000064000000640000000000000000000000000000000000
@@ -485,13 +482,11 @@ object MainForm: TMainForm
         }
       end
       object menuCloseFile: TMenuItem
-        Action = EditorForm.actCloseFile
       end
       object menuSep4: TMenuItem
         Caption = '-'
       end
       object menuCut: TMenuItem
-        Action = EditorForm.actCut
         Bitmap.Data = {
           36040000424D3604000000000000360000002800000010000000100000000100
           2000000000000004000064000000640000000000000000000000000000000000
@@ -530,7 +525,6 @@ object MainForm: TMainForm
         }
       end
       object menuCopy: TMenuItem
-        Action = EditorForm.actCopy
         Bitmap.Data = {
           36040000424D3604000000000000360000002800000010000000100000000100
           2000000000000004000064000000640000000000000000000000000000000000
@@ -569,7 +563,6 @@ object MainForm: TMainForm
         }
       end
       object menuPaste: TMenuItem
-        Action = EditorForm.actPaste
         Bitmap.Data = {
           36040000424D3604000000000000360000002800000010000000100000000100
           2000000000000004000064000000640000000000000000000000000000000000
@@ -611,7 +604,6 @@ object MainForm: TMainForm
         Caption = '-'
       end
       object MenuItem1: TMenuItem
-        Action = EditorForm.actFormat
       end
       object MenuItem2: TMenuItem
         Caption = '-'
@@ -635,8 +627,8 @@ object MainForm: TMainForm
     end
   end
   object ImageList1: TImageList
-    left = 360
-    top = 56
+    left = 224
+    top = 48
     Bitmap = {
       4C69390000001000000010000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2467,8 +2459,8 @@ object MainForm: TMainForm
   end
   object ActionList1: TActionList
     Images = ImageList1
-    left = 248
-    top = 56
+    left = 136
+    top = 48
     object actStep: TAction
       Category = 'Debug'
       Caption = 'Step'
@@ -2590,18 +2582,18 @@ object MainForm: TMainForm
   object Timer1: TTimer
     Enabled = False
     OnTimer = Timer1Timer
-    left = 184
-    top = 256
+    left = 48
+    top = 120
   end
   object OpenDialog1: TOpenDialog
-    left = 176
-    top = 168
+    left = 344
+    top = 48
   end
   object TimerAutoStep: TTimer
     Enabled = False
     Interval = 500
     OnTimer = TimerAutoStepTimer
-    left = 304
-    top = 256
+    left = 136
+    top = 120
   end
 end

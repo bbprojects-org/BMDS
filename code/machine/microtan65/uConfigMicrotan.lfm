@@ -3,22 +3,22 @@ inherited ConfigMicrotan: TConfigMicrotan
   Width = 600
   ClientHeight = 380
   ClientWidth = 600
-  DesignLeft = 4280
-  DesignTop = 105
+  DesignLeft = 1478
+  DesignTop = 459
   object Label1: TLabel[0]
     Left = 24
     Height = 40
     Top = 8
     Width = 290
     AutoSize = False
-    Caption = 'Note: settings will only be applied on next run of the machine'
+    Caption = 'Note: ROM setting will only be applied on next run of the program'
     ParentColor = False
     WordWrap = True
   end
   object rgRom: TRadioGroup[1]
     Left = 16
     Height = 80
-    Top = 56
+    Top = 48
     Width = 296
     AutoFill = True
     Caption = 'ROM to Load:'
@@ -36,6 +36,7 @@ inherited ConfigMicrotan: TConfigMicrotan
       'Basic (1K TANBUG)'
       'TANEX (16K XBUG and BASIC)'
     )
+    OnClick = rgRomClick
     TabOrder = 0
   end
   object rgColour: TRadioGroup[2]
@@ -61,6 +62,7 @@ inherited ConfigMicrotan: TConfigMicrotan
       'Amber'
       'White'
     )
+    OnClick = rgColourClick
     TabOrder = 1
   end
   object btnResetDefaults: TButton[3]

@@ -53,7 +53,7 @@ type
     function GetNumberBases: integer;
     function GetBonusPoints: integer;
   public    
-    procedure Init; override;
+    procedure Init(OnChange: TConfigChange); override;
     destructor Destroy; override;
     //
     property ColourFilters: boolean read GetColourFilters;
@@ -74,7 +74,7 @@ const
 
 { INITIALISE CONFIG FRAME... read settings }
 
-procedure TConfigSpaceInvaders.Init;
+procedure TConfigSpaceInvaders.Init(OnChange: TConfigChange);
 begin
   ReadIniItems;
 end;

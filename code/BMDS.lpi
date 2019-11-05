@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="3"/>
       <MinorVersionNr Value="4"/>
-      <BuildNr Value="347"/>
+      <BuildNr Value="348"/>
       <Language Value="0809"/>
     </VersionInfo>
     <BuildModes Count="1">
@@ -45,7 +45,7 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="60">
+    <Units Count="54">
       <Unit0>
         <Filename Value="BMDS.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -134,219 +134,192 @@
         <ResourceBaseClass Value="Form"/>
       </Unit17>
       <Unit18>
-        <Filename Value="editor\uSourceEditorForm.pas"/>
+        <Filename Value="machine\uAddrDefs.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="EditorForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
       </Unit18>
       <Unit19>
-        <Filename Value="editor\uPageManager.pas"/>
+        <Filename Value="machine\uMachineBase.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit19>
       <Unit20>
-        <Filename Value="editor\uSynHighlighterAsm.pas"/>
+        <Filename Value="machine\CHIP-8\uMachineChip8.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit20>
       <Unit21>
-        <Filename Value="machine\uAddrDefs.pas"/>
+        <Filename Value="cpu\CHIP-8\uCpuChip8.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit21>
       <Unit22>
-        <Filename Value="machine\uMachineBase.pas"/>
+        <Filename Value="cpu\CHIP-8\uDefsChip8.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit22>
       <Unit23>
-        <Filename Value="machine\CHIP-8\uMachineChip8.pas"/>
+        <Filename Value="cpu\CHIP-8\uDisChip8.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit23>
       <Unit24>
-        <Filename Value="cpu\CHIP-8\uCpuChip8.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit24>
-      <Unit25>
-        <Filename Value="cpu\CHIP-8\uDefsChip8.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit25>
-      <Unit26>
-        <Filename Value="cpu\CHIP-8\uDisChip8.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit26>
-      <Unit27>
         <Filename Value="cpu\CHIP-8\uRegistersFormChip8.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RegistersFormChip8"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit27>
-      <Unit28>
+      </Unit24>
+      <Unit25>
         <Filename Value="machine\microtan65\uMachineMicrotan.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit28>
-      <Unit29>
+      </Unit25>
+      <Unit26>
         <Filename Value="uFilesMgr.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit29>
-      <Unit30>
+      </Unit26>
+      <Unit27>
         <Filename Value="uPreferencesForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PreferencesForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit27>
+      <Unit28>
+        <Filename Value="SDL2\SDL2.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="cpu\8080\uCpu8080.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="machine\SpaceInvaders\uMachineSpaceInvaders.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit30>
       <Unit31>
-        <Filename Value="SDL2\SDL2.pas"/>
+        <Filename Value="cpu\8080\uDefs8080.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit31>
       <Unit32>
-        <Filename Value="cpu\8080\uCpu8080.pas"/>
+        <Filename Value="cpu\8080\uDis8080.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit32>
       <Unit33>
-        <Filename Value="machine\SpaceInvaders\uMachineSpaceInvaders.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit33>
-      <Unit34>
-        <Filename Value="cpu\8080\uDefs8080.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit34>
-      <Unit35>
-        <Filename Value="cpu\8080\uDis8080.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit35>
-      <Unit36>
         <Filename Value="cpu\8080\uRegistersForm8080.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RegistersForm8080"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="uMemoryMgr.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="uSoundMgr.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="SDL2\SDL2_mixer.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit36>
       <Unit37>
-        <Filename Value="uMemoryMgr.pas"/>
+        <Filename Value="assembler\uAsmErrors.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit37>
       <Unit38>
-        <Filename Value="uSoundMgr.pas"/>
+        <Filename Value="assembler\uAsmListing.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit38>
       <Unit39>
-        <Filename Value="SDL2\SDL2_mixer.pas"/>
+        <Filename Value="assembler\uAsmFiles.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit39>
       <Unit40>
-        <Filename Value="assembler\uAsmErrors.pas"/>
+        <Filename Value="assembler\uAsmListHtml.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit40>
       <Unit41>
-        <Filename Value="assembler\uAsmListing.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit41>
-      <Unit42>
-        <Filename Value="assembler\uAsmFiles.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit42>
-      <Unit43>
-        <Filename Value="editor\uEditor.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit43>
-      <Unit44>
-        <Filename Value="editor\uFormatter.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit44>
-      <Unit45>
-        <Filename Value="editor\uMRU.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit45>
-      <Unit46>
-        <Filename Value="assembler\uAsmListHtml.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit46>
-      <Unit47>
         <Filename Value="debug\uDebugForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="DebugForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit47>
-      <Unit48>
+      </Unit41>
+      <Unit42>
         <Filename Value="debug\uMemoryFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MemoryFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit48>
-      <Unit49>
+      </Unit42>
+      <Unit43>
         <Filename Value="machine\uMachineConfigBase.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MachineConfigFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit49>
-      <Unit50>
+      </Unit43>
+      <Unit44>
         <Filename Value="machine\microtan65\uConfigMicrotan.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ConfigMicrotan"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit50>
-      <Unit51>
+      </Unit44>
+      <Unit45>
         <Filename Value="machine\uMachineInfoForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MachineInfoForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit51>
-      <Unit52>
+      </Unit45>
+      <Unit46>
         <Filename Value="assembler\uAsmConfigFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="AsmConfigFrame"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit52>
-      <Unit53>
+      </Unit46>
+      <Unit47>
         <Filename Value="cpu\uRegistersFrameBase.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RegistersFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit53>
-      <Unit54>
+      </Unit47>
+      <Unit48>
         <Filename Value="cpu\6502\uRegistersFrame6502.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RegistersFrame6502"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit54>
-      <Unit55>
+      </Unit48>
+      <Unit49>
         <Filename Value="debug\uTraceFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="TraceFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit55>
-      <Unit56>
+      </Unit49>
+      <Unit50>
         <Filename Value="debug\uBreakpointsFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="BreakpointsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit56>
-      <Unit57>
+      </Unit50>
+      <Unit51>
         <Filename Value="debug\uWatchesFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="WatchesFrame"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit57>
-      <Unit58>
+      </Unit51>
+      <Unit52>
         <Filename Value="uGfxMgr.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit58>
-      <Unit59>
+      </Unit52>
+      <Unit53>
         <Filename Value="machine\SpaceInvaders\uConfigSpaceInvaders.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ConfigSpaceInvaders"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit59>
+      </Unit53>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -357,7 +330,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="machine;machine\microtan65;machine\CHIP-8;cpu;cpu\6502;cpu\CHIP-8;editor;debug;assembler;disassembler;SDL2;cpu\8080;machine\SpaceInvaders;$ Convert SI Source"/>
+      <OtherUnitFiles Value="machine;machine\microtan65;machine\CHIP-8;cpu;cpu\6502;cpu\CHIP-8;debug;assembler;disassembler;SDL2;cpu\8080;machine\SpaceInvaders;$ Convert SI Source"/>
       <UnitOutputDirectory Value="..\_obj"/>
     </SearchPaths>
     <CodeGeneration>

@@ -848,7 +848,7 @@ begin
   nIfNestLevel := 0;
   repeat
   until (nIfNestLevel < 0);
-(*
+{
      nest := 0;
      repeat { READ AND CHECK FOLLOWING LINES }
 		  if listing then listline { FIRST LIST PREVIOUS LINE };
@@ -863,7 +863,7 @@ begin
 		  popget;
 	     end;
 	end { FINDEND };
-*)
+}
 end;
 
 
