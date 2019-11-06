@@ -54,6 +54,8 @@
 { TODO : uMachineMicrotan -> SaveToFile routine }
 { TODO : uMachineMicrotan -> have fully expanded machine with 64K }
 
+{ TODO : uMachineMicrotan -> BUG: 1K Tanbug resetting on invalid command? }
+
 unit uMachineMicrotan;
 
 {$mode objfpc} {$H+}
@@ -86,7 +88,6 @@ type
     procedure DoConfigChange(idx: integer);
     procedure BuildTextures;
     procedure CheckInput;
-    procedure GetROM;
     procedure SetMachineInfo;
     procedure CreateMemoryManager;
     procedure Create6502Cpu;
@@ -164,63 +165,50 @@ end;
 
 procedure TMachineMicrotan.CreateMemoryManager;
 var
-  idx: integer;
-begin
-  fMemoryMgr := TMemoryMgr.Create(0, MEM_SIZE_64K);
-  GetROM;
-  case ((fConfigFrame as TConfigMicrotan).RomIndex) of
-
-    // Basic machine, 1K RAM, 1K TANBUG
-    0: begin
-         for idx := 0 to $3FF do
-           begin
-             // Microtan had limited address decoding, so Tanbug repeated at 1K intervals
-             fMemoryMgr.Memory[$F000 + idx] := fMemoryMgr.Memory[$FC00 + idx];
-             fMemoryMgr.Memory[$F400 + idx] := fMemoryMgr.Memory[$FC00 + idx];
-             fMemoryMgr.Memory[$F800 + idx] := fMemoryMgr.Memory[$FC00 + idx];
-           end;
-         // Set memory read/write accesses, 1K RAM, 1K ROM. No write to ROM area
-         fMemoryMgr.AddRead($0000, $03FF, nil, '');
-         // 512B work RAM + stack, 512B video RAM
-         fMemoryMgr.AddRead($FC00, $FFFF, nil, '1K Tanbug ROM');
-         fMemoryMgr.AddWrite($0000, $01FF, nil, 'RAM');
-       end;
-
-    // Expanded machine, 8K RAM, 16K ROM
-    1: begin
-         // Set memory read/write accesses, 8K RAM, 16K ROM. No write to ROM area
-         fMemoryMgr.AddRead($0000, $1FFF, nil, '8K RAM');
-         fMemoryMgr.AddRead($C000, $FFFF, nil, '16K ROM, XBUG + BASIC');
-         fMemoryMgr.AddWrite($0000, $01FF, nil, 'Standard RAM write, lo');
-         fMemoryMgr.AddWrite($0400, $1FFF, nil, 'Standard RAM write, hi');
-       end;
-  end;
-  // Common accesses for I/O addresses, and video RAM
-  fMemoryMgr.AddRead($BFF0, $BFF3, @ReadBFFx, 'Graphics on / Read keyboard');
-  fMemoryMgr.AddWrite($0200, $03FF, @WriteVRAM, 'Write to Video RAM');
-  fMemoryMgr.AddWrite($BFF0, $BFF3, @WriteBFFx, 'Reset keyboard, Delayed NMI, Graphics off');
-end;
-
-
-procedure TMachineMicrotan.GetROM;
-var
+  idx: integer; 
   fFileMgr: TFileMgr;
 begin
+  fMemoryMgr := TMemoryMgr.Create(0, MEM_SIZE_64K);
   fFileMgr := TFileMgr.Create;
   try
     case ((fConfigFrame as TConfigMicrotan).RomIndex) of
+
+      // Basic machine, 1K RAM, 1K TANBUG
       0: begin
            fInfo.HasCodeToExecute := fFileMgr.LoadROM('tanbug.rom', @fMemoryMgr.Memory[$FC00], $400, $C1E45F1A);
+           for idx := 0 to $3FF do
+             begin
+               // Microtan had limited address decoding, so Tanbug repeated at 1K intervals
+               fMemoryMgr.Memory[$F000 + idx] := fMemoryMgr.Memory[$FC00 + idx];
+               fMemoryMgr.Memory[$F400 + idx] := fMemoryMgr.Memory[$FC00 + idx];
+               fMemoryMgr.Memory[$F800 + idx] := fMemoryMgr.Memory[$FC00 + idx];
+             end;
+           // Set memory read/write accesses, 1K RAM, 1K ROM. No write to ROM area
+           fMemoryMgr.AddRead($0000, $03FF, nil, '1K RAM');
+           // 512B work RAM + stack, 512B video RAM
+           fMemoryMgr.AddRead($FC00, $FFFF, nil, '1K Tanbug ROM');
+           fMemoryMgr.AddWrite($0000, $01FF, nil, 'RAM');
            fInfo.MemoryButtons := 'Stack=01FF,ROM=F800';
          end;
-      1: begin
+
+      // Expanded machine, 8K RAM, 16K ROM
+      1: begin                                                        
            fInfo.HasCodeToExecute := fFileMgr.LoadROM('microtan.rom', @fMemoryMgr.Memory[$C000], $4000, $0E4CD26E);
+           // Set memory read/write accesses, 8K RAM, 16K ROM. No write to ROM area
+           fMemoryMgr.AddRead($0000, $1FFF, nil, '8K RAM');
+           fMemoryMgr.AddRead($C000, $FFFF, nil, '16K ROM, XBUG + BASIC');
+           fMemoryMgr.AddWrite($0000, $01FF, nil, 'Standard RAM write, lo');
+           fMemoryMgr.AddWrite($0400, $1FFF, nil, 'Standard RAM write, hi'); 
            fInfo.MemoryButtons := 'Stack=01FF,ROM=C000';
          end;
     end;
-  finally  
+  finally          
     fFileMgr.Free;
   end;
+  // Common accesses for I/O addresses, and video RAM
+  fMemoryMgr.AddRead($BFF0, $BFF3, @ReadBFFx, 'Graphics on / Read keyboard');                
+  fMemoryMgr.AddWrite($BFF0, $BFF3, @WriteBFFx, 'Reset keyboard, Delayed NMI, Graphics off');
+  fMemoryMgr.AddWrite($0200, $03FF, @WriteVRAM, 'Write to Video RAM');
 end;
 
 

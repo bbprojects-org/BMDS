@@ -23,8 +23,6 @@
 
   =============================================================================}
 
-{ TODO : uConfigMicrotan -> fix reset defaults button }
-
 unit uConfigMicrotan;
 
 {$mode objfpc}{$H+}

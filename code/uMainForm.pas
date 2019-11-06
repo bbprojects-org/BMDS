@@ -28,7 +28,8 @@
 
   =============================================================================}
 
-
+                                                                             
+{ TODO : uMainForm -> fix and restore Editor functionality }
 { TODO : uMainForm -> recheck Cross-Platform guidance for Free Pascal, adjust
                       as necessary
                       (http://wiki.lazarus.freepascal.org/Multiplatform_Programming_Guide) }
@@ -45,11 +46,11 @@
   - M65: single step/proceed not working as per M65 manual
   - Disassembler: sort data addresses
   - CHIP-8: ensure Mach/Config disabled if no Config form
+}
 
-  OSX ISSUES / DIFFERENCES
+{  OSX ISSUES / DIFFERENCES  ===================================================
 
   - Text sizes
-
 }
 
 unit uMainForm;
@@ -444,7 +445,7 @@ begin
   if (GlobalVars.ScreenPosition.X = -1) then
     begin
       GlobalVars.ScreenPosition.X := self.Left;
-      GlobalVars.ScreenPosition.Y := self.Top + MainForm.Height + FORM_EXTRA_HEIGHT;
+      GlobalVars.ScreenPosition.Y := self.Top + self.Height + FORM_EXTRA_HEIGHT;
     end;
   Machine.ScreenPosition := GlobalVars.ScreenPosition;
   Machine.ScreenCaption := Format('%s (%d)', [Machine.Info.Name, Machine.Info.Year]);
@@ -900,8 +901,6 @@ begin
   WriteMachineID(CurrentMachineID);
   AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_LEFT, Left);
   AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_TOP, Top);
-  AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_WIDTH, Width);
-  AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_HEIGHT, Height);
   AppIni.WriteBool(SECT_CUSTOM, DEVELOPER_MODE, DeveloperMode);
   AppIni.WriteInteger(SECT_CUSTOM, SCREEN + INI_WDW_LEFT, Machine.ScreenPosition.X);
   AppIni.WriteInteger(SECT_CUSTOM, SCREEN + INI_WDW_TOP, Machine.ScreenPosition.Y);

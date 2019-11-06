@@ -64,7 +64,6 @@ const
   SECT_INI = 'MemAddrForm';
 
 
-
 procedure TGetAddressBox.FormCreate(Sender: TObject);
 begin
   Top := AppIni.ReadInteger(SECT_INI, INI_WDW_TOP, 20);

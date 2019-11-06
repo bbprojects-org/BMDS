@@ -129,8 +129,8 @@ const
 
 procedure TCompareForm.FormCreate(Sender: TObject);
 begin
-  Top := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, 440);
-  Left := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, 400);  
+  Top := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, 20);
+  Left := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, 170);
   Visible := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WDW_VIS, True); // Written out in uMainForm
 
   edMemFrom1.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + 'MemF1', 0)]);

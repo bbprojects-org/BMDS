@@ -102,7 +102,7 @@ const
 procedure TDebugForm.FormCreate(Sender: TObject);
 begin
   Top := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, 20);
-  Left := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, 20);
+  Left := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, 620);
   Width := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_WIDTH, 0);
   Height := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_HEIGHT, 0);
   Visible := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WDW_VIS, True); // Written out in uMainForm
