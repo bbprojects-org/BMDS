@@ -29,7 +29,6 @@
   =============================================================================}
 
 { TODO : uCpu6502 -> in Create, need to select any CPU variant, currently just basic 6502 }
-
 { TODO : uCpu6502 -> in TCpuInfo, sort assignment for different register arrays }
 
 unit uCpu6502;

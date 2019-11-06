@@ -31,20 +31,14 @@
   =============================================================================}
 
 { TODO : uAssembler -> rework BuildIdentifierList to use new TDictionary routines }
-
 { TODO : uAssembler -> add Macro routines }
-
 { TODO : uAssembler -> Add CPU_TYPE selector to create function }
-
 { TODO : uAssembler -> in DoMnemonic, rules for modifying operand should
                        probably be in specific CPU code section? Could have
                        procedure call to specific routine in lieu of Rules? }
-
 { TODO : uAssembler -> for DoWord, add ENDIAN flag to define order of bytes for
                        each specific CPU }
-
 { TODO : uAssembler -> for #INCLUDE need to ensure not in a macro definition }
-
 { TODO : uAssembler -> do we need #DEFINE, since have EQU }
 
 unit uAssembler;

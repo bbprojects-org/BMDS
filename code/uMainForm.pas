@@ -32,11 +32,8 @@
 { TODO : uMainForm -> recheck Cross-Platform guidance for Free Pascal, adjust
                       as necessary
                       (http://wiki.lazarus.freepascal.org/Multiplatform_Programming_Guide) }
-
 { TODO : uMainForm -> do 'Step Over' code }
-
 { TODO : uMainForm -> add OnDropFiles functionality }
-
 { TODO : uMainForm -> general - check Tab order for all forms / frames }
 
 

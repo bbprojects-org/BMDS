@@ -23,9 +23,7 @@
   =============================================================================}
 
 { TODO : uMachineChip8 -> add 64x64 mode, and SuperChip8 128x64 mode }
-
 { TODO : uMachineChip8 -> STEPS_PER_FRAME is a guesstimate, need to calculate properly }
-
 { TODO : uMachineChip8 -> program LoadFromFile, SaveToFile }
 
 unit uMachineChip8;

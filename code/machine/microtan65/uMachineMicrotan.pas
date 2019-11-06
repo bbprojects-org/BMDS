@@ -52,12 +52,6 @@
   ============================================================================= }
 
 { TODO : uMachineMicrotan -> SaveToFile routine }
-
-{ TODO : uMachineMicrotan -> have properties for foreground/background colours
-                             which rebuild chunky characters / character set,
-                             without need for reload of machine. And for
-                             selected ROM too}
-
 { TODO : uMachineMicrotan -> have fully expanded machine with 64K }
 
 unit uMachineMicrotan;

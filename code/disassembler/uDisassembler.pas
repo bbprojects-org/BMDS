@@ -31,11 +31,8 @@
   =============================================================================}
 
 { TODO : uDisassembler -> in SetMachine, fix crash if AddrDefs does not exist (use "if FileExists"?) }
-
 { TODO : uDisassembler -> in DoHeader, copy header file rather than using equates (keeps comments) }
-
 { TODO : uDisassembler -> in ButtonLoadSettingsClick, load filename of previously loaded file }
-
 { TODO : uDisassembler -> add option to create mnemonics in lower case? }
 
 unit uDisassembler;

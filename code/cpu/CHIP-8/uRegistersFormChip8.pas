@@ -24,11 +24,8 @@
   =============================================================================}
                                                            
 { TODO : uRegistersFormChip8 -> rework as inherited from TRegistersFrame }
-
 { TODO : uRegistersFormChip8 -> adjust start position to line up with other form default settings }
-
 { TODO : uRegistersFormChip8 -> show stack: ensure correct bytes shown as stack gets deeper }
-
 { TODO : uRegistersFormChip8 -> add register display in ASCII, Binary }
 
 unit uRegistersFormChip8;

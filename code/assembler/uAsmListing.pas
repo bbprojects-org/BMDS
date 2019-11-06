@@ -23,9 +23,7 @@
   =============================================================================}
 
 { TODO : uAsmListing -> sort config items out }
-
 { TODO : uAsmListing -> check old uListing, and delete if nothing extra }
-
 { TODO : uAsmListing -> only permit one error/warning per line, so need to
                         change code from current multiple messages array }
 
