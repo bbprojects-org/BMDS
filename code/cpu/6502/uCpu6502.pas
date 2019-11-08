@@ -932,7 +932,7 @@ begin
       fTraceOverflow := True;
     end;
   TraceList[fTraceIndex] := Regs;       // Save all registers
-  TraceList[fTraceIndex].PC := TracePC; // Reset PC to opcode just executed
+  TraceList[fTraceIndex].PC := TracePC; // Reset saved PC to opcode just executed
   Inc(fTraceIndex);
 end;
 

@@ -1,0 +1,14 @@
+[DIS]
+Start=0
+End=8191
+NumDataAddr=5
+DataStart0=3063
+DataEnd0=3071
+DataStart1=6534
+DataEnd1=6535
+DataStart2=6590
+DataEnd2=6608
+DataStart3=6673
+DataEnd3=6705
+DataStart4=6803
+DataEnd4=8191

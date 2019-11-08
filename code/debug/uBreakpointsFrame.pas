@@ -34,7 +34,7 @@ unit uBreakpointsFrame;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls,
+  Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls, Dialogs,
   //
   uIniFile, uCommon;
 
@@ -122,15 +122,14 @@ var
 begin
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + ARRAY_SIZE, fBkptArraySize);
   Count := 0;
-  (* ERROR HERE
   for idx := 0 to (fBkptArraySize - 1) do
     if (BkptArray[idx].BkptType <> btNone) then
       begin
         Inc(Count);
+        // In the following 'idx' is the actual machine address
         AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + IntToStr(Count), idx);
       end;
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + NUM_BKPTS, Count);
-  *)
   SetLength(BkptArray, 0);
   inherited Destroy;
 end;
@@ -170,8 +169,7 @@ end;
 function TBreakpointsFrame.CheckRead(aAddr: word): boolean;
 begin
   if ((aAddr < fBkptArraySize) and (BkptArray[aAddr].BkptType <> btNone)) then
-    Result := (BkptArray[aAddr].BkptType = btReadWrite)
-           or (BkptArray[aAddr].BkptType = btRead)
+    Result := (BkptArray[aAddr].BkptType in [btReadWrite, btRead])
   else
     Result := False;
 end;
@@ -182,8 +180,7 @@ end;
 function TBreakpointsFrame.CheckWrite(aAddr: word): boolean;
 begin
   if ((aAddr < fBkptArraySize) and (BkptArray[aAddr].BkptType <> btNone)) then
-    Result := (BkptArray[aAddr].BkptType = btReadWrite)
-           or (BkptArray[aAddr].BkptType = btWrite)
+    Result := (BkptArray[aAddr].BkptType in [btReadWrite, btWrite])
   else
     Result := False;
 end;
@@ -201,10 +198,8 @@ begin
   edAddress.Text := Format('%.4x', [Value]);
   if ((Value < 0) or (Value > fBkptArraySize)) then
     begin
-      (*
       MessageDlg(Format('Value must be between $0000 and $%.4x', [fBkptArraySize-1]),
         mtWarning, [mbOK], 0);
-      *)
       edAddress.SetFocus;
       Exit;
     end;
@@ -264,7 +259,8 @@ var
 begin
   lbBreakpoints.Items.Clear;
   for idx := 0 to (fBkptArraySize - 1) do
-    if (BkptArray[idx].BkptType <> btNone) then
+    if (BkptArray[idx].BkptType <> btNone) then     
+      // In the following 'idx' is the actual machine address
       lbBreakpoints.Items.Add(Format('$%.4x', [idx]));
   btnClearBkpts.Enabled := (lbBreakpoints.Items.Count > 0);
 end;

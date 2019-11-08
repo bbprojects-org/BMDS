@@ -84,6 +84,7 @@ type
     GraphicsSwitch: boolean;            // Graphic switch state flag
     GraphicsBits: TGraphicsBits;        // ... and state for all character elements
     DelayedNmiCounter: integer;         // Used to support M65 delayed NMI processing
+    LastPC: word;
                             
     procedure DoConfigChange(idx: integer);
     procedure BuildTextures;
@@ -143,6 +144,7 @@ begin
   KeyboardPort := 0;
   KeyboardFlipFlop := False;
   DelayedNmiCounter := 0;
+  LastPC := 0;
 end;
 
 
@@ -314,8 +316,10 @@ begin
   // fInfo.State is set to msRunning in MainForm before call
   while ((fInfo.State = msRunning) and (CyclesToGo > 0)) do
     begin
-      if Assigned(fBkptHandler) then
+      // If PC same as last time, stopped on breakpoint so skip check and run this time
+      if Assigned(fBkptHandler) and (fCPU.PC <> LastPC) then
         begin
+          LastPC := fCPU.PC;
           fBkptHandler(fCPU.PC, IsBrkpt); // Check for Breakpoints
           if (IsBrkpt) then
             begin

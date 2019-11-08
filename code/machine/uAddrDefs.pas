@@ -51,9 +51,9 @@ implementation
 
 { TAddrDefsProcessor }
 
-function TAddrDefsProcessor.GetAddrDefs(
-           Filename: string):           // Filename of ASM file to process
-           TAddrDefsArray;              // Returns: array of addresses/symbols
+{ Given filename of Asm file to process, returns an array of addresses/symbols }
+
+function TAddrDefsProcessor.GetAddrDefs(Filename: string): TAddrDefsArray;
 var
   Parser: TParser;
   State: (stBOL, stInstruction, stEmptyLine, stEOL);
@@ -91,9 +91,9 @@ begin
                  case Token.Typ of
                    tkLabel:   begin
                                 Inc(NumAddr);
-                                SetLength(ADA, NumAddr);
-                                ADA[NumAddr-1].LabelStr := Token.StringVal;
-                                ADA[NumAddr-1].Used := False;
+                                SetLength(Result, NumAddr);
+                                Result[NumAddr-1].LabelStr := Token.StringVal;
+                                Result[NumAddr-1].Used := False;
                                 GetToken;
                                 State := stInstruction;
                               end;
@@ -121,14 +121,14 @@ begin
                        end
                      else if ((Instruction = 'rmb') or (Instruction = 'ds') or (Instruction = 'defs')) then
                        begin
-                         ADA[NumAddr-1].Address := PC;
+                         Result[NumAddr-1].Address := PC;
                          Inc(PC, GetNumber);
-                         ADA[NumAddr-1].RW := ' '; // Read/Write allowed
+                         Result[NumAddr-1].RW := ' '; // Read/Write allowed
                        end
                      else if (Instruction = 'equ') then
                        begin
-                         ADA[NumAddr-1].Address := GetNumber;
-                         ADA[NumAddr-1].RW := ' '; // Read/Write allowed
+                         Result[NumAddr-1].Address := GetNumber;
+                         Result[NumAddr-1].RW := ' '; // Read/Write allowed
                        end
                      else
                        SkipRestOfLine;  // Ignore anything else
@@ -164,8 +164,8 @@ begin
     end;
 
   end;
+  AddrDefsLines.Free;
   Parser.Free;
-  Result := ADA;
 end;
 
 

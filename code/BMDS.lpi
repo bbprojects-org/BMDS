@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="11"/>
+    <Version Value="12"/>
     <PathDelim Value="\"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
+        <CompatibilityMode Value="True"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <MainUnit Value="0"/>
       <Title Value="BMDS"/>
       <ResourceType Value="res"/>
       <UseXPManifest Value="True"/>
@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="3"/>
       <MinorVersionNr Value="4"/>
-      <BuildNr Value="349"/>
+      <BuildNr Value="354"/>
       <Language Value="0809"/>
     </VersionInfo>
     <BuildModes Count="1">
@@ -331,6 +331,9 @@
     </SearchPaths>
     <CodeGeneration>
       <TargetCPU Value="x86_64"/>
+      <Optimizations>
+        <OptimizationLevel Value="0"/>
+      </Optimizations>
     </CodeGeneration>
     <Linking>
       <Debugging>

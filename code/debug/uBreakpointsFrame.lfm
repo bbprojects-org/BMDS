@@ -11,7 +11,7 @@ object BreakpointsFrame: TBreakpointsFrame
   object edAddress: TLabeledEdit
     Tag = 100
     Left = 16
-    Height = 22
+    Height = 21
     Top = 26
     Width = 80
     EditLabel.Height = 16

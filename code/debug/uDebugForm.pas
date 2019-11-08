@@ -144,8 +144,8 @@ begin
   SetupWatchesFrame;
   (*
   SetupEditorFrame;
-  fMachineRef.BreakpointHandler := @CheckBreakpointRead;
   *)
+  fMachineRef.BreakpointHandler := @CheckBreakpointRead;
 end;
 
 
@@ -280,7 +280,7 @@ procedure TDebugForm.Refresh;
 begin
   if (TraceFrame <> nil) then
     begin
-      TraceFrame.Rows := fMachineRef.CPU.TraceCount;
+      TraceFrame.Rows := fMachineRef.CPU.TraceCount + 1;
       TraceFrame.Refresh;
     end;
   if (fMachineRef.CPU.RegisterFrame <> nil) then

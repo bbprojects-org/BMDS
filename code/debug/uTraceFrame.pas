@@ -108,6 +108,7 @@ var
   idx: integer;
 begin
   if (fCpuRef = nil) then Exit;
+  if (aRow = 0) then Exit;
 
   // Get disassembly data for this row from CPU's trace buffer
   Data := fCpuRef.GetTrace(aRow-1);

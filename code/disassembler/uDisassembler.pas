@@ -61,6 +61,7 @@ type
     cbSpacings: TComboBox;
     ImageList1: TImageList;
     edDesc: TLabeledEdit;
+    OpenDialog1: TOpenDialog;
     Panel1: TPanel;
     memoDis: TMemo;
     btnCopyToClipboard: TButton;
@@ -79,7 +80,6 @@ type
     Panel2: TPanel;
     btnSaveSettings: TButton;
     btnLoadSettings: TButton;
-    OpenDialog1: TOpenDialog;
     SaveDialog1: TSaveDialog;
     procedure FormCreate(Sender: TObject);
     procedure btnSimpleClick(Sender: TObject);
@@ -664,9 +664,11 @@ var
   ThisIni: TAppIni;
 begin
   OpenDialog1.Title := 'Load disassembler settings';
-  OpenDialog1.DefaultExt := '.dis';
-  OpenDialog1.Filter := 'Disassembler settings|*.dis|All files|*.*';
-  OpenDialog1.FilterIndex := 1;
+  { TODO : uDisassembler -> following causes memory leak on Mac, disabled for the moment }
+  { Need to test under Windows }
+  {$ifndef darwin}
+  OpenDialog1.Filter := 'Disassembler files|*.dis';
+  {$endif}
   if (OpenDialog1.Execute) then
     begin
       ThisIni := TAppIni.Create(OpenDialog1.FileName);
