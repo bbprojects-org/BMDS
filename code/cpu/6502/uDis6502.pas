@@ -32,7 +32,7 @@ interface
 uses
   Classes, SysUtils, Dialogs,
   //
-  uCpu6502, uDefs6502, uCpuTypes, uCommon;
+  uCpu6502, uDefs6502, uCpuTypes;
 
 function Disassemble6502(CPU: TCpu6502; Addr: word): TDisassembledData;
 

@@ -47,6 +47,7 @@ const
       WildChar:             '*';
       LittleEndian:         True;
       SupportsDisassembler: True;
+      SupportsCpuTest:      True;
       TraceWidth:           440;
       RegistersHeight:      205;
       Template: '#CPU ''6502''' + #13 +

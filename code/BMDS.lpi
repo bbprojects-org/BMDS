@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="66">
+    <Units Count="68">
       <Unit0>
         <Filename Value="BMDS.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -401,6 +401,17 @@
         <ComponentName Value="EditorFrame"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit65>
+      <Unit66>
+        <Filename Value="cpu\uCpuTypes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit66>
+      <Unit67>
+        <Filename Value="cpu\6502\uTest6502Form.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Test6502Form"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit67>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -1,8 +1,0 @@
-[DIS]
-Start=64512
-End=65535
-NumDataAddr=2
-DataStart0=65099
-DataEnd0=65138
-DataStart1=65516
-DataEnd1=65535

@@ -113,6 +113,7 @@ type
     procedure Interrupt(aIndex: byte; Value: boolean = True); override;
     function  GetTrace({%H-}Index: integer): TDisassembledData; override;
     function  GetDisassembly({%H-}Addr:word): TDisassembledData; override;
+    procedure TestCpu; override;
     //
     function  MemRead(addr: word): byte;
     procedure MemWrite(addr: word; value: byte);
@@ -124,10 +125,8 @@ type
 
 implementation
 
-{$ifndef Test6502}
 uses
-  uRegistersFrame6502, uDis6502;
-{$endif}
+  uRegistersFrame6502, uDis6502, uTest6502Form;
 
 
 { CREATE 6502 CPU }
@@ -138,10 +137,8 @@ var
   Opcode, ThisTypeMask: byte;
   ThisOpcode: TOpcodeRawData;
 begin
-  {$ifndef Test6502}
   fRegistersFrame := TRegistersFrame6502.Create(nil);
   (fRegistersFrame as TRegistersFrame6502).CpuRef := self;
-  {$endif}
 
   fCpuType  := ct;
   fCpuState := csStopped;
@@ -178,10 +175,8 @@ end;
 
 destructor TCpu6502.Destroy;
 begin
-  {$ifndef Test6502}
   fRegistersFrame.Parent := nil;        // Avoid pointer errors
   fRegistersFrame.Free;
-  {$endif}
   SetLength(fOpcodesData, 0);
   fOpcodesData := nil;
   inherited;
@@ -915,7 +910,6 @@ end;
 
 function TCpu6502.{%H-}GetTrace(Index: integer): TDisassembledData;
 begin
- {$ifndef Test6502}
   if (CpuState = csRunning)             // No response if CPU running
      or ((fTraceIndex = 0) and (not fTraceOverflow))
      or ((Index > fTraceIndex) and (not fTraceOverflow)) then
@@ -933,7 +927,6 @@ begin
       Result.RegStr[3] := Format('%.2x', [TraceList[Index].SP]);
       Result.RegStr[4] := GetBinary(TraceList[Index].PSW);
     end;
- {$endif}
 end;
 
 
@@ -941,11 +934,24 @@ end;
 
 function TCpu6502.{%H-}GetDisassembly(Addr:word): TDisassembledData;
 begin
-  {$ifndef Test6502}
   Result := Disassemble6502(Self, Addr);
-  {$endif}
 end;
 
+
+{ TEST CPU }
+
+procedure TCpu6502.TestCpu;
+var
+  TestForm: TTest6502Form;
+begin
+  inherited;
+  TestForm := TTest6502Form.Create(nil);
+  try
+    TestForm.ShowModal;
+  finally
+    TestForm.Free;
+  end;
+end;
 
 
 end.

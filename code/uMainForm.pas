@@ -94,6 +94,7 @@ type
     menuEditCopy: TMenuItem;
     menuEditPaste: TMenuItem;
     menuEditSelectAll: TMenuItem;
+    menuTestCPU: TMenuItem;
     menuSearchReplace: TMenuItem;
     menuSearchFindPrev: TMenuItem;
     menuSearchFindNext: TMenuItem;
@@ -192,6 +193,7 @@ type
     procedure menuOptionsMacClick(Sender: TObject);
     procedure menuMachineClick(Sender: TObject);
     procedure menuSizeClick(Sender: TObject);
+    procedure menuTestCPUClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
   private     // Forms
     DebugForm: TDebugForm;
@@ -457,6 +459,8 @@ begin
   Machine.ScreenPosition := tmpScreenPosition;
   Machine.ScreenCaption := Format('%s (%d)', [CurrentMachineID, Machine.Info.Year]);
   Machine.Reset;
+
+  menuTestCpu.Enabled := Machine.CPU.Info.SupportsCpuTest;
 
   Caption := Format('%s - %s',  [APP_NAME, CurrentMachineID]);
   for Idx := 0 to menuSelect.Count-1 do
@@ -901,6 +905,15 @@ procedure TMainForm.actMaxSpeedExecute(Sender: TObject);
 begin
   Machine.MaxSpeed := (not Machine.MaxSpeed);
   actMaxSpeed.Checked := Machine.MaxSpeed;
+end;
+
+
+{ TEST 6502 CPU }
+
+procedure TMainForm.menuTestCPUClick(Sender: TObject);
+begin
+  if (Machine.CPU.Info.SupportsCpuTest) then
+    Machine.CPU.TestCpu;
 end;
 
 

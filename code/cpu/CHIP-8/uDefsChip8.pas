@@ -47,6 +47,7 @@ const
       WildChar:             '*';
       LittleEndian:         False;
       SupportsDisassembler: True;
+      SupportsCpuTest:      False;
       TraceWidth:           702;
       RegistersHeight:      312;
       Template:             '' );

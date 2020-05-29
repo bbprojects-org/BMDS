@@ -1,7 +1,7 @@
 object MainForm: TMainForm
-  Left = 1280
+  Left = 2569
   Height = 251
-  Top = 23
+  Top = 843
   Width = 600
   AllowDropFiles = True
   BorderIcons = [biSystemMenu, biMinimize]
@@ -324,6 +324,10 @@ object MainForm: TMainForm
       end
       object menuMaxSpeed: TMenuItem
         Action = actMaxSpeed
+      end
+      object menuTestCPU: TMenuItem
+        Caption = 'Test CPU...'
+        OnClick = menuTestCPUClick
       end
     end
     object menuAsm: TMenuItem

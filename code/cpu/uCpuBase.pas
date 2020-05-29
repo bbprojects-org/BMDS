@@ -32,9 +32,7 @@ interface
 uses
   Classes, Forms, SysUtils,
   //
-  {$ifndef test6502}
   uRegistersFrameBase,
-  {$endif}
   uCpuTypes;
 
 const
@@ -59,9 +57,7 @@ type
   TCpuBase = class(TObject)
   private
   protected
-    {$ifndef test6502}
     fRegistersFrame: TRegistersFrame;
-    {$endif}
     fCpuType: TCpuType;
     fDataCount: integer;
     fCpuState: TCpuState;
@@ -87,10 +83,9 @@ type
     function  TraceCount: integer; virtual;
     function  GetTrace(Index: integer): TDisassembledData; virtual; abstract;
     function  GetDisassembly(Addr:word): TDisassembledData; virtual; abstract;
+    procedure TestCpu; virtual;
     //
-    {$ifndef test6502}
     property RegisterFrame: TRegistersFrame read fRegistersFrame write fRegistersFrame;
-    {$endif}
     property CpuType: TCpuType read fCpuType;
     property TraceColumns: TTraceColArray read GetTraceColumns;
     property DataCount: integer read fDataCount;
@@ -191,6 +186,12 @@ begin
     Result := TRACE_MAX
   else
     Result := fTraceIndex;
+end;
+
+
+procedure TCpuBase.TestCpu;
+begin
+  //
 end;
 
 

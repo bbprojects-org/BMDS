@@ -97,6 +97,7 @@ type
     WildChar: char;
     LittleEndian: boolean;
     SupportsDisassembler: boolean;
+    SupportsCpuTest: boolean;
     TraceWidth: integer;
     RegistersHeight: integer;
     Template: string;
