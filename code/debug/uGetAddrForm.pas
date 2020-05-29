@@ -61,20 +61,20 @@ implementation
 {$R *.lfm}
 
 const
-  SECT_INI = 'MemAddrForm';
+  SECT_MEMADDR = 'MemAddrForm';
 
 
 procedure TGetAddressBox.FormCreate(Sender: TObject);
 begin
-  Top := AppIni.ReadInteger(SECT_INI, INI_WDW_TOP, 20);
-  Left := AppIni.ReadInteger(SECT_INI, INI_WDW_LEFT, 20);
+  Top := AppIni.ReadInteger(SECT_MEMADDR, INI_WDW_TOP, 20);
+  Left := AppIni.ReadInteger(SECT_MEMADDR, INI_WDW_LEFT, 20);
 end;
 
 
 procedure TGetAddressBox.FormDestroy(Sender: TObject);
 begin
-  AppIni.WriteInteger(SECT_INI, INI_WDW_TOP, Top);
-  AppIni.WriteInteger(SECT_INI, INI_WDW_LEFT, Left);
+  AppIni.WriteInteger(SECT_MEMADDR, INI_WDW_TOP, Top);
+  AppIni.WriteInteger(SECT_MEMADDR, INI_WDW_LEFT, Left);
 end;
 
 

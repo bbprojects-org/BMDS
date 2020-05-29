@@ -88,7 +88,7 @@ type
     function HexToInt(s: string): integer;
     procedure AddError(const Msg: string);
   public
-    constructor Create(Filename: string; RecType: TRecordType = rtAuto);
+    constructor Create(FileName: string; RecType: TRecordType = rtAuto);
     destructor Destroy; override;
     property BytesArray: TBytesArray read fBytesArray;
     property BytesRead: integer read fTotalBytes;
@@ -111,7 +111,7 @@ type
     procedure WriteLastRecord;
     procedure AddError(const Msg: string);
   public
-    constructor Create(Filename: string; RecType: TRecordType = rtIntelHex);
+    constructor Create(FileName: string; RecType: TRecordType = rtIntelHex);
     destructor Destroy; override;
     procedure SetStart(AAddress: integer);
     procedure WriteByte(AByte: byte);
@@ -125,7 +125,7 @@ implementation
 
 { ReadHex }
 
-constructor TReadHex.Create(Filename: string; RecType: TRecordType);
+constructor TReadHex.Create(FileName: string; RecType: TRecordType);
 var
   i: integer;
   LineWasData: boolean;
@@ -137,7 +137,7 @@ begin
   AddressHasBeenSet := False;
   HexFileLines := TStringList.Create;
   try
-    HexFileLines.LoadFromFile(Filename);
+    HexFileLines.LoadFromFile(FileName);
     FirstChar := HexFileLines[0][1];
     if (RecType = rtAuto) then
       case FirstChar of
@@ -185,7 +185,7 @@ begin
 
   // Read the data bytes
   SetLength(fBytesArray, Length(fBytesArray) + BytesCount);
-  CheckSum := BytesCount + Hi(LineAddress) + Lo(LineAddress) + RecordType;
+  CheckSum := (BytesCount + Hi(LineAddress) + Lo(LineAddress) + RecordType) and $FF;
   case RecordType of
     0: begin // Data record
          if (BytesCount > 0) then
@@ -251,9 +251,9 @@ end;
 
 { TWriteHex }
 
-constructor TWriteHex.Create(Filename: string; RecType: TRecordType);
+constructor TWriteHex.Create(FileName: string; RecType: TRecordType);
 begin
-  AssignFile(HexFile, ChangeFileExt(Filename, '.hex'));
+  AssignFile(HexFile, ChangeFileExt(FileName, '.hex'));
   Rewrite(HexFile);
   fRecType := RecType;
   fAddress := 0;

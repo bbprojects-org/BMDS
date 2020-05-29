@@ -2,7 +2,7 @@
 
   ASSEMBLER LISTING (HTML)
 
-    TListingHtml provides an output listing file in HTML format. It uses CSS as
+    This unit provides an output listing file in HTML format. It uses CSS as
     a simple syntax highlighter. An external "style.css" file, put in the
     application's data folder can be used to overwrite the default built-in
     CSS codes
@@ -56,7 +56,7 @@ type
   private
     fListFile: TextFile;
   public
-    constructor Create(AsmRef: TObject; aFilename: string);
+    constructor Create(AsmRef: TObject; aFileName: string);
     destructor  Destroy; override;
     //
     procedure ListHeader(ProcessorName: string);
@@ -84,18 +84,18 @@ implementation
 
 { CREATE }
 
-constructor TListingHtml.Create(AsmRef: TObject; aFilename: string);
+constructor TListingHtml.Create(AsmRef: TObject; aFileName: string);
 var
   StyleSheet: TStrings;
-  Filename: string;
+  FileName: string;
 begin
   StyleSheet := TStringList.Create;
-  Filename := GetAppDataDirectory + STYLESHEET_FILE;
-  if FileExists(Filename) then
-    StyleSheet.LoadFromFile(Filename)
+  FileName := GetAppDataDirectory + STYLESHEET_FILE;
+  if FileExists(FileName) then
+    StyleSheet.LoadFromFile(FileName)
   else
     Stylesheet.Text := STYLESHEET_DEFAULT;
-  AssignFile(fListFile, ChangeFileExt(aFilename, '.htm'));
+  AssignFile(fListFile, ChangeFileExt(aFileName, '.htm'));
   Rewrite(fListFile);
   WriteLn(fListFile,  '<html>' + CRLF + '<head>' + CRLF +
                       '<style type="text/css">' + CRLF + '<!--' + CRLF +

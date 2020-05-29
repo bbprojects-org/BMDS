@@ -68,23 +68,28 @@ interface
 uses
   Classes,
   //
-  uCommon, uCpuBase;
+  uCpuTypes;
 
 type
   TAddrMode8080 = (mNIL, mINH, mREG, mIMM, mDIR, mIND);
 
 const
+  INFO_8080: TCpuInfo =
+    ( Name:                 '8080';
+      Registers:            // Must be uppercase, for assembler
+                            'A B C D E H L AF BC DE HL SP ' +
+                            // Need flags too
+                            'NZ Z NC C PO PE P M';
+      WildChar:             '*';
+      LittleEndian:         True;
+      SupportsDisassembler: True;
+      TraceWidth:           540;
+      RegistersHeight:      332;
+      Template:             '' );
 
-  { CPU and Register Names }
+  { CPU Names }
 
   CPU_8080  = '8080';
-
-  { Following is used by Assembler in building the operand part of an
-    instruction as it needs to identify valid characters therein. These
-    values are used to prevent confusion with user identifiers }
-
-  REGISTERS_8080 = 'A B C D E H L AF BC DE HL SP' + // Must be uppercase, for assembler
-                   'NZ Z NC C PO PE P M';           // Need flags too
 
   { Values for Interrupt Number }
 

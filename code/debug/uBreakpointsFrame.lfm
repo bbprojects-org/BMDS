@@ -6,8 +6,8 @@ object BreakpointsFrame: TBreakpointsFrame
   ClientHeight = 140
   ClientWidth = 342
   TabOrder = 0
-  DesignLeft = 2586
-  DesignTop = 1073
+  DesignLeft = 2661
+  DesignTop = 106
   object edAddress: TLabeledEdit
     Tag = 100
     Left = 16
@@ -60,5 +60,6 @@ object BreakpointsFrame: TBreakpointsFrame
     OnClick = lbBreakpointsClick
     Sorted = True
     TabOrder = 4
+    TabStop = False
   end
 end

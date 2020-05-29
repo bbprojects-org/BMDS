@@ -3,8 +3,8 @@ inherited RegistersFrame6502: TRegistersFrame6502
   Width = 336
   ClientHeight = 200
   ClientWidth = 336
-  DesignLeft = 2587
-  DesignTop = 487
+  DesignLeft = 1280
+  DesignTop = 297
   object edPC: TLabeledEdit[0]
     Tag = 5
     Left = 38
@@ -12,11 +12,11 @@ inherited RegistersFrame6502: TRegistersFrame6502
     Top = 8
     Width = 44
     EditLabel.Height = 16
-    EditLabel.Width = 27
+    EditLabel.Width = 26
     EditLabel.Caption = 'PC='
     EditLabel.ParentColor = False
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -13
     Font.Name = 'Monaco'
     LabelPosition = lpLeft
     ParentFont = False
@@ -31,9 +31,10 @@ inherited RegistersFrame6502: TRegistersFrame6502
     Color = clBtnFace
     Enabled = False
     Font.Color = clWindowText
-    Font.Height = -16
-    Font.Name = 'Consolas'
+    Font.Height = -13
+    Font.Name = 'Monaco'
     ParentFont = False
+    TabStop = False
     TabOrder = 1
     Text = 'A9 12 = LDA #$12'
   end
@@ -43,11 +44,11 @@ inherited RegistersFrame6502: TRegistersFrame6502
     Top = 40
     Width = 26
     EditLabel.Height = 16
-    EditLabel.Width = 19
+    EditLabel.Width = 16
     EditLabel.Caption = 'A='
     EditLabel.ParentColor = False
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -13
     Font.Name = 'Monaco'
     LabelPosition = lpLeft
     ParentFont = False
@@ -61,29 +62,30 @@ inherited RegistersFrame6502: TRegistersFrame6502
     Top = 64
     Width = 26
     EditLabel.Height = 16
-    EditLabel.Width = 18
+    EditLabel.Width = 16
     EditLabel.Caption = 'X='
     EditLabel.ParentColor = False
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -13
     Font.Name = 'Monaco'
     LabelPosition = lpLeft
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 4
     OnExit = edRegisterExit
   end
   object edX2: TEdit[4]
     Left = 74
     Height = 22
     Top = 64
-    Width = 134
+    Width = 160
     Color = clBtnFace
     Enabled = False
     Font.Color = clWindowText
-    Font.Height = -16
-    Font.Name = 'Consolas'
+    Font.Height = -13
+    Font.Name = 'Monaco'
     ParentFont = False
-    TabOrder = 4
+    TabStop = False
+    TabOrder = 5
     Text = 'XX, ''X'', XXXXXXXX'
   end
   object edY: TLabeledEdit[5]
@@ -93,29 +95,30 @@ inherited RegistersFrame6502: TRegistersFrame6502
     Top = 88
     Width = 26
     EditLabel.Height = 16
-    EditLabel.Width = 18
+    EditLabel.Width = 16
     EditLabel.Caption = 'Y='
     EditLabel.ParentColor = False
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -13
     Font.Name = 'Monaco'
     LabelPosition = lpLeft
     ParentFont = False
-    TabOrder = 5
+    TabOrder = 6
     OnExit = edRegisterExit
   end
   object edY2: TEdit[6]
     Left = 74
     Height = 22
     Top = 88
-    Width = 134
+    Width = 160
     Color = clBtnFace
     Enabled = False
     Font.Color = clWindowText
-    Font.Height = -16
-    Font.Name = 'Consolas'
+    Font.Height = -13
+    Font.Name = 'Monaco'
     ParentFont = False
-    TabOrder = 6
+    TabStop = False
+    TabOrder = 7
     Text = 'XX, ''X'', XXXXXXXX'
   end
   object edSP: TLabeledEdit[7]
@@ -129,11 +132,11 @@ inherited RegistersFrame6502: TRegistersFrame6502
     EditLabel.Caption = 'SP='
     EditLabel.ParentColor = False
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -13
     Font.Name = 'Monaco'
     LabelPosition = lpLeft
     ParentFont = False
-    TabOrder = 7
+    TabOrder = 8
     OnExit = edRegisterExit
   end
   object edSP2: TEdit[8]
@@ -144,10 +147,11 @@ inherited RegistersFrame6502: TRegistersFrame6502
     Color = clBtnFace
     Enabled = False
     Font.Color = clWindowText
-    Font.Height = -16
-    Font.Name = 'Consolas'
+    Font.Height = -13
+    Font.Name = 'Monaco'
     ParentFont = False
-    TabOrder = 8
+    TabStop = False
+    TabOrder = 9
     Text = 'XX XX'
   end
   object cbCflag: TCheckBox[9]
@@ -155,75 +159,76 @@ inherited RegistersFrame6502: TRegistersFrame6502
     Left = 284
     Height = 18
     Top = 164
-    Width = 20
+    Width = 22
     OnExit = cbNflagClick
-    TabOrder = 9
+    TabOrder = 18
   end
   object cbZflag: TCheckBox[10]
     Tag = 2
     Left = 254
     Height = 18
     Top = 164
-    Width = 20
+    Width = 22
     OnExit = cbNflagClick
-    TabOrder = 10
+    TabOrder = 17
   end
   object cbIflag: TCheckBox[11]
     Tag = 4
     Left = 224
     Height = 18
     Top = 164
-    Width = 20
+    Width = 22
     OnExit = cbNflagClick
-    TabOrder = 11
+    TabOrder = 16
   end
   object cbDflag: TCheckBox[12]
     Tag = 8
     Left = 194
     Height = 18
     Top = 164
-    Width = 20
+    Width = 22
     OnExit = cbNflagClick
-    TabOrder = 12
+    TabOrder = 15
   end
   object cbBflag: TCheckBox[13]
     Tag = 16
     Left = 164
     Height = 18
     Top = 164
-    Width = 20
+    Width = 22
     OnExit = cbNflagClick
-    TabOrder = 13
+    TabOrder = 14
   end
   object CheckBox1: TCheckBox[14]
     Tag = 32
     Left = 134
     Height = 18
     Top = 164
-    Width = 20
+    Width = 22
     Checked = True
     Enabled = False
     State = cbChecked
-    TabOrder = 14
+    TabOrder = 13
+    TabStop = False
   end
   object cbVflag: TCheckBox[15]
     Tag = 64
     Left = 104
     Height = 18
     Top = 164
-    Width = 20
+    Width = 22
     OnExit = cbNflagClick
-    TabOrder = 15
+    TabOrder = 12
   end
   object cbNflag: TCheckBox[16]
     Tag = 128
     Left = 74
     Height = 18
     Top = 164
-    Width = 20
+    Width = 22
     OnClick = cbNflagClick
     ParentBidiMode = False
-    TabOrder = 16
+    TabOrder = 11
   end
   object edPSW: TLabeledEdit[17]
     Tag = 3
@@ -232,15 +237,15 @@ inherited RegistersFrame6502: TRegistersFrame6502
     Top = 160
     Width = 26
     EditLabel.Height = 16
-    EditLabel.Width = 18
+    EditLabel.Width = 17
     EditLabel.Caption = 'P='
     EditLabel.ParentColor = False
     Font.Color = clWindowText
-    Font.Height = -12
+    Font.Height = -13
     Font.Name = 'Monaco'
     LabelPosition = lpLeft
     ParentFont = False
-    TabOrder = 17
+    TabOrder = 10
     OnExit = edRegisterExit
   end
   object Label1: TLabel[18]
@@ -259,14 +264,15 @@ inherited RegistersFrame6502: TRegistersFrame6502
     Left = 74
     Height = 22
     Top = 40
-    Width = 134
+    Width = 160
     Color = clBtnFace
     Enabled = False
     Font.Color = clWindowText
-    Font.Height = -16
-    Font.Name = 'Consolas'
+    Font.Height = -13
+    Font.Name = 'Monaco'
     ParentFont = False
-    TabOrder = 18
+    TabStop = False
+    TabOrder = 3
     Text = 'XX, ''X'', XXXXXXXX'
   end
 end

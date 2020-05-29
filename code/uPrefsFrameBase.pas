@@ -1,8 +1,8 @@
 { ==============================================================================
 
-  MACHINE CONFIGURATION BASE CLASS
+  PREFERENCES FRAMES BASE CLASS
 
-    This is the base frame that is inherited by all configuration frames
+    This is the base frame that is inherited by all preferences frames
 
 
   LICENSE:
@@ -22,24 +22,38 @@
 
   =============================================================================}
 
-unit uMachineConfigBase;
+unit uPrefsFrameBase;
 
 {$mode objfpc}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls;
+  Classes, SysUtils, Forms, Controls, StdCtrls;
 
 type         
-  TConfigChange = procedure(idx: integer) of object;
+  TConfigChange = procedure(Sender: TObject) of object;
+  TDebugLogEvent = procedure(Sender: TObject; Msg: string) of object;
 
-  TMachineConfigFrame = class(TFrame)
+  { TPrefsFrame }
+
+  TPrefsFrame = class(TFrame)
+    btnResetDefault: TButton;
   protected
+    fFrame: TPrefsFrame;
+    fChangedItem: integer;
+    fChanged: boolean;
     fOnChange: TConfigChange;
+    fOnDebug: TDebugLogEvent;
   public
-    procedure Init(OnChange: TConfigChange); virtual; abstract;
+    procedure Init; virtual;
     destructor Destroy; override;
+    procedure SaveChanges; virtual; abstract;
+    procedure CancelChanges; virtual; abstract;
+    //
+    property Frame: TPrefsFrame read fFrame write fFrame;
+    property OnChange: TConfigChange read fOnChange write fOnChange;
+    property OnDebug: TDebugLogEvent read fOnDebug write fOnDebug;
   end;
 
 
@@ -47,9 +61,15 @@ implementation
 
 {$R *.lfm}
 
-{ TMachineConfigFrame }
+{ TPrefsFrame }
 
-destructor TMachineConfigFrame.Destroy;
+procedure TPrefsFrame.Init;
+begin
+  fChanged := False;
+end;
+
+
+destructor TPrefsFrame.Destroy;
 begin
   //
   inherited Destroy;

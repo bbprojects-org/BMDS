@@ -3,8 +3,8 @@
 
   BREAKPOINTS FRAME
 
-    Allows user to select addresses where execution can be stopped
-    to see status, single step, or other debug activity as required
+    Select addresses where execution can be stopped to see status, single step,
+    or other debug activity as required
 
 
   LICENSE:
@@ -70,11 +70,13 @@ type
     procedure edAddressExit(Sender: TObject);
     procedure lbBreakpointsClick(Sender: TObject);
   private
+    fEnabled: boolean;
     fBkptArraySize: integer;
     BkptArray: TBkptArray;
     BkptAddress: word;
     procedure SetArraySize(aSize: integer);
     procedure UpdateBkpts;
+    procedure SetFrameEnabled(aFlag: boolean);
   public
     procedure Initialise;        
     destructor Destroy; override;
@@ -82,6 +84,7 @@ type
     function CheckWrite(aAddr: word): boolean;
     procedure SetBreakpoint(aBkptAddr: word);
     //
+    property Enabled: boolean read fEnabled write SetFrameEnabled;
     property ArraySize: integer write SetArraySize;
   end;
 
@@ -132,6 +135,18 @@ begin
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + NUM_BKPTS, Count);
   SetLength(BkptArray, 0);
   inherited Destroy;
+end;
+
+
+{ SET ENABLED STATE }
+
+procedure TBreakpointsFrame.SetFrameEnabled(aFlag: boolean);
+var
+  i: integer;
+begin
+  fEnabled := aFlag;
+  for i := 0 to self.ControlCount-1 do
+    self.Controls[i].Enabled := fEnabled;
 end;
 
 
@@ -208,6 +223,8 @@ end;
 
 
 { ADD BREAKPOINT }
+
+{ TODO : uBreakpointsFrame -> BUG: adding $0000 on first use? }
 
 procedure TBreakpointsFrame.btnAddBkptClick(Sender: TObject);
 begin

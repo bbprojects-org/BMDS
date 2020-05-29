@@ -1,0 +1,13 @@
+inherited Chip8PrefsFrame: TChip8PrefsFrame
+  inherited btnResetDefault: TButton
+    TabOrder = 2
+  end
+  object Label1: TLabel[1]
+    Left = 24
+    Height = 16
+    Top = 24
+    Width = 269
+    Caption = 'No preferences currently defined for CHIP-8'
+    ParentColor = False
+  end
+end

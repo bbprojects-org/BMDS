@@ -21,7 +21,7 @@
       <UseVersionInfo Value="True"/>
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="3"/>
-      <MinorVersionNr Value="4"/>
+      <MinorVersionNr Value="5"/>
       <BuildNr Value="354"/>
       <Language Value="0809"/>
     </VersionInfo>
@@ -37,15 +37,18 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="SynEdit"/>
+        <PackageName Value="LazControls"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="SynEdit"/>
       </Item2>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
     </RequiredPackages>
-    <Units Count="53">
+    <Units Count="66">
       <Unit0>
         <Filename Value="BMDS.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -269,6 +272,7 @@
         <Filename Value="assembler\uAsmConfigFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="AsmConfigFrame"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit45>
       <Unit46>
@@ -303,6 +307,7 @@
         <Filename Value="debug\uWatchesFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="WatchesFrame"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit50>
       <Unit51>
@@ -316,6 +321,86 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit52>
+      <Unit53>
+        <Filename Value="editor\uEdPrefsFrame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="EdPrefsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit53>
+      <Unit54>
+        <Filename Value="assembler\uAssemblerForm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AssemblerForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit54>
+      <Unit55>
+        <Filename Value="uPrefsFrameBase.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="PrefsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit55>
+      <Unit56>
+        <Filename Value="uGenPrefsFrame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="GenPrefsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit56>
+      <Unit57>
+        <Filename Value="machine\SpaceInvaders\uPrefsSpaceInvaders.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SIPrefsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit57>
+      <Unit58>
+        <Filename Value="machine\microtan65\uPrefsMicrotan.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="M65PrefsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit58>
+      <Unit59>
+        <Filename Value="machine\CHIP-8\uPrefsChip8.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Chip8PrefsFrame"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit59>
+      <Unit60>
+        <Filename Value="editor\uEdColourPrefsFrame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="EdColourPrefsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit60>
+      <Unit61>
+        <Filename Value="assembler\uAsmPrefsFrame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AsmPrefsFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit61>
+      <Unit62>
+        <Filename Value="assembler\uErrorDefs.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit62>
+      <Unit63>
+        <Filename Value="editor\uMRU.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit63>
+      <Unit64>
+        <Filename Value="editor\uHighlighterAsm.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit64>
+      <Unit65>
+        <Filename Value="editor\uEditorFrame.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="EditorFrame"/>
+        <ResourceBaseClass Value="Frame"/>
+      </Unit65>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
@@ -326,8 +411,8 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="machine;machine\microtan65;machine\CHIP-8;cpu;cpu\6502;cpu\CHIP-8;debug;assembler;disassembler;SDL2;cpu\8080;machine\SpaceInvaders;$ Convert SI Source"/>
-      <UnitOutputDirectory Value="..\_obj"/>
+      <OtherUnitFiles Value="machine;machine\microtan65;machine\CHIP-8;cpu;cpu\6502;cpu\CHIP-8;debug;assembler;disassembler;SDL2;cpu\8080;machine\SpaceInvaders;editor"/>
+      <UnitOutputDirectory Value="..\_build"/>
     </SearchPaths>
     <CodeGeneration>
       <TargetCPU Value="x86_64"/>
@@ -347,8 +432,9 @@
       </Options>
     </Linking>
     <Other>
+      <CustomOptions Value="-dDebug"/>
       <OtherDefines Count="1">
-        <Define0 Value="CpuDiag"/>
+        <Define0 Value="Debug"/>
       </OtherDefines>
     </Other>
   </CompilerOptions>

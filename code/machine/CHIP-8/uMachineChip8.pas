@@ -35,8 +35,8 @@ interface
 uses
   LCLIntf, LCLType, Forms, Classes, SysUtils, ExtCtrls, Graphics, Dialogs,
   //
-  uMachineBase, uCpuBase, uCpuChip8, uDefsChip8, uMemoryMgr, uGfxMgr, uCommon,
-  SDL2;
+  uMachineBase, uCpuBase, uCpuTypes, uCpuChip8, uDefsChip8, uMemoryMgr, uGfxMgr,
+  uPrefsChip8, uCommon, SDL2;
 
 const
   STEPS_PER_FRAME = 10;
@@ -66,7 +66,7 @@ type
     procedure Step; override;    
     procedure ScreenRefresh; override; 
     procedure SaveToFile(strm: TStream);
-    procedure LoadFromFile(Filename: string);
+    procedure LoadFromFile(FileName: string);
 
     property CPU: TCpuBase read GetCPU;
     property DelayTimer: byte read fDelayTimer write fDelayTimer;
@@ -80,26 +80,26 @@ implementation
 
 constructor TMachineChip8.Create;
 begin
-  fConfigFrame := nil;                  // No config for CHIP8
+  // fConfigFrame referenced by PreferencesForm for config when CHIP-8 selected
+  fConfigFrame := TChip8PrefsFrame.Create(nil);
+  fConfigFrame.Init;                    // Get INI settings required below
 
-  fInfo.Name                := MACHINES[MACHINE_CHIP8].Name;
   fInfo.Year                := 1975;
   fInfo.CpuType             := ctCHIP8;
   fInfo.ScreenWidthPx       := 64;
   fInfo.ScreenHeightPx      := 32;
+  fInfo.ScaleModifier       := 5;       // Make 64x32 screen a bit bigger!
   fInfo.MemoryButtons       := 'Font=0000,Start=0200'; // Hex values
-  fInfo.MachineDefsFilename := '';
+  fInfo.MachineDefsFileName := '';
   fInfo.HasCodeToExecute    := False;   // Needs a program to execute
-
-  GlobalVars.ScaleModifier := 5;        // Make 64x32 screen a bit bigger!
 
   fMemoryMgr := TMemoryMgr.Create(0, MEM_SIZE_4K);
 
-  Gfx := TGfxManager.Create;            // Create screen, uses default B&W palette
+  Gfx := TGfxManager.Create(2);         // Create screen, uses default B&W palette
   Gfx.SetWindowSize(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
   TexIdxScreen := Gfx.GetTexture(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
 
-  fCPU := TCpuChip8.Create;             // Create and initialise pseudo CPU
+  fCPU := TCpuChip8.Create(ctCHIP8);    // Create and initialise pseudo CPU
   fCPU.Machine := self;
   fCPU.OnRead := @MemRead;
   fCPU.OnWrite := @MemWrite;
@@ -136,18 +136,20 @@ end;
 function TMachineChip8.GetDescription: string;
 begin
   Result := 'CHIP-8' + CRLF + CRLF +
-            'CHIP-8 is an interpreted programming language, developed by Joseph Weisbecker. ' +
-            'It was initially used on the COSMAC VIP and RCA Telmac 1800 8-bit microcomputers in the mid-1970s. ' +
-            'CHIP-8 programs are run on a CHIP-8 virtual machine. ' +
-            'It was made to allow video games to be more easily programmed for these computers.'  + CRLF + CRLF +
-            'The basic specification was:' + CRLF +
+            'CHIP-8 is an interpreted programming language, developed by Joseph ' +
+            'Weisbecker. It was initially used on the COSMAC VIP and RCA Telmac ' +
+            '1800 8-bit microcomputers in the mid-1970s. CHIP-8 programs are run ' +
+            'on a CHIP-8 virtual machine.  It was made to allow video games to ' +
+            'be more easily programmed for these computers.' + CRLF + CRLF +
+            'The basic specification included:' + CRLF +
             '  - Sixteen 8-bit registers' + CRLF +
             '  - One 16-bit address/index register' + CRLF +
             '  - 4K RAM, inc 48 bytes for stack' + CRLF +
             '  - Two timers counting down at 60Hz; delay timer and sound timer' + CRLF +
             '  - Hex keyboard' + CRLF +
             '  - Screen 64x32 mono. Graphic sprites 8 pixels wide, 1-15 pixels high' + CRLF + CRLF +
-            'A descendant, SCHIP (Super-CHIP), came out in 1990 introducing 128x64 resolution and some additional instructions.' + CRLF + CRLF +
+            'A descendant, SCHIP (Super-CHIP), came out in 1990 introducing 128x64 ' +
+            'resolution and some additional instructions.' + CRLF + CRLF +
             'Keys for this emulation:' + CRLF +
             '  8, 4, 6, 2 => up,left,right,down';
 end;
@@ -292,7 +294,7 @@ end;
 
 { LOAD / SAVE TO FILE }
 
-procedure TMachineChip8.LoadFromFile(Filename: string);
+procedure TMachineChip8.LoadFromFile(FileName: string);
 begin
   //
 end;
@@ -302,6 +304,10 @@ procedure TMachineChip8.SaveToFile(strm: TStream);
 begin
   //
 end;
+
+
+initialization
+  MachineFactory.RegisterMachine('CHIP-8', TMachineChip8);
 
 
 end.

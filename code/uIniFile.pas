@@ -33,7 +33,7 @@ unit uIniFile;
 interface
 
 uses
-  Forms, Dialogs, SysUtils, IniFiles, uCommon;
+  Forms, Dialogs, SysUtils, IniFiles;
 
 type
   TOnCustomSectionEvent = procedure(var Value: string) of object;
@@ -44,7 +44,7 @@ type
     fOnCustomSection: TOnCustomSectionEvent;
     procedure CheckIfCustomSection(var aSect: string);
   public
-    constructor Create(aFilename: string; CustomSectHandler: TOnCustomSectionEvent = nil);
+    constructor Create(aFileName: string; CustomSectHandler: TOnCustomSectionEvent = nil);
     destructor  Destroy; override;
 
     function  ValueExists(aSection, aKey: string): boolean;
@@ -76,13 +76,13 @@ implementation
 
 { CREATE }
 
-constructor TAppIni.Create(aFilename: string; CustomSectHandler: TOnCustomSectionEvent);
+constructor TAppIni.Create(aFileName: string; CustomSectHandler: TOnCustomSectionEvent);
 begin
   try
-    IniFile := TMemIniFile.Create(aFilename);
+    IniFile := TMemIniFile.Create(aFileName);
   except
     on E: Exception do
-      MessageDlg('Error', Format('Error with INI file "%s"; %s', [aFilename, E.Message]), mtError, [mbOK], 0);
+      MessageDlg('Error', Format('Error with INI file "%s"; %s', [aFileName, E.Message]), mtError, [mbOK], 0);
   end;                       
   IniFile.CacheUpdates := True;         // Keep updates in memory, write once
   fOnCustomSection := CustomSectHandler;

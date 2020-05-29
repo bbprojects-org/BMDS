@@ -1,10 +1,10 @@
 object CompareForm: TCompareForm
-  Left = 2595
+  Left = 1986
   Height = 442
-  Top = 57
+  Top = 23
   Width = 562
   BorderStyle = bsDialog
-  Caption = 'Compare Data'
+  Caption = 'BMDS Compare Data'
   ClientHeight = 442
   ClientWidth = 562
   Constraints.MaxHeight = 442
@@ -15,14 +15,14 @@ object CompareForm: TCompareForm
   OnDestroy = FormDestroy
   OnShow = FormShow
   ParentFont = True
-  LCLVersion = '2.0.1.0'
+  LCLVersion = '2.1.0.0'
   object GroupBox1: TGroupBox
     Left = 16
     Height = 198
     Top = 12
     Width = 256
     Caption = 'From:'
-    ClientHeight = 176
+    ClientHeight = 180
     ClientWidth = 248
     TabOrder = 0
     object rbRomFrom: TRadioButton
@@ -30,10 +30,10 @@ object CompareForm: TCompareForm
       Left = 8
       Height = 18
       Top = 8
-      Width = 91
+      Width = 88
       Caption = 'ROM Image'
       Checked = True
-      TabOrder = 6
+      TabOrder = 0
       TabStop = True
     end
     object rbHexFrom: TRadioButton
@@ -41,37 +41,37 @@ object CompareForm: TCompareForm
       Left = 8
       Height = 18
       Top = 62
-      Width = 69
+      Width = 67
       Caption = 'Hex File'
-      TabOrder = 0
+      TabOrder = 2
     end
     object rbMemFrom: TRadioButton
       Tag = 3
       Left = 8
       Height = 18
       Top = 116
-      Width = 70
+      Width = 68
       Caption = 'Memory'
-      TabOrder = 1
+      TabOrder = 4
     end
     object edMemFrom1: TEdit
       Tag = 3
       Left = 32
-      Height = 22
+      Height = 21
       Top = 142
       Width = 68
       OnChange = edMemFrom1Change
-      TabOrder = 2
+      TabOrder = 5
       Text = 'F800'
     end
     object edMemFrom2: TEdit
       Tag = 3
       Left = 136
-      Height = 22
+      Height = 21
       Top = 142
       Width = 68
       OnChange = edMemFrom1Change
-      TabOrder = 3
+      TabOrder = 6
       Text = 'FBFF'
     end
     object lbMemFrom2: TLabel
@@ -79,18 +79,18 @@ object CompareForm: TCompareForm
       Left = 104
       Height = 16
       Top = 145
-      Width = 29
+      Width = 28
       Caption = 'to  $'
       ParentColor = False
     end
     object edHexFrom: TEdit
       Tag = 2
       Left = 32
-      Height = 22
+      Height = 21
       Top = 87
       Width = 172
       Enabled = False
-      TabOrder = 4
+      TabOrder = 3
     end
     object sbHexFrom: TSpeedButton
       Tag = 2
@@ -140,11 +140,11 @@ object CompareForm: TCompareForm
     object edRomFrom: TEdit
       Tag = 1
       Left = 32
-      Height = 22
+      Height = 21
       Top = 33
       Width = 172
       Enabled = False
-      TabOrder = 5
+      TabOrder = 1
     end
     object sbRomFrom: TSpeedButton
       Tag = 1
@@ -207,7 +207,7 @@ object CompareForm: TCompareForm
     Top = 12
     Width = 256
     Caption = 'To:'
-    ClientHeight = 176
+    ClientHeight = 180
     ClientWidth = 248
     TabOrder = 1
     object rbRomTo: TRadioButton
@@ -215,7 +215,7 @@ object CompareForm: TCompareForm
       Left = 8
       Height = 18
       Top = 8
-      Width = 91
+      Width = 88
       Caption = 'ROM Image'
       Checked = True
       TabOrder = 0
@@ -224,7 +224,7 @@ object CompareForm: TCompareForm
     object edRomTo: TEdit
       Tag = 4
       Left = 32
-      Height = 22
+      Height = 21
       Top = 33
       Width = 172
       Enabled = False
@@ -323,34 +323,34 @@ object CompareForm: TCompareForm
     object edHexTo: TEdit
       Tag = 5
       Left = 32
-      Height = 22
+      Height = 21
       Top = 87
       Width = 172
       Enabled = False
-      TabOrder = 2
+      TabOrder = 3
     end
     object rbHexTo: TRadioButton
       Tag = 5
       Left = 8
       Height = 18
       Top = 62
-      Width = 69
+      Width = 67
       Caption = 'Hex File'
-      TabOrder = 3
+      TabOrder = 2
     end
     object rbMemTo: TRadioButton
       Tag = 6
       Left = 8
       Height = 18
       Top = 116
-      Width = 70
+      Width = 68
       Caption = 'Memory'
       TabOrder = 4
     end
     object edMemTo1: TEdit
       Tag = 6
       Left = 32
-      Height = 22
+      Height = 21
       Top = 142
       Width = 68
       HideSelection = False
@@ -363,14 +363,14 @@ object CompareForm: TCompareForm
       Left = 104
       Height = 16
       Top = 145
-      Width = 29
+      Width = 28
       Caption = 'to  $'
       ParentColor = False
     end
     object edMemTo2: TEdit
       Tag = 6
       Left = 136
-      Height = 22
+      Height = 21
       Top = 142
       Width = 68
       TabOrder = 6
@@ -393,7 +393,7 @@ object CompareForm: TCompareForm
     Width = 78
     Caption = 'Compare'
     OnClick = btnCompareClick
-    TabOrder = 2
+    TabOrder = 3
   end
   object GroupBox3: TGroupBox
     Left = 16
@@ -403,9 +403,9 @@ object CompareForm: TCompareForm
     Caption = 'Result'
     ChildSizing.LeftRightSpacing = 8
     ChildSizing.TopBottomSpacing = 8
-    ClientHeight = 184
+    ClientHeight = 188
     ClientWidth = 424
-    TabOrder = 3
+    TabOrder = 2
     object Memo1: TMemo
       Left = 8
       Height = 68
@@ -413,13 +413,15 @@ object CompareForm: TCompareForm
       Width = 408
       Align = alTop
       BorderSpacing.Around = 8
+      Lines.Strings = (      )
       OnClick = Memo1Click
       ReadOnly = True
       TabOrder = 0
+      TabStop = False
     end
     object DrawGrid1: TDrawGrid
       Left = 8
-      Height = 92
+      Height = 96
       Top = 84
       Width = 408
       Align = alClient
@@ -455,6 +457,7 @@ object CompareForm: TCompareForm
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSelect, goSmoothScroll, goRowHighlight]
       ScrollBars = ssVertical
       TabOrder = 1
+      TabStop = False
       OnDrawCell = DrawGrid1DrawCell
     end
   end
@@ -465,7 +468,7 @@ object CompareForm: TCompareForm
     Width = 78
     Caption = 'Next'
     OnClick = btnNextClick
-    TabOrder = 4
+    TabOrder = 5
   end
   object btnPrev: TButton
     Left = 464
@@ -474,14 +477,14 @@ object CompareForm: TCompareForm
     Width = 78
     Caption = 'Previous'
     OnClick = btnPrevClick
-    TabOrder = 5
+    TabOrder = 4
   end
   object OpenDialog1: TOpenDialog
     Title = 'Load ROM data file'
     DefaultExt = '.rom'
     Filter = 'ROM images files|*.rom;All files|*.*'
-    left = 256
-    top = 160
+    left = 488
+    top = 280
   end
   object OpenDialog2: TOpenDialog
     Title = 'Load hex data file'

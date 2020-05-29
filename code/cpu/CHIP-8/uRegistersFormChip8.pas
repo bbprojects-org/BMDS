@@ -1,6 +1,6 @@
 { ==============================================================================
 
-  REGISTERS FORM FOR CHIP-8 CPU
+  REGISTERS FORM FOR CHIP-8 PROCESSOR
 
     Displays all CHIP8 registers. Also shows bytes on the stack, and a
     disassembly of the next opcode to be executed
@@ -45,10 +45,10 @@ type
   { TRegistersFormChip8 }
 
   TRegistersFormChip8 = class(TRegistersFormBase)
-    edA3: TEdit;
+    ed8: TEdit;
     edI: TLabeledEdit;
     edV0: TLabeledEdit;
-    edA2: TEdit;
+    ed0: TEdit;
     edInstruction: TEdit;
     edPC: TLabeledEdit;
     edSP: TLabeledEdit;
@@ -67,21 +67,21 @@ type
     edV7: TLabeledEdit;
     edV8: TLabeledEdit;
     edV9: TLabeledEdit;
-    edX2: TEdit;
+    ed1: TEdit;
     edV2: TLabeledEdit;
-    edX3: TEdit;
-    edY10: TEdit;
-    edY11: TEdit;
-    edY12: TEdit;
-    edY13: TEdit;
-    edY2: TEdit;
-    edY3: TEdit;
-    edY4: TEdit;
-    edY5: TEdit;
-    edY6: TEdit;
-    edY7: TEdit;
-    edY8: TEdit;
-    edY9: TEdit;
+    ed9: TEdit;
+    edC: TEdit;
+    edD: TEdit;
+    edE: TEdit;
+    edF: TEdit;
+    ed2: TEdit;
+    ed3: TEdit;
+    ed4: TEdit;
+    ed5: TEdit;
+    ed6: TEdit;
+    ed7: TEdit;
+    edA: TEdit;
+    edB: TEdit;
     GroupBox1: TGroupBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -183,9 +183,9 @@ begin
     edI.Text := Format('%.4X', [I]);
 
     {
-    edX2.Text := Format('%d, ''%s'', %s', [X, GetAscii(X), GetBinary(X)]);
+    ed1.Text := Format('%d, ''%s'', %s', [X, GetAscii(X), GetBinary(X)]);
     edV2.Text := Format('%.2X', [Y]);
-    edY2.Text := Format('%d, ''%s'', %s', [Y, GetAscii(Y), GetBinary(Y)]);
+    ed2.Text := Format('%d, ''%s'', %s', [Y, GetAscii(Y), GetBinary(Y)]);
     }
     edInstruction.Text := fCPU.GetDisassembly(PC).Text;
   end;

@@ -5,9 +5,8 @@
     Standard 'about the application' form, showing versions, etc. This form
     also shows where the application's dynamic data is stored
 
-    If there is an 'about.jpg' image in the current machine's root folder
-    then this will be loaded and shown in this About form. Image size on this
-    form is 320W x 170H, but file image will be stretched to fit
+    If present, loads 'about' images from resources folder. Image size on this
+    form is 320W x 170H, but image will be stretched to fit
 
 
   LICENSE:
@@ -44,6 +43,7 @@ type
   { TAboutForm }
 
   TAboutForm = class(TForm)
+    lblImgDesc: TLabel;
     lblAppDataFolder: TLabel;
     lblAppTitle1: TLabel;
     lblFPCVer: TLabel;
@@ -56,12 +56,13 @@ type
     Panel1: TPanel;
     Image1: TImage;
     btnOK: TButton;
+    Timer1: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure Timer1Timer(Sender: TObject);
   private
-    procedure SetMachineDataFolder(const Value: string);
+    ImageIndex: integer;
   public
-    property MachineDataFolder: string write SetMachineDataFolder;
   end;
 
 var
@@ -69,7 +70,7 @@ var
 
 const
   APP_NAME    = 'BMDS';
-  APP_COPY    = 'Copyright RC Beveridge, 2002-2019';
+  APP_COPY    = 'Copyright RC Beveridge, 2002-';
 
 
 implementation
@@ -77,32 +78,39 @@ implementation
 {$R *.lfm}
 
 const
-  SECT_INI = 'AboutForm';
+  SECT_ABOUT = 'AboutForm';
   MONTHS: array[1..12] of string
     = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
+  ABOUT_ITEMS: array[0..3] of string = (
+    'Assembler', 'CHIP-8', 'Microtan 65', 'Space Invaders' );
+
 
 { CREATE }
 
 procedure TAboutForm.FormCreate(Sender: TObject);
 var
   A: TStringArray;
-  thisDate: string;
+  thisDate, thisYear: string;
 begin
-  Left := AppIni.ReadInteger(SECT_INI, INI_WDW_LEFT, 50);
-  Top := AppIni.ReadInteger(SECT_INI, INI_WDW_TOP, 50);
+  Left := AppIni.ReadInteger(SECT_ABOUT, INI_WDW_LEFT, 50);
+  Top := AppIni.ReadInteger(SECT_ABOUT, INI_WDW_TOP, 50);
 
   thisDate := {$I %DATE%};
   A := thisDate.Split('/');
   thisDate := Format('%d %s %s', [StrToInt(A[2]), MONTHS[StrToInt(A[1])], A[0]]);
+  thisYear := A[0];
   A := GetAppInfo.Split('.');
   lblAppVersion.Caption := Format('Version %s.%s (build %s, %s)', [A[0], A[1], A[3], thisDate]);
-  lblCopyright.Caption := APP_COPY;
+  lblCopyright.Caption := APP_COPY + thisYear;
   lblLazarusVer.Caption := 'Lazarus: ' + LCLVersion;
   lblFPCVer.Caption := 'FPC: ' + {$I %FPCVERSION%};
   {$ifdef darwin}
     btnOk.Visible := False;             // On MacOS generally no exit button
   {$endif}
   lblAppDataFolder.Caption := 'App data folder: ' + GetAppDataDirectory;
+  Randomize;
+  ImageIndex := Random(Length(ABOUT_ITEMS));
+  Timer1Timer(self);
 end;
 
 
@@ -110,23 +118,28 @@ end;
 
 procedure TAboutForm.FormDestroy(Sender: TObject);
 begin
-  AppIni.WriteInteger(SECT_INI, INI_WDW_LEFT, Left);
-  AppIni.WriteInteger(SECT_INI, INI_WDW_TOP, Top);
+  AppIni.WriteInteger(SECT_ABOUT, INI_WDW_LEFT, Left);
+  AppIni.WriteInteger(SECT_ABOUT, INI_WDW_TOP, Top);
+  inherited;
 end;
 
 
-{ SET MACHINE DATA FOLDER; show About image }
+{ TIMER1 EVENT - show random about image }
 
-procedure TAboutForm.SetMachineDataFolder(const Value: string);
+procedure TAboutForm.Timer1Timer(Sender: TObject);
 var
-  thisFilename: string;
+  thisFileName: string;
 begin
-  // If about.jpg for this machine does not exist, then caption shows through
-  // the empty About image. If it does exist the file is loaded and hides
-  // the message underneath
-  thisFilename := Value + 'about.jpg';
-  if FileExists(thisFilename) then
-    imgAbout.Picture.LoadFromFile(thisFilename);
+  ImageIndex := (ImageIndex + 1 ) mod Length(ABOUT_ITEMS);
+  thisFileName := GetAppResourcesDirectory + '/about/' + ABOUT_ITEMS[ImageIndex] + '.jpg';
+  // If image file found it is loaded and hides caption behind image box
+  if FileExists(thisFileName) then
+    begin
+      imgAbout.Picture.LoadFromFile(thisFileName);
+      lblImgDesc.Caption := ABOUT_ITEMS[ImageIndex];
+    end
+  else
+    lblImgDesc.Caption := '';
 end;
 
 

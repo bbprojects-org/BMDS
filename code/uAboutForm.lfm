@@ -1,7 +1,7 @@
 object AboutForm: TAboutForm
-  Left = 2596
+  Left = 2612
   Height = 396
-  Top = 529
+  Top = 77
   Width = 520
   BorderIcons = [biSystemMenu]
   BorderStyle = bsDialog
@@ -14,7 +14,7 @@ object AboutForm: TAboutForm
   Font.Name = 'MS Sans Serif'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  LCLVersion = '2.0.3.0'
+  LCLVersion = '2.1.0.0'
   object lblAppTitle1: TLabel
     Left = 24
     Height = 40
@@ -617,6 +617,22 @@ object AboutForm: TAboutForm
       Stretch = True
       Transparent = True
     end
+    object lblImgDesc: TLabel
+      Left = 14
+      Height = 18
+      Top = 156
+      Width = 128
+      Alignment = taCenter
+      AutoSize = False
+      Caption = 'Space Invaders'
+      Color = clWhite
+      Font.Color = clRed
+      Font.Height = -16
+      Font.Name = 'MS Sans Serif'
+      ParentColor = False
+      ParentFont = False
+      Transparent = False
+    end
   end
   object lblAppDataFolder: TLabel
     Left = 24
@@ -627,5 +643,11 @@ object AboutForm: TAboutForm
     Caption = 'lblAppDataFolder'
     ParentColor = False
     WordWrap = True
+  end
+  object Timer1: TTimer
+    Interval = 2000
+    OnTimer = Timer1Timer
+    left = 448
+    top = 16
   end
 end

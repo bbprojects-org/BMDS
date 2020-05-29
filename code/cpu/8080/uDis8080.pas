@@ -2,7 +2,7 @@
 
   DISASSEMBLER FOR 8080
 
-    Provides routines to disassemble code at a specified address into
+    Provides routines to disassemble 8080 code at a specified address into
     readable assembler code
 
 
@@ -32,7 +32,7 @@ interface
 uses
   Classes, SysUtils, Dialogs,
   //
-  uCpu8080, uDefs8080, uCommon;
+  uCpu8080, uDefs8080, uCpuTypes, uCommon;
 
 function Disassemble8080(CPU: TCpu8080; Addr: word): TDisassembledData;
 
@@ -46,20 +46,15 @@ implementation
 
 function Disassemble8080(CPU: TCpu8080; Addr: word): TDisassembledData;
 var
-  (*
-  Opcode: Byte;
-  Operand: Word;
-  MnemonicStr, BytesStr, OperandStr, AddrModeStr: string;
-  *)
   AddrMode: TAddrMode8080;
 begin
   Result.Opcode := CPU.ReadMem(Addr);
-  Result.MnemStr := CPU.OpcodeData(Result.Opcode).M;
+  Result.MnemStr := CPU.DataByOpcode[Result.Opcode].M;
   Result.Operand := 0;
-  Result.OperandStr := CPU.OpcodeData(Result.Opcode).A;
+  Result.OperandStr := CPU.DataByOpcode[Result.Opcode].A;
   Result.HasOperand := False;
-  AddrMode := TAddrMode8080(CPU.OpcodeData(Result.Opcode).S);
-  Result.NumBytes := CPU.OpcodeData(Result.Opcode).N;
+  AddrMode := TAddrMode8080(CPU.DataByOpcode[Result.Opcode].S);
+  Result.NumBytes := CPU.DataByOpcode[Result.Opcode].N;
   case (Result.NumBytes) of
 
     0: begin

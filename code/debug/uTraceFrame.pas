@@ -31,7 +31,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Grids, StdCtrls, Types, ExtCtrls, Math,
   //
-  uCpuBase, uCommon;
+  uCpuBase, uCpuTypes;
 
 type
 

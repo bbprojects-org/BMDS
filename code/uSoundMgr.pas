@@ -42,7 +42,7 @@ const
 
 type
   TSound = record
-    Filename: string;
+    FileName: string;
     SdlHandle: PMix_Chunk;
   end;
 
@@ -56,7 +56,7 @@ type
     constructor Create(Freq: integer = 44100; Channels: integer = 2);
     destructor  Destroy; override;
 
-    function  Add(Filename: string): integer;
+    function  Add(FileName: string): integer;
     procedure Play(Channel, Index: integer; Loops: integer = 0);
     procedure Halt(Channel: integer = -1);
   end;
@@ -108,17 +108,17 @@ end;
 
 { ADD }
 
-function TSoundMgr.Add(Filename: string): integer;
+function TSoundMgr.Add(FileName: string): integer;
 var
   n: integer;
 begin
   n := Length(aSoundsList);
   SetLength(aSoundsList, n + 1);
-  aSoundsList[n].Filename := Filename;
-  aSoundsList[n].SdlHandle := Mix_LoadWAV(PChar(GetFullFilename(Filename)));
+  aSoundsList[n].FileName := FileName;
+  aSoundsList[n].SdlHandle := Mix_LoadWAV(PChar(GetFullFileName(FileName)));
   if (aSoundsList[n].SdlHandle = nil) then
     begin
-      MessageDlg('Error in sound manager', Format('Unable to load sound [%s]', [GetFullFilename(Filename)]), mtError, [mbOK], 0);
+      MessageDlg('Error in sound manager', Format('Unable to load sound [%s]', [GetFullFileName(FileName)]), mtError, [mbOK], 0);
       SetLength(aSoundsList, n);        // Reset array
       Result := 0;
     end

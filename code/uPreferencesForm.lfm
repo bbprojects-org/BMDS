@@ -1,78 +1,86 @@
 object PreferencesForm: TPreferencesForm
-  Left = 2624
-  Height = 480
-  Top = 429
-  Width = 640
+  Left = 1304
+  Height = 400
+  Top = 22
+  Width = 600
   BorderIcons = []
-  BorderStyle = bsDialog
   Caption = 'Preferences'
-  ClientHeight = 480
-  ClientWidth = 640
+  ClientHeight = 400
+  ClientWidth = 600
+  Constraints.MinHeight = 400
+  Constraints.MinWidth = 600
   FormStyle = fsStayOnTop
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  LCLVersion = '2.0.1.0'
-  object btnOK: TButton
-    Left = 552
-    Height = 22
-    Top = 440
-    Width = 75
-    Anchors = [akRight, akBottom]
-    Caption = 'OK'
-    OnClick = btnOKClick
-    TabOrder = 0
-  end
-  object btnCancel: TButton
-    Left = 464
-    Height = 22
-    Top = 440
-    Width = 75
-    Anchors = [akRight, akBottom]
-    Caption = 'Cancel'
-    OnClick = btnCancelClick
-    TabOrder = 1
-  end
-  object PageControl1: TPageControl
-    Left = 8
-    Height = 424
-    Top = 8
-    Width = 619
-    ActivePage = TabSheetMachineConfig
-    TabIndex = 2
+  LCLVersion = '2.1.0.0'
+  object PanelBottom: TPanel
+    Left = 0
+    Height = 44
+    Top = 356
+    Width = 600
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 44
+    ClientWidth = 600
     TabOrder = 2
-    object TabSheetMain: TTabSheet
-      Caption = 'Main'
-      ClientHeight = 385
-      ClientWidth = 613
-      object GroupBox1: TGroupBox
-        Left = 8
-        Height = 64
-        Top = 8
-        Width = 592
-        Caption = 'Data Path:'
-        ClientHeight = 42
-        ClientWidth = 584
-        TabOrder = 0
-        object edDataPath: TLabeledEdit
-          Left = 8
-          Height = 22
-          Top = 8
-          Width = 568
-          EditLabel.Height = 16
-          EditLabel.Width = 4
-          EditLabel.Caption = ' '
-          EditLabel.ParentColor = False
-          LabelPosition = lpLeft
-          TabOrder = 0
-          Text = 'edDataPath'
-        end
-      end
+    object btnOK: TButton
+      Left = 496
+      Height = 20
+      Top = 10
+      Width = 75
+      Anchors = [akRight, akBottom]
+      Caption = 'OK'
+      Constraints.MinWidth = 60
+      OnClick = btnOKClick
+      TabOrder = 1
     end
-    object TabSheetAssembler: TTabSheet
-      Caption = 'Assembler'
+    object btnCancel: TButton
+      Left = 408
+      Height = 22
+      Top = 10
+      Width = 75
+      Anchors = [akTop, akRight]
+      Caption = 'Cancel'
+      OnClick = btnCancelClick
+      TabOrder = 0
     end
-    object TabSheetMachineConfig: TTabSheet
-      Caption = 'Machine Config'
-    end
+  end
+  object tvCategory: TTreeView
+    Left = 8
+    Height = 348
+    Top = 8
+    Width = 140
+    Align = alLeft
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 4
+    ReadOnly = True
+    ScrollBars = ssAutoVertical
+    ShowButtons = False
+    ShowRoot = False
+    TabOrder = 0
+    OnChange = tvCategoryChange
+    Options = [tvoAutoItemHeight, tvoHideSelection, tvoKeepCollapsedNodes, tvoReadOnly, tvoShowLines, tvoToolTips, tvoThemedDraw]
+    Items.Data = {
+      F9FFFFFF020004000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF000000000000
+      0000000700000047656E6572616CFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0100
+      00000000000001070000004D616368696E65FFFFFFFFFFFFFFFFFFFFFFFFFFFF
+      FFFF0000000000000000000D0000004D616368546F42654E616D6564FFFFFFFF
+      FFFFFFFFFFFFFFFFFFFFFFFF00000000000000000009000000417373656D626C
+      6572FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0200000000000000010600000045
+      6469746F72FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000000000000000000700
+      0000446973706C6179FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00000000000000
+      000007000000436F6C6F757273
+    }
+  end
+  object PanelFrames: TPanel
+    Left = 152
+    Height = 348
+    Top = 8
+    Width = 440
+    Align = alClient
+    BorderSpacing.Top = 8
+    BorderSpacing.Right = 8
+    TabOrder = 1
   end
 end

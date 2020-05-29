@@ -2,8 +2,9 @@
 
   DISASSEMBLER FOR 6502
 
-    Provides routines to disassemble code at a specified address into user
+    Provides routines to disassemble 6502 code at a specified address into user
     readable assembler code
+
 
   LICENSE:
 
@@ -31,7 +32,7 @@ interface
 uses
   Classes, SysUtils, Dialogs,
   //
-  uCpu6502, uDefs6502, uCommon;
+  uCpu6502, uDefs6502, uCpuTypes, uCommon;
 
 function Disassemble6502(CPU: TCpu6502; Addr: word): TDisassembledData;
 
@@ -48,11 +49,12 @@ var
   AddrMode: TAddrMode6502;
 begin
   Result.Opcode := CPU.MemRead(Addr);
-  Result.MnemStr := CPU.OpcodeData(Result.Opcode).M;
+  { TODO : uDis6502 -> have this as CPU.Opcodes[i].M where gets data from DataMgr ref }
+  Result.MnemStr := CPU.DataByOpcode[Result.Opcode].M;             // CPU.OpcodeData[Result.Opcode].M;
   Result.Operand := 0;
   Result.HasOperand := False;
-  AddrMode := TAddrMode6502(CPU.OpcodeData(Result.Opcode).S);
-  Result.NumBytes := CPU.OpcodeData(Result.Opcode).N;
+  AddrMode := TAddrMode6502(CPU.DataByOpcode[Result.Opcode].S);    // CPU.OpcodeData[Result.Opcode].S);
+  Result.NumBytes := CPU.DataByOpcode[Result.Opcode].N;            // CPU.OpcodeData[Result.Opcode].N;
   case (Result.NumBytes) of
 
     0: begin

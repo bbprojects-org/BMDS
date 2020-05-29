@@ -30,6 +30,7 @@
 unit uCompareForm;
 
 {$mode objfpc}{$H+}
+{$R-}
 
 interface
 
@@ -90,13 +91,12 @@ type
     procedure sbHexFromClick(Sender: TObject);
     procedure sbRomFromClick(Sender: TObject);
   private
-    fMachineRef: TMachineBase;
     BufFrom: TByteBuffer;
     BufTo: TByteBuffer;
-    FilenameRomFrom: string;
-    FilenameHexFrom: string;
-    FilenameRomTo: string;
-    FilenameHexTo: string;
+    FileNameRomFrom: string;
+    FileNameHexFrom: string;
+    FileNameRomTo: string;
+    FileNameHexTo: string;
     LengthFrom: integer;
     LengthTo: integer;
     ErrMsg: string;
@@ -107,11 +107,10 @@ type
     OffsetTo: integer;
     TempStartAddr: integer;
     procedure ErrorMsg(Msg: string);
-    function ReadRomFile(Filename: string; var Buffer: TByteBuffer): integer;
-    function ReadHexFile(Filename: string; var Buffer: TByteBuffer): integer;
+    function ReadRomFile(FileName: string; var Buffer: TByteBuffer): integer;
+    function ReadHexFile(FileName: string; var Buffer: TByteBuffer): integer;
     function ReadMem(Ed1, Ed2: TEdit; var Buffer: TByteBuffer): integer;
   public
-    property MachineRef: TMachineBase write fMachineRef;
   end;
 
 
@@ -138,15 +137,15 @@ begin
   edMemTo1.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + 'MemT1', 0)]);
   edMemTo2.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + 'MemT2', $FFFF)]);
 
-  FilenameRomFrom := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnRomF', '');
-  FilenameHexFrom := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnHexF', '');
-  FilenameRomTo := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnRomT', '');
-  FilenameHexTo := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnHexT', '');
+  FileNameRomFrom := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnRomF', '');
+  FileNameHexFrom := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnHexF', '');
+  FileNameRomTo := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnRomT', '');
+  FileNameHexTo := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnHexT', '');
 
-  edRomFrom.Text := ExtractFilename(FilenameRomFrom);
-  edHexFrom.Text := ExtractFilename(FilenameHexFrom);
-  edRomTo.Text := ExtractFilename(FilenameRomTo);
-  edHexTo.Text := ExtractFilename(FilenameHexTo);
+  edRomFrom.Text := ExtractFileName(FileNameRomFrom);
+  edHexFrom.Text := ExtractFileName(FileNameHexFrom);
+  edRomTo.Text := ExtractFileName(FileNameRomTo);
+  edHexTo.Text := ExtractFileName(FileNameHexTo);
 
   CompareActive := False;
 end;
@@ -164,10 +163,10 @@ begin
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + 'MemT1', GetHex(edMemTo1.Text));
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + 'MemT2', GetHex(edMemTo2.Text));
 
-  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnRomF', FilenameRomFrom);
-  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnHexF', FilenameHexFrom);
-  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnRomT', FilenameRomTo);
-  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnHexT', FilenameHexTo);
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnRomF', FileNameRomFrom);
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnHexF', FileNameHexFrom);
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnRomT', FileNameRomTo);
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnHexT', FileNameHexTo);
 end;
 
 
@@ -191,13 +190,13 @@ begin
 
   if rbRomFrom.Checked then
     begin
-      LengthFrom := ReadRomFile(FilenameRomFrom, BufFrom);
+      LengthFrom := ReadRomFile(FileNameRomFrom, BufFrom);
       FromStr := Format('ROM image "%s"', [edRomFrom.Text]);
       OffsetFrom := 0;
     end;
   if rbHexFrom.Checked then
     begin
-      LengthFrom := ReadHexFile(FilenameHexFrom, BufFrom);
+      LengthFrom := ReadHexFile(FileNameHexFrom, BufFrom);
       FromStr := Format('hex file "%s"', [edHexFrom.Text]);
       OffsetFrom := TempStartAddr;
     end;
@@ -210,13 +209,13 @@ begin
 
   if rbRomTo.Checked then
     begin
-      LengthTo := ReadRomFile(FilenameRomTo, BufTo);
+      LengthTo := ReadRomFile(FileNameRomTo, BufTo);
       ToStr := Format('ROM image "%s"', [edRomTo.Text]);
       OffsetTo := 0;
     end;
   if rbHexTo.Checked then
     begin
-      LengthTo := ReadHexFile(FilenameHexTo, BufTo);
+      LengthTo := ReadHexFile(FileNameHexTo, BufTo);
       ToStr := Format('hex file "%s"', [edHexTo.Text]);
       OffsetTo := TempStartAddr;
     end;
@@ -353,35 +352,35 @@ end;
 
 procedure TCompareForm.sbRomFromClick(Sender: TObject);
 var
-  ThisFilename: string;
+  ThisFileName: string;
 begin
   if (OpenDialog1.Execute) then
-    ThisFilename := OpenDialog1.FileName
+    ThisFileName := OpenDialog1.FileName
   else
-    ThisFilename := '';
+    ThisFileName := '';
   if ((Sender as TSpeedButton).Tag = 1) then  // From
     begin
       rbRomFrom.Checked := True;
-      edRomFrom.Text := ExtractFilename(ThisFilename);
-      FilenameRomFrom := ThisFilename;
+      edRomFrom.Text := ExtractFileName(ThisFileName);
+      FileNameRomFrom := ThisFileName;
     end
   else
     begin
       rbRomTo.Checked := True;
-      edRomTo.Text := ExtractFilename(ThisFilename);
-      FilenameRomTo := ThisFilename;
+      edRomTo.Text := ExtractFileName(ThisFileName);
+      FileNameRomTo := ThisFileName;
     end;
 end;
 
 
-function TCompareForm.ReadRomFile(Filename: string; var Buffer: TByteBuffer): integer;
+function TCompareForm.ReadRomFile(FileName: string; var Buffer: TByteBuffer): integer;
 var
   RomStream: TMemoryStream;
   RomPtr: PChar;
   idx: integer;
 begin
   Result := 0;
-  if (Filename = '') then
+  if (FileName = '') then
     begin
       ErrorMsg('No ROM image file specified');
       Exit;
@@ -407,41 +406,41 @@ end;
 
 procedure TCompareForm.sbHexFromClick(Sender: TObject);
 var
-  ThisFilename: string;
+  ThisFileName: string;
 begin
   if (OpenDialog2.Execute) then
-    ThisFilename := OpenDialog2.FileName
+    ThisFileName := OpenDialog2.FileName
   else
-    ThisFilename := '';
+    ThisFileName := '';
 
   if ((Sender as TSpeedButton).Tag = 2) then  // From
     begin
       rbHexFrom.Checked := True;
-      edHexFrom.Text := ExtractFilename(ThisFilename);
-      FilenameHexFrom := ThisFilename;
+      edHexFrom.Text := ExtractFileName(ThisFileName);
+      FileNameHexFrom := ThisFileName;
     end
   else
     begin
       rbHexTo.Checked := True;
-      edHexTo.Text := ExtractFilename(ThisFilename);
-      FilenameHexTo := ThisFilename;
+      edHexTo.Text := ExtractFileName(ThisFileName);
+      FileNameHexTo := ThisFileName;
     end;
 end;
 
 
-function TCompareForm.ReadHexFile(Filename: string; var Buffer: TByteBuffer): integer;
+function TCompareForm.ReadHexFile(FileName: string; var Buffer: TByteBuffer): integer;
 var
   ReadHex: TReadHex;
   idx: integer;
 begin
   Result := 0;
-  if (Filename = '') then
+  if (FileName = '') then
     begin
       ErrorMsg('No hex file specified');
       Exit;
     end;
 
-  ReadHex := TReadHex.Create(Filename);
+  ReadHex := TReadHex.Create(FileName);
   try
     TempStartAddr := ReadHex.StartAddress;
     Result := ReadHex.BytesRead;
@@ -490,7 +489,7 @@ begin
     end;
 
   for i := FromAddr to ToAddr do
-    Buffer[i - FromAddr] := fMachineRef.Memory[i];
+    Buffer[i - FromAddr] := Machine.Memory[i];
   Result := ToAddr - FromAddr + 1;
 end;
 

@@ -70,7 +70,7 @@ type
     procedure SetErrMsg(ErrStr: string);
     procedure SetPalette(Value: TPalette);
   public
-    constructor Create;
+    constructor Create(NumColours: integer);
     destructor  Destroy; override;
     procedure SetWindowPosition(Left, Top: longint);
     procedure SetWindowSize(Width, Height: longint);
@@ -97,10 +97,6 @@ type
     property ShowCursor: boolean read fCursorOn write SetCursor;
 end;
 
-const
-  // Default palette is black & white
-  DEFAULT_PALETTE: array[0..1] of TGfxColour = ($000000FF, $FFFFFFFF);
-
 
 implementation
 
@@ -109,11 +105,13 @@ implementation
          - Create renderer
          - Create pixel array for screen }
 
-constructor TGfxManager.Create;
+constructor TGfxManager.Create(NumColours: integer);
 begin
   fErrorFlag := False;                  // No errors at this time
   fSdlTextureCount := 0;                // No textures in use
-  fPalette := DEFAULT_PALETTE;          // Black and white
+  SetLength(fPalette, NumColours);
+  fPalette[0] := $000000FF;             // Black and white
+  fPalette[1] := $FFFFFFFF;
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0) then
     begin

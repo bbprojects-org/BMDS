@@ -28,19 +28,23 @@
 
   =============================================================================}
 
-{ TODO : uCpu6502 -> in Create, need to select any CPU variant, currently just basic 6502 }
-{ TODO : uCpu6502 -> in TCpuInfo, sort assignment for different register arrays }
+{ Fixes 24 Apr 2020:
+  - amended PHP ($08) to include BRK flag, prompted via 'Klaus' testcode
+  - amended BRK ($00) to include BRK flag, and fixed build IRQ vector missing shift
+  - my ADC/SBC did not work, so used code "Dennis1000/mos6502-delphi" on GitHub
+}
 
 unit uCpu6502;
 
 {$mode objfpc}{$H+}
+{$R-}
 
 interface
 
 uses
   SysUtils, Dialogs,
   //
-  uCpuBase, uDefs6502, uCommon;
+  uCpuBase, uDefs6502, uCpuTypes, uCommon;
 
 type
 
@@ -66,6 +70,7 @@ type
     Zflag: boolean;
     Cflag: boolean;
     //
+    fOpcodesData: TOpcodeArray;
     OpcodePtrArray: array[0..255] of word;
     Cycles: integer;
     EA: word;                           // Effective Address
@@ -73,8 +78,10 @@ type
     NMIflag: boolean;
     //
     TempB: byte;                        // Temporary variables
-    TempW, Temp3: word;
+    TempW: word;
+    TempC: Cardinal;
     TempCarry: byte;
+    fInvalidFlag: boolean;
 
     // Array for maintaining execution trace values
     TraceList: array[0..TRACE_MAX-1] of TRegs6502;
@@ -93,61 +100,77 @@ type
     function  ProcessOpcode: integer;
   protected
     function  GetPC: word; override;
-    function  GetAssemblerRegisters: string; override;
     function  GetTraceColumns: TTraceColArray; override;
-    function  GetOpcodeDataArray: TOpcodeArray; override;
+    function  GetDataByIndex(Index: integer): TOpcodeRawData; override;
+    function  GetDataByOpcode(Opcode: integer): TOpcodeRawData; override;
+    function  GetInfo: TCpuInfo; override;
     function  GetRegs: TRegs6502;
   public
-    constructor Create; override;
+    constructor Create(ct: TCpuType); override;
     destructor  Destroy; override;
     procedure Reset; override;
     function  ExecuteInstruction: integer; override;
-    procedure Interrupt(AIndex: byte; Value: boolean = True); override;
-    function  GetTrace(Index: integer): TDisassembledData; override;
-    function  GetDisassembly(Addr:word): TDisassembledData; override;
+    procedure Interrupt(aIndex: byte; Value: boolean = True); override;
+    function  GetTrace({%H-}Index: integer): TDisassembledData; override;
+    function  GetDisassembly({%H-}Addr:word): TDisassembledData; override;
     //
     function  MemRead(addr: word): byte;
     procedure MemWrite(addr: word; value: byte);
-    function  OpcodeData(Opcode: byte): TOpcodeRawData;
 
     property Regs: TRegs6502 read GetRegs write fRegs;
+    property InvalidOpcode: boolean read fInvalidFlag;
   end;
 
 
 implementation
 
+{$ifndef Test6502}
 uses
   uRegistersFrame6502, uDis6502;
+{$endif}
 
 
 { CREATE 6502 CPU }
 
-constructor TCpu6502.Create;
+constructor TCpu6502.Create(ct: TCpuType);
 var
-  i: integer;
-  Opcode: byte;
+  i, Len: integer;
+  Opcode, ThisTypeMask: byte;
+  ThisOpcode: TOpcodeRawData;
 begin
+  {$ifndef Test6502}
   fRegistersFrame := TRegistersFrame6502.Create(nil);
   (fRegistersFrame as TRegistersFrame6502).CpuRef := self;
+  {$endif}
 
-  fName                 := CPU_6502;
-  fCpuType              := ctR6502;
-  fSupportsAssembler    := True;
-  fSupportsDisassembler := True;
-  fCpuState             := csStopped;
-  fTraceWidth           := 440;
-  fRegistersHeight      := 205;
+  fCpuType  := ct;
+  fCpuState := csStopped;
+  case ct of
+    ct6502:  ThisTypeMask := %01;
+    { TODO : uCpu6502 -> add support for 65C02 }
+    ct65C02: begin
+               MessageWarning('65C02 currently not supported, defaulting to 6502');
+               //ThisTypeMask := %11;
+               ThisTypeMask := %01;
+             end;
+  end;
 
   for i := 0 to 255 do
     OpcodePtrArray[i] := 0;             // Initialise array to point at Undefined opcode
 
   for i := 0 to (Length(OPCODES_6502) - 1) do
     begin                               // Then set opcode pointers into data array
-      if ((OPCODES_6502[i].T and 1) <> 1) then
-        Continue;                       // Skip if not basic 6502
-      Opcode := OPCODES_6502[i].O;
-      OpcodePtrArray[Opcode] := i;      // Set pointers into Opcode data
+      ThisOpcode := OPCODES_6502[i];
+      if ((ThisOpcode.T and ThisTypeMask) = 0) then
+        Continue;                       // Skip if not selected 6502
+      Len := Length(fOpcodesData);
+      SetLength(fOpcodesData, Len + 1);
+      fOpcodesData[Len] := ThisOpcode;
+
+      Opcode := ThisOpcode.O;
+      OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
     end;
+  fDataCount := Length(fOpcodesData);
 
   Reset;
 end;
@@ -155,8 +178,12 @@ end;
 
 destructor TCpu6502.Destroy;
 begin
+  {$ifndef Test6502}
   fRegistersFrame.Parent := nil;        // Avoid pointer errors
   fRegistersFrame.Free;
+  {$endif}
+  SetLength(fOpcodesData, 0);
+  fOpcodesData := nil;
   inherited;
 end;
 
@@ -180,14 +207,15 @@ end;
 
 { PROPERTY GET / SET ROUTINES }
 
-function TCpu6502.GetOpcodeDataArray: TOpcodeArray;
-var
-  idx: integer;
+function TCpu6502.GetDataByIndex(Index: integer): TOpcodeRawData;
 begin
- // Cannot assign const array to dynamic array, so copy each item
- SetLength(Result, length(OPCODES_6502));
- for idx := 0 to length(OPCODES_6502)-1 do
-   Result[idx] := OPCODES_6502[idx];
+  Result := fOpcodesData[Index];
+end;
+
+
+function TCpu6502.GetDataByOpcode(Opcode: integer): TOpcodeRawData;
+begin
+  Result := fOpcodesData[OpcodePtrArray[Opcode]];
 end;
 
 
@@ -204,15 +232,9 @@ begin
 end;
 
 
-function TCpu6502.OpcodeData(Opcode: byte): TOpcodeRawData;
+function TCpu6502.GetInfo: TCpuInfo;
 begin
-  Result := OPCODES_6502[OpcodePtrArray[Opcode]];
-end;
-
-
-function TCpu6502.GetAssemblerRegisters: string;
-begin
-  Result := REGISTERS_6502;
+  Result := INFO_6502;
 end;
 
 
@@ -390,6 +412,7 @@ var
   AddrMode: TAddrMode6502;
 begin
   Cycles := 0;
+  fInvalidFlag := False;
 
   if ((not Iflag) and IRQflag) then     // Check for any interrupts first
     CallIRQ;
@@ -401,10 +424,10 @@ begin
   Opcode := MemRead(fRegs.PC);          // Get opcode to execute
   Inc(fRegs.PC);
   MemRead(fRegs.PC);                    // 6502 always reads next location
-  Inc(Cycles, OpcodeData(Opcode).C);    // Get basic number of clock cycles
+  Inc(Cycles, DataByOpcode[Opcode].C);  // Get basic number of clock cycles
 
   // Check address mode and set effective address (EA) accordingly
-  AddrMode := TAddrMode6502(OpcodeData(Opcode).S);
+  AddrMode := TAddrMode6502(DataByOpcode[Opcode].S);
   case AddrMode of
     mNil:  begin
              // Do nothing
@@ -414,60 +437,60 @@ begin
            end;
     mIMM:  begin
              EA := fRegs.PC;
-             Inc(fRegs.PC);
+             fRegs.PC := (fRegs.PC + 1) and $FFFF;
            end;
     mACC:  begin
              // Do nothing
            end;
     mZP:   begin
              EA := MemRead(fRegs.PC) and $FF;
-             Inc(fRegs.PC);
+             fRegs.PC := (fRegs.PC + 1) and $FFFF;
            end;
     mZPX:  begin
              // Hi byte is always zero, no page boundary crossings
              EA := (MemRead(fRegs.PC) + fRegs.X) and $FF;
-             Inc(fRegs.PC);
+             fRegs.PC := (fRegs.PC + 1) and $FFFF;
            end;
     mZPY:  begin
              // Hi byte is always zero, no page boundary crossings
              EA := (MemRead(fRegs.PC) + fRegs.Y) and $FF;
-             Inc(fRegs.PC);
+             fRegs.PC := (fRegs.PC + 1) and $FFFF;
            end;
     mABS:  begin
              EA := MemRead(fRegs.PC);
              EA := EA or (MemRead(fRegs.PC + 1) shl 8);
-             Inc(fRegs.PC, 2);
+             fRegs.PC := (fRegs.PC + 2) and $FFFF;
            end;
     mABSX: begin
              EA := MemRead(fRegs.PC) + fRegs.X;
              if (EA > $FF) then
                Inc(Cycles);             // Extra clock cycle to fix high byte of address
              EA := EA + (MemRead(fRegs.PC + 1) shl 8);
-             Inc(fRegs.PC, 2);
+             fRegs.PC := (fRegs.PC + 2) and $FFFF;
            end;
     mABSY: begin
              EA := MemRead(fRegs.PC) + fRegs.Y;
              if (EA > $FF) then
                Inc(Cycles);             // Extra clock cycle to fix high byte of address
              EA := EA + (MemRead(fRegs.PC+1) shl 8);
-             Inc(fRegs.PC, 2);
+             fRegs.PC := (fRegs.PC + 2) and $FFFF;
            end;
     mIND:  begin
              Ptr := MemRead(fRegs.PC);
              Ptr := Ptr or (MemRead(fRegs.PC + 1) shl 8);
-             Inc(fRegs.PC, 2);
+             fRegs.PC := (fRegs.PC + 2) and $FFFF;
              EA := MemRead(Ptr);
              EA := EA or (MemRead(Ptr + 1) shl 8);
            end;
     mINDX: begin
              Ptr := (MemRead(fRegs.PC) + fRegs.X) and $FF;
-             Inc(fRegs.PC);
+             fRegs.PC := (fRegs.PC + 1) and $FFFF;
              EA := MemRead(Ptr);
              EA := EA or (MemRead((Ptr + 1) and $FF) shl 8);
            end;
     mINDY: begin
              Ptr := MemRead(fRegs.PC);
-             Inc(fRegs.PC);
+             fRegs.PC := (fRegs.PC + 1) and $FFFF;
              EA := MemRead(Ptr);
              EA := (EA or (MemRead((Ptr + 1) and $FF) shl 8)) + fRegs.Y;
              if ((EA and $FF00) <> (fRegs.PC and $FF00)) then
@@ -475,7 +498,7 @@ begin
            end;
     mREL:  begin
              EA := MemRead(fRegs.PC) and $FF; // Get offset in EA
-             Inc(fRegs.PC);
+             fRegs.PC := (fRegs.PC + 1) and $FFFF;
            end;
   end;
 
@@ -519,116 +542,58 @@ begin
 
     ///////////////// ARITHMETIC & LOGIC INSTRUCTIONS //////////////////////////
 
+    // ADC and SBC based on code by "Dennis1000 / mos6502-delphi" on GitHub
+
     $61,$65,$69,$6d,$71,$75,$79,$7d:             // ADC
          begin
            TempB := MemRead(EA);
-           if (Cflag) then
-             TempCarry := 1
-           else
-             TempCarry := 0;
-           if ((fRegs.A xor TempB) and $80) <> 0 then
-             Vflag := False
-           else
-             Vflag := True;
+           if (Cflag) then TempCarry := 1
+                      else TempCarry := 0;
+           TempC := TempB + fRegs.A + TempCarry;
+           Zflag := ((TempC and $FF) = 0);
+
            if (Dflag) then
              begin
                Inc(Cycles);             // Extra cycle
-               TempW := (fRegs.A and $0f) + (TempB and $0f) + TempCarry;
-               if (TempW >= 10) then
-                 TempW := $10 or ((TempW + 6) and $0f);
-               TempW := TempW + (fRegs.A and $f0) + (TempB and $f0);
-               if (TempW >= 160) then
-                 begin
-                   Cflag := True;
-                   if (Vflag and (TempW >= $180)) then
-                     Vflag := False;
-                   TempW := TempW + $60;
-                 end
-               else
-                 begin
-                   Cflag := False;
-                   if (Vflag and (TempW < $80)) then
-                     Vflag := False;
-                 end;
+               if (((fRegs.A and $0F) + (TempB and $0F) + TempCarry) > 9) then
+                 TempC := TempC + 6;
+               Nflag := ((TempC and $80) <> 0);
+               Vflag := ((((fRegs.A xor TempB) and $80) = 0) and
+                         (((fRegs.A xor TempC) and $80) <> 0));
+               if (TempC > $99) then
+                 TempC := TempC + $60;
+               Cflag := (TempC > $99);
              end
            else
              begin
-               TempW := fRegs.A + TempB + TempCarry;
-               if (TempW >= $100) then
-                 begin
-                   Cflag := True;
-                   if (Vflag and (TempW >= $180)) then
-                     Vflag := False;
-                 end
-               else
-                 begin
-                   Cflag := False;
-                   if (Vflag and (TempW < $80)) then
-                     Vflag := False;
-                 end;
+               Nflag := ((TempC and $80) <> 0);
+               Vflag := ((((fRegs.A xor TempB) and $80) = 0) and
+                         (((fRegs.A xor TempC) and $80) <> 0));
+               Cflag := (TempC > $FF);
              end;
-             fRegs.A := TempW and $FF;
-             SetNZ(fRegs.A);
+           fRegs.A := TempC and $FF;
          end;
 
     $e1,$e5,$e9,$eb,$ed,$f1,$f5,$f9,$fd:         // SBC
          begin
            TempB := MemRead(EA);
-           if (CFlag) then
-             TempCarry := 1
-           else
-             TempCarry := 0;
-           if ((fRegs.A xor TempB) and $80) <> 0 then
-             Vflag := False
-           else
-             Vflag := True;
+           if (Cflag) then TempCarry := 1
+                      else  TempCarry := 0;
+           TempW := fRegs.A - TempB - (1 - TempCarry);
+           Nflag := ((TempW and $80) <> 0);
+           Zflag := ((TempW and $FF) = 0);
+           Vflag := ((((fRegs.A xor TempB) and $80) <> 0) and
+                         (((fRegs.A xor TempW) and $80) <> 0));
            if (Dflag) then
              begin
-               Temp3 := $0F + (fRegs.A and $0F) - (TempB and $0F) + TempCarry;
-               if (Temp3 < $10) then
-                 begin
-                   TempW := 0;
-                   Temp3 := Temp3 - 6;
-                 end
-               else
-                 begin
-                   TempW := $10;
-                   Temp3 := Temp3 - $10;
-                 end;
-               TempW := TempW + $f0 + (fRegs.A and $f0) - (TempB and $F0);
-               if (TempW < $100) then
-                 begin
-                   Cflag := False;
-                   if (Vflag and (TempW < $80)) then
-                     Vflag := False;
-                   TempW := TempW - $60;
-                 end
-               else
-                 begin
-                   Cflag := True;
-                   if (Vflag and (TempW >= $180)) then
-                     Vflag := False;
-                 end;
-                 TempW := TempW + Temp3;
-             end
-           else
-             begin
-               TempW := $FF + fRegs.A - TempB + TempCarry;
-               if (TempW < $100) then
-                 begin
-                   CFlag := False;
-                   if (Vflag and (TempW < $80)) then
-                     Vflag := False;
-                 end
-               else
-                 begin
-                   Cflag := True;
-                   if (Vflag and (tempw >= $180)) then
-                     Vflag := False;
-                 end;
+               if (((fRegs.A and $0F) - (1-TempCarry)) < (TempB and $0F)) then
+                 TempW := TempW - 6;
+               if (TempW > $99) then
+                 TempW := TempW - $60;
              end;
-             fRegs.A := TempW and $FF;
-             SetNZ(fRegs.A);
+
+           Cflag := (TempW < $100);
+           fRegs.A := TempW and $FF;
          end;
 
     $c1,$c5,$c9,$cd,$d1,$d5,$d9,$dd:             // CMP
@@ -641,7 +606,7 @@ begin
 
     $e0,$e4,$ec:                                 // CPX
          begin
-           TempW := fRegs.X - MemRead(EA);
+           TempW := (fRegs.X - MemRead(EA)) and $FFFF;
            Cflag := (TempW and $100) = 0;
            Nflag := (TempW and $80) <> 0;
            Zflag := (TempW and $FF) = 0;
@@ -649,7 +614,7 @@ begin
 
     $c0,$c4,$cc:                                 // CPY
          begin
-           TempW := fRegs.Y - MemRead(EA);
+           TempW := (fRegs.Y - MemRead(EA)) and $FFFF;
            Cflag := (TempW and $100) = 0;
            Nflag := (TempW and $80) <> 0;
            Zflag := (TempW and $FF) = 0;
@@ -755,35 +720,35 @@ begin
 
     $e6,$ee,$f6,$fe:                             // INC
          begin
-           TempB := MemRead(EA) + 1;
+           TempB := (MemRead(EA) + 1) and $FF;
            SetNZ(TempB);
            MemWrite(EA, TempB);
          end;
 
     $c6,$ce,$d6,$de:                             // DEC
          begin
-           TempB := MemRead(EA) - 1;
+           TempB := (MemRead(EA) - 1) and $FF;
            SetNZ(TempB);
            MemWrite(EA, TempB);
          end;
 
     $e8: begin                                   // INX
-           Inc(fRegs.X);
+           fRegs.X := (fRegs.X + 1) and $FF;
            SetNZ(fRegs.X);
          end;
 
     $c8: begin                                   // INY
-           Inc(fRegs.Y);
+           fRegs.Y := (fRegs.Y + 1) and $FF;
            SetNZ(fRegs.Y);
          end;
 
     $ca: begin                                   // DEX
-           Dec(fRegs.X);
+           fRegs.X := (fRegs.X - 1) and $FF;
            SetNZ(fRegs.X);
          end;
 
     $88: begin                                   // DEY
-           Dec(fRegs.Y);
+           fRegs.Y := (fRegs.Y - 1) and $FF;
            SetNZ(fRegs.Y);
          end;
 
@@ -800,7 +765,10 @@ begin
     ///////////////// STACK INSTRUCTIONS ///////////////////////////////////////
 
     $48: Push(fRegs.A);                           // PHA
-    $08: Push(GetPSW);                            // PHP, ensure packing of PSW
+    $08: begin
+           Bflag := True;
+           Push(GetPSW);                          // PHP, ensure packing of PSW
+         end;
     $68: begin                                    // PLA
            fRegs.A := Pop;
            SetNZ(fRegs.A);
@@ -812,10 +780,10 @@ begin
     $00: begin                                   // BRK
            Inc(fRegs.PC);
            PushW(fRegs.PC);
-           Push(GetPSW);                // Ensures packing of PSW occurs
+           Bflag := True;                        // Set to show software interrupt
+           Push(GetPSW);                         // Ensures packing of PSW occurs
            Iflag := True;
-           fRegs.PC := MemRead(ADDR_IRQ);
-           fRegs.PC := fRegs.PC or MemRead(ADDR_IRQ + 1);
+           fRegs.PC := MemRead(ADDR_IRQ) + (MemRead(ADDR_IRQ+1) shl 8);
          end;
 
     $40: begin                                   // RTI
@@ -903,18 +871,21 @@ begin
          begin
            Inc(fRegs.PC);
            Inc(Cycles);
+           fInvalidFlag := True;
          end;
 
     $0c,$1c,$3c,$5c,$7c,$dc,$fc:                             // INVALID(2)
          begin
            Inc(fRegs.PC, 2);
            Inc(Cycles);
+           fInvalidFlag := True;
          end;
 
     $02,$12,$22,$32,$42,$52,$62,$72,$92,$b2,$d2,$f2:         // INVALID(3)
          begin
            Dec(fRegs.PC);               // Hang
            Inc(Cycles);
+           fInvalidFlag := True;
          end;
 
     else
@@ -942,8 +913,9 @@ end;
 { Return trace for given index into trace list. If index exceeds
   trace count then return empty string }
 
-  function TCpu6502.GetTrace(Index: integer): TDisassembledData;
+function TCpu6502.{%H-}GetTrace(Index: integer): TDisassembledData;
 begin
+ {$ifndef Test6502}
   if (CpuState = csRunning)             // No response if CPU running
      or ((fTraceIndex = 0) and (not fTraceOverflow))
      or ((Index > fTraceIndex) and (not fTraceOverflow)) then
@@ -961,15 +933,19 @@ begin
       Result.RegStr[3] := Format('%.2x', [TraceList[Index].SP]);
       Result.RegStr[4] := GetBinary(TraceList[Index].PSW);
     end;
+ {$endif}
 end;
 
 
 { GET DISASSEMBLY }
 
-function TCpu6502.GetDisassembly(Addr:word): TDisassembledData;
+function TCpu6502.{%H-}GetDisassembly(Addr:word): TDisassembledData;
 begin
+  {$ifndef Test6502}
   Result := Disassemble6502(Self, Addr);
+  {$endif}
 end;
+
 
 
 end.

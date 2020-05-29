@@ -42,13 +42,14 @@
 unit uCpuChip8;
 
 {$mode objfpc}{$H+}
+{$R-}
 
 interface
 
 uses
   Classes, SysUtils, Graphics, Dialogs,
   //
-  uCpuBase, uDefsChip8, uCommon, uMachineBase;
+  uCpuBase, uDefsChip8, uCommon, uCpuTypes, uMachineBase;
 
 type
   TRegsChip8 = record
@@ -71,6 +72,7 @@ type
     fRegs: TRegsChip8;
     fPixelsArray: TPixels;
 
+    fOpcodesData: TOpcodeArray;
     OpcodePtrArray: array[0..255] of word;
     Stack: array[0..15] of word;    
     TraceList: array[0..TRACE_MAX] of TRegsChip8;
@@ -81,12 +83,13 @@ type
     procedure SetMachine(Value: TMachineBase);
   protected
     function GetPC: word; override;
-    function GetAssemblerRegisters: string; override;
     function GetTraceColumns: TTraceColArray; override;
-    function GetOpcodeDataArray: TOpcodeArray; override;
-    function ReadRegs: TRegsChip8;
+    function GetInfo: TCpuInfo; override;
+    function GetDataByIndex(Index: integer): TOpcodeRawData; override;
+    function GetDataByOpcode(Opcode: integer): TOpcodeRawData; override;
+    function GetRegs: TRegsChip8;
   public
-    constructor Create; override;
+    constructor Create(ct: TCpuType); override;
     destructor  Destroy; override;
     procedure Reset; override;
     function  ExecuteInstruction: integer; override;
@@ -96,10 +99,9 @@ type
     //
     function  MemRead(addr: word): byte;
     procedure MemWrite(addr: word; value: byte);
-    function  OpcodeData(Opcode: byte): TOpcodeRawData;
 
     property  Pixels: TPixels read fPixelsArray;
-    property  Regs: TRegsChip8 read ReadRegs write fRegs;
+    property  Regs: TRegsChip8 read GetRegs write fRegs;
     property  Machine: TMachineBase read fMachine write SetMachine;
     property  Key[Index: byte]: byte read GetKey write SetKey;
   end;
@@ -113,15 +115,38 @@ uses
 
 { CREATE }
 
-constructor TCpuChip8.Create;
+constructor TCpuChip8.Create(ct: TCpuType);
+var
+  i, Len: integer;
+  Opcode, ThisTypeMask: byte;
 begin
-  fName                 := CPU_CHIP8;
-  fCpuType              := ctCHIP8;
-  fSupportsAssembler    := False;
-  fSupportsDisassembler := True;
-  fCpuState             := csStopped;
-  fTraceWidth           := 702;
-  fRegistersHeight      := 312;
+  fCpuType  := ct;
+  fCpuState := csStopped;
+
+  case ct of
+    ctCHIP8:  ThisTypeMask := %01;
+    { TODO : uCpuChip8 -> add support for SCHIP }
+    ctSCHIP8: begin
+               MessageWarning('SCHIP currently not supported, defaulting to CHIP8');
+               //ThisTypeMask := %11;
+               ThisTypeMask := %01;
+             end;
+  end;
+
+  for i := 0 to 255 do
+    OpcodePtrArray[i] := 0;             // Initialise array to point at Undefined opcode
+
+  for i := 0 to (Length(OPCODES_CHIP8) - 1) do
+    begin                               // Then set opcode pointers into data array
+      if ((OPCODES_CHIP8[i].T and ThisTypeMask) = 0) then
+        Continue;                       // Skip if not selected processor
+      Len := Length(fOpcodesData);
+      SetLength(fOpcodesData, Len + 1);
+      fOpcodesData[Len] := OPCODES_CHIP8[i];
+
+      Opcode := OPCODES_CHIP8[i].O;
+      OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
+    end;
 
   Reset;
 end;
@@ -174,24 +199,7 @@ begin
 end;
 
 
-{ GET CPU INFO }
-
-function TCpuChip8.GetOpcodeDataArray: TOpcodeArray;
-var
-  idx: integer;
-begin
- // Cannot assign const array to dynamic array, so copy each item
- SetLength(Result, length(OPCODES_CHIP8));
- for idx := 0 to length(OPCODES_CHIP8)-1 do
-   Result[idx] := OPCODES_CHIP8[idx];
-end;
-
-
-function TCpuChip8.GetAssemblerRegisters: string;
-begin
-  Result := REGISTERS_CHIP8;
-end;
-
+{ GETTERS }
 
 function TCpuChip8.GetTraceColumns: TTraceColArray;
 var
@@ -203,7 +211,23 @@ begin
 end;
 
 
-{ GET CURRENT PROGRAM COUNTER }
+function TCpuChip8.GetInfo: TCpuInfo;
+begin
+  Result := INFO_CHIP8;
+end;
+
+
+function TCpuChip8.GetDataByIndex(Index: integer): TOpcodeRawData;
+begin
+  Result := fOpcodesData[Index];
+end;
+
+
+function TCpuChip8.GetDataByOpcode(Opcode: integer): TOpcodeRawData;
+begin
+  Result := fOpcodesData[OpcodePtrArray[Opcode]];
+end;
+
 
 function TCpuChip8.GetPC: word;
 begin
@@ -211,19 +235,9 @@ begin
 end;
 
 
-{ READ REGISTERS }
-
-function TCpuChip8.ReadRegs: TRegsChip8;
+function TCpuChip8.GetRegs: TRegsChip8;
 begin
   Result := fRegs;
-end;
-
-
-{ GET OPCODE DATA ARRAY }
-
-function TCpuChip8.OpcodeData(Opcode: byte): TOpcodeRawData;
-begin
-  Result := OPCODES_CHIP8[OpcodePtrArray[Opcode]];
 end;
 
 

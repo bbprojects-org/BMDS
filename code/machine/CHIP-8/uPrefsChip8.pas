@@ -1,8 +1,9 @@
 { ==============================================================================
 
-  MACHINE INFORMATION FORM
+  PREFERENCES FRAME FOR CHIP-8
 
-    A simple form that shows the current machine's information text
+    No current settings.
+    Saves settings in the application's INI file
 
 
   LICENSE:
@@ -22,7 +23,9 @@
 
   =============================================================================}
 
-unit uMachineInfoForm;
+{ TODO : uPrefsChip8 -> when add SCHIP, select preference here }
+
+unit uPrefsChip8;
 
 {$mode objfpc}{$H+}
 
@@ -30,37 +33,57 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
-  //
-  uMachineBase;
+  uPrefsFrameBase;
 
 type
-  TMachineInfoForm = class(TForm)
-    memoInfo: TMemo;              
-    btnOK: TButton;
+  
+  { TChip8PrefsFrame }
+
+  TChip8PrefsFrame = class(TPrefsFrame)
+    Label1: TLabel;
   private
-    fMachine: TMachineBase;
-    procedure SetMachine(const Value: TMachineBase);
   public
-    procedure AddText(aText: string);
-    //
-    property Machine: TMachineBase write SetMachine;
+    procedure Init; override;
+    destructor Destroy; override;
+    procedure SaveChanges; override;
+    procedure CancelChanges; override;
   end;
+
+var
+  Chip8Prefs: TChip8PrefsFrame;
 
 
 implementation
 
 {$R *.lfm}
 
-procedure TMachineInfoForm.SetMachine(const Value: TMachineBase);
+{ TChip8PrefsFrame }
+
+procedure TChip8PrefsFrame.Init;
 begin
-  fMachine := Value;
-  memoInfo.Text := fMachine.Description;
+  inherited;
+  btnResetDefault.Enabled := False;
+  //ReadIniItems;
 end;
 
 
-procedure TMachineInfoForm.AddText(aText: string);
+destructor TChip8PrefsFrame.Destroy;
 begin
-  memoInfo.Lines.Add(aText);
+  inherited;
+end;
+
+
+procedure TChip8PrefsFrame.SaveChanges;
+begin
+  //if (fChanged) then
+  //WriteIniItems;
+end;
+
+
+procedure TChip8PrefsFrame.CancelChanges;
+begin
+  //if (fChanged) then
+  //ReadIniItems;
 end;
 
 

@@ -1,34 +1,36 @@
-inherited ConfigSpaceInvaders: TConfigSpaceInvaders
-  Height = 380
-  Width = 600
-  ClientHeight = 380
-  ClientWidth = 600
-  DesignLeft = 3662
-  DesignTop = 515
-  object gbDisplay: TGroupBox[0]
+inherited SIPrefsFrame: TSIPrefsFrame
+  DesignLeft = 1349
+  DesignTop = 23
+  inherited btnResetDefault: TButton
+    OnClick = btnResetDefaultClick
+    TabOrder = 3
+  end
+  object gbDisplay: TGroupBox[1]
     Left = 16
-    Height = 56
+    Height = 48
     Top = 16
     Width = 225
     Caption = 'Display:'
-    ClientHeight = 38
+    ClientHeight = 30
     ClientWidth = 217
     TabOrder = 0
     object cbColourFilters: TCheckBox
-      Left = 16
+      Left = 8
       Height = 18
       Top = 8
       Width = 135
       Caption = 'Apply colour filters?'
       Checked = True
+      OnChange = ItemClick
       State = cbChecked
       TabOrder = 0
     end
   end
-  object rgNumberBases: TRadioGroup[1]
+  object rgNumberBases: TRadioGroup[2]
+    Tag = 2
     Left = 16
     Height = 56
-    Top = 88
+    Top = 72
     Width = 225
     AutoFill = True
     Caption = 'Number of Bases:'
@@ -49,12 +51,15 @@ inherited ConfigSpaceInvaders: TConfigSpaceInvaders
       '5'
       '6'
     )
+    OnClick = ItemClick
     TabOrder = 1
+    TabStop = True
   end
-  object rgBonusPoints: TRadioGroup[2]
+  object rgBonusPoints: TRadioGroup[3]
+    Tag = 3
     Left = 16
     Height = 56
-    Top = 160
+    Top = 136
     Width = 225
     AutoFill = True
     Caption = 'Bonus Points at:'
@@ -73,15 +78,8 @@ inherited ConfigSpaceInvaders: TConfigSpaceInvaders
       '1500'
       '1000'
     )
+    OnClick = ItemClick
     TabOrder = 2
-  end
-  object btnResetDefaults: TButton[3]
-    Left = 24
-    Height = 20
-    Top = 336
-    Width = 120
-    Caption = 'Reset Defaults'
-    OnClick = btnResetDefaultsClick
-    TabOrder = 3
+    TabStop = True
   end
 end

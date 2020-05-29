@@ -2,30 +2,32 @@
 
   SPACE INVADERS HARDWARE EMULATION
 
-    Space Invaders, (C) Taito 1978, Midway 1979
+    Space Invaders was created by Tomohiro Nishikado and released in 1978.
+    It was manufactured and sold by Taito in Japan, and licensed to Midway in
+    the USA. In addition to the 8080 CPU, Nishikado used some custom hardware
+    to speed up game play.
 
-    CPU: Intel 8080 running at 2MHz
+    The basic specification was:
+                '  - Intel 8080 running at 2 MHz' + CRLF +
+                '  - Video screen was vertical ' + IntToStr(fInfo.ScreenWidthPx) + 'x' + IntToStr(fInfo.ScreenHeightPx) + ' pixels' + CRLF +
+                '    Colours were simulated with a plastic transparent overlay
 
-    Interrupts: RST1 approx mid screen, RST2 at the end of screen (vblank)
+    - Intel 8080 CPU  running at 2MHz
+    - Video screen was vertical 256(x) x 224(y). Colours were simulated with
+      a plastic transparent overlay and a background picture
+    - Sound provided by SN76477 and samples
+    - Memory map:
 
-    Video: 256(x) x 224(y) @ 60Hz, vertical monitor. Colours were simulated
-    with a plastic transparent overlay and a background picture
-    Video hardware is very simple: 7168 bytes 1bpp bitmap (32 bytes per scanline)
+        ROM (8K):
+        $0000-$07ff    2K invaders.h
+        $0800-$0fff    2K invaders.g
+        $1000-$17ff    2K invaders.f
+        $1800-$1fff    2K invaders.e
 
-    Sound: SN76477 and samples
-
-    Memory map:
-
-      ROM (8K):
-      $0000-$07ff    2K invaders.h
-      $0800-$0fff    2K invaders.g
-      $1000-$17ff    2K invaders.f
-      $1800-$1fff    2K invaders.e
-
-      RAM (8K):
-      $2000-$23ff    1K Work RAM
-      $2400-$3fff    7K Video RAM
-      $4000-         RAM mirror (not reflected in this emulator)
+        RAM (8K):
+        $2000-$23ff    1K Work RAM
+        $2400-$3fff    7K Video RAM
+        $4000-         RAM mirror (not reflected in this emulator)
 
     Based on information from around the internet, including:
     1. Emulator101 tutorial <http://emulator101.com/welcome.html>
@@ -33,9 +35,11 @@
     3. Testing 8080 emulation:
        <http://brainwagon.org/2011/09/08/more-on-my-8080-emulator/> and
        <http://www.emulator101.com/full-8080-emulation.html>
-    4. Space Invaders original code <http://computerarcheology.com/Arcade/SpaceInvaders/Code.html>
-    5. Intel 8080 Microcomputer Systems Users Manual (1975)
-    6. 8080-Z80 Assembly Language - Techniques For Improved Programming (1981)
+    4. Space Invaders original code
+       <http://computerarcheology.com/Arcade/SpaceInvaders/Code.html>
+    5. Intel 8080 Microcomputer Systems Users Manual (1975) by Intel
+    6. 8080/Z80 Assembly Language: Techniques For Improved Programming (1981)
+       by Alan R. Miller
 
 
   LICENSE:
@@ -58,16 +62,15 @@
 unit uMachineSpaceInvaders;
 
 {$mode objfpc}{$H+}
-
-//{$define CpuDiag}   // Used when testing with 8080 CPU diagnostics module
+{$R-}
 
 interface
 
 uses
   LCLIntf, LCLType, Forms, Classes, SysUtils, ExtCtrls, Graphics, Dialogs,
   //
-  uMachineBase, uCpuBase, uCpu8080, uFilesMgr, uMemoryMgr, uGfxMgr, uSoundMgr,
-  uConfigSpaceInvaders, uCommon, SDL2;
+  uMachineBase, uCpuBase, uCpuTypes, uCpu8080, uFilesMgr, uMemoryMgr, uGfxMgr,
+  uSoundMgr, uPrefsSpaceInvaders, uCommon, SDL2;
 
 const
   COIN_0   = $01;
@@ -107,6 +110,7 @@ type
     Port4hi: byte;
     Port5out: byte;
     //
+    LastPC: word;
     procedure CheckInput;
     procedure WriteVRAM(Addr: word; Value: byte);
     procedure PortRead(Sender: TObject; Port: byte; var Value: byte);
@@ -128,7 +132,7 @@ type
     procedure Step; override;
     procedure ScreenRefresh; override;  
     procedure SaveToFile(strm: TStream);
-    procedure LoadFromFile(Filename: string);
+    procedure LoadFromFile(FileName: string);
     //
     property CPU: TCpuBase read GetCPU;
 end;
@@ -146,8 +150,10 @@ implementation
 
 constructor TMachineSpaceInvaders.Create;
 begin
-  fConfigFrame := TConfigSpaceInvaders.Create(nil);
-  fConfigFrame.Init(nil);               // Initialise callback, get config settings
+  // fConfigFrame referenced by PreferencesForm for config when SI selected
+  fConfigFrame := TSIPrefsFrame.Create(nil);
+  (* fConfigFrame.OnChange := @DoConfigChange; *)
+  fConfigFrame.Init;                    // Get INI settings required below
 
   SetMachineInfo;
   CreateMemoryManager;
@@ -162,24 +168,21 @@ end;
 
 procedure TMachineSpaceInvaders.SetMachineInfo;
 begin
-  fInfo.Name := MACHINES[MACHINE_SI].Name;
   fInfo.Year := 1978;
   fInfo.CpuType := ct8080;
   fInfo.CpuFreqKhz := 2000;
   fInfo.ScreenWidthPx := 224;
   fInfo.ScreenHeightPx := 256;
-  fInfo.MachineDefsFilename := 'SpaceInvadersDefs.asm';
+  fInfo.ScaleModifier := 1;
+  fInfo.MachineDefsFileName := 'SpaceInvadersDefs.asm';
   fInfo.MemoryButtons := '';
   fInfo.State := msStopped;
-  fInfo.HasCodeToExecute := False;      // Until ROMS loaded ok below
+  fInfo.HasCodeToExecute := False;      // Until ROMS loaded without error below
 end;
 
 
 procedure TMachineSpaceInvaders.CreateMemoryManager;
 var
-  {$ifdef CpuDiag}
-  idx: integer;
-  {$endif}
   fFileMgr: TFileMgr;
   AllOK: boolean;
 begin
@@ -194,29 +197,10 @@ begin
   fFileMgr := TFileMgr.Create;
   AllOK := True;
   try
-    {$ifdef CpuDiag}
-      // DEBUG load CpuDiag code to test 8080
-      // Based on <http://www.emulator101.com/full-8080-emulation.html>
-      // Put breakpoints at
-      // - $0689, 'CPU has failed' message
-      // - $069B, 'CPU is operational' message
-      for idx := 0 to (Length(fMemoryMgr.Memory) - 1) do // Clear memory
-        fMemoryMgr.Memory[idx] := 0;
-      AllOk := AllOK and fFileMgr.LoadROM('cpudiag.bin', @fMemoryMgr.Memory[$0100], 1453, 0);
-      fMemoryMgr.Memory[0] := $C3;      // Force JMP $100 into location $0000
-      fMemoryMgr.Memory[1] := $00;
-      fMemoryMgr.Memory[2] := $01;
-      fMemoryMgr.Memory[$1AD] := $23;   // Fix SP beyond SI ROM area
-      // Skip DAA test
-      fMemoryMgr.Memory[$059C] := $C3;  // JMP past test
-      fMemoryMgr.Memory[$059D] := $C2;
-      fMemoryMgr.Memory[$059E] := $05;
-    {$else}
-      AllOK := AllOK and fFileMgr.LoadROM('invaders.h', @fMemoryMgr.Memory[$0000], $800, $734f5ad8);
-      AllOK := AllOK and fFileMgr.LoadROM('invaders.g', @fMemoryMgr.Memory[$0800], $800, $6bfaca4a);
-      AllOK := AllOK and fFileMgr.LoadROM('invaders.f', @fMemoryMgr.Memory[$1000], $800, $0ccead96);
-      AllOK := AllOK and fFileMgr.LoadROM('invaders.e', @fMemoryMgr.Memory[$1800], $800, $14e538b0);
-    {$endif}
+    AllOK := AllOK and fFileMgr.LoadROM('invaders.h', @fMemoryMgr.Memory[$0000], $800, $734f5ad8);
+    AllOK := AllOK and fFileMgr.LoadROM('invaders.g', @fMemoryMgr.Memory[$0800], $800, $6bfaca4a);
+    AllOK := AllOK and fFileMgr.LoadROM('invaders.f', @fMemoryMgr.Memory[$1000], $800, $0ccead96);
+    AllOK := AllOK and fFileMgr.LoadROM('invaders.e', @fMemoryMgr.Memory[$1800], $800, $14e538b0);
     fInfo.HasCodeToExecute := AllOK;
   finally
     fFileMgr.Free;
@@ -226,7 +210,7 @@ end;
 
 procedure TMachineSpaceInvaders.Create8080Cpu;
 begin
-  fCPU := TCpu8080.Create;
+  fCPU := TCpu8080.Create(ct8080);
   fCPU.OnRead := @fMemoryMgr.MemReadHandler;
   fCPU.OnWrite := @fMemoryMgr.MemWriteHandler;
   fCpu.OnReadPort:= @PortRead;
@@ -237,7 +221,7 @@ end;
 
 procedure TMachineSpaceInvaders.CreateScreen;
 begin
-  Gfx := TGfxManager.Create;            // Create a display
+  Gfx := TGfxManager.Create(4);         // Create a display
   Gfx.SetWindowSize(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
   TexIdxScreen := Gfx.GetTexture(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
   SetLength(VideoBuffer, fInfo.ScreenWidthPx * fInfo.ScreenHeightPx);
@@ -287,10 +271,11 @@ end;
 function TMachineSpaceInvaders.GetDescription: string;
 begin
   Result := 'SPACE INVADERS' + CRLF + CRLF +
-            'Space Invaders was created by Tomohiro Nishikado and released in 1978. ' +
-            'It was manufactured and sold by Taito in Japan, and licensed to Midway in the USA. ' +
-            'In addition to the 8080 CPU, Nishikado used some custom hardware to speed up game play.' + CRLF + CRLF +
-            'The basic specification was:' + CRLF + CRLF +
+            'Space Invaders was created by Tomohiro Nishikado and released in ' +
+            '1978. It was manufactured and sold by Taito in Japan, and licensed ' +
+            'to Midway in the USA. In addition to the 8080 CPU, Nishikado used ' +
+            'some custom hardware to speed up game play.' + CRLF + CRLF +
+            'The basic specification was:' + CRLF +
             '  - Intel 8080 running at 2 MHz' + CRLF +
             '  - Video screen was vertical ' + IntToStr(fInfo.ScreenWidthPx) + 'x' + IntToStr(fInfo.ScreenHeightPx) + ' pixels' + CRLF +
             '    Colours were simulated with a plastic transparent overlay' + CRLF + CRLF +
@@ -307,6 +292,7 @@ var
   TimeBetweenFramesMS, LastTime, SleepMS: integer;
   Loop: integer;
   CyclesPerHalfFrame: integer;
+  IsBrkpt: boolean;
 begin
   TimeBetweenFramesMS := 1000 div fFPS;
   LastTime := DateTimeToTimeStamp(Now).Time;
@@ -319,10 +305,22 @@ begin
       // fInfo.State is set to msRunning in MainForm before call here
       while ((fInfo.State = msRunning) and (CyclesToGo > 0)) do
         begin
-          { TODO : Use breakpoint handler code as per Microtan }
+          // If PC same as last time, stopped on breakpoint so skip check and run this time
+          if Assigned(fBkptHandler) and (fCPU.PC <> LastPC) then
+            begin
+              LastPC := fCPU.PC;
+              fBkptHandler(fCPU.PC, IsBrkpt); // Check for Breakpoints
+              if (IsBrkpt) then
+                begin
+                  fInfo.State := msStoppedOnBrkpt;
+                  Break;
+                end;
+            end;
+
           Dec(CyclesToGo, fCPU.ExecuteInstruction);
         end;
-      fCPU.Interrupt(Loop);
+      if (not IsBrkpt) then
+        fCPU.Interrupt(Loop);
     end;
 
   if (fInfo.State = msRunning) then     // Do not do next if stopping
@@ -380,7 +378,7 @@ begin
   if (fInfo.State <> msRunning) then    // Do nothing if stopping
     Exit;
 
-  if ((fConfigFrame as TConfigSpaceInvaders).ColourFilters) then
+  if ((fConfigFrame as TSIPrefsFrame).ColourFilters) then
     // Set colour of scanlines as appropriate to the filters that were
     // applied over original Space Invaders white pixels on black screen
     Gfx.Palette := SI_PALETTE_COLOUR
@@ -506,11 +504,11 @@ begin
     2: begin
          Value := (Port2in and $04)
                   or (Port1in and $70)  // Player1 keys used for player2
-                  or (fConfigFrame as TConfigSpaceInvaders).NumberBases
-                  or ((fConfigFrame as TConfigSpaceInvaders).BonusPoints shl 3);
+                  or ((fConfigFrame as TSIPrefsFrame).NumberBases)
+                  or ((fConfigFrame as TSIPrefsFrame).BonusPoints shl 3);
        end;
     3: begin
-         Value := ((((Port4hi << 8) or Port4lo) shl Port2out) shr 8);
+         Value := ((((Port4hi << 8) or Port4lo) shl Port2out) shr 8) and $FF;
        end;
   end;
 end;
@@ -567,7 +565,7 @@ end;
 
 { LOAD / SAVE TO FILE }
 
-procedure TMachineSpaceInvaders.LoadFromFile(Filename: string);
+procedure TMachineSpaceInvaders.LoadFromFile(FileName: string);
 begin
   //
 end;
@@ -577,6 +575,10 @@ procedure TMachineSpaceInvaders.SaveToFile(strm: TStream);
 begin
   //
 end;
+
+
+initialization
+  MachineFactory.RegisterMachine('Space Invaders', TMachineSpaceInvaders);
 
 
 end.

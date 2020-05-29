@@ -1,9 +1,9 @@
 object DisassemblerForm: TDisassemblerForm
-  Left = 2983
+  Left = 1740
   Height = 596
   Top = 121
   Width = 820
-  Caption = 'Disassembler'
+  Caption = 'BMDS Disassembler'
   ClientHeight = 596
   ClientWidth = 820
   Color = clBtnFace
@@ -29,6 +29,7 @@ object DisassemblerForm: TDisassemblerForm
     ParentFont = False
     ScrollBars = ssVertical
     TabOrder = 1
+    TabStop = False
   end
   object Panel1: TPanel
     Left = 0
@@ -47,7 +48,7 @@ object DisassemblerForm: TDisassemblerForm
       Caption = 'Copy to Clipboard'
       Enabled = False
       OnClick = btnCopyToClipboardClick
-      TabOrder = 0
+      TabOrder = 7
     end
     object GroupBox1: TGroupBox
       Left = 6
@@ -57,7 +58,7 @@ object DisassemblerForm: TDisassemblerForm
       Caption = 'Range'
       ClientHeight = 54
       ClientWidth = 154
-      TabOrder = 1
+      TabOrder = 0
       object edStart: TLabeledEdit
         Tag = 100
         Left = 96
@@ -95,7 +96,7 @@ object DisassemblerForm: TDisassemblerForm
       Caption = 'Data Sections'
       ClientHeight = 54
       ClientWidth = 296
-      TabOrder = 2
+      TabOrder = 1
       object edDataStart: TLabeledEdit
         Tag = 200
         Left = 48
@@ -153,6 +154,7 @@ object DisassemblerForm: TDisassemblerForm
         OnClick = lbDataAddressesClick
         Sorted = True
         TabOrder = 4
+        TabStop = False
       end
     end
     object GroupBox3: TGroupBox
@@ -163,7 +165,7 @@ object DisassemblerForm: TDisassemblerForm
       Caption = 'Disassemble'
       ClientHeight = 54
       ClientWidth = 96
-      TabOrder = 3
+      TabOrder = 2
       object btnLabelled: TButton
         Left = 8
         Height = 21
@@ -171,7 +173,7 @@ object DisassemblerForm: TDisassemblerForm
         Width = 80
         Caption = 'Labelled'
         OnClick = btnLabelledClick
-        TabOrder = 0
+        TabOrder = 1
       end
       object btnSimple: TButton
         Left = 8
@@ -180,7 +182,7 @@ object DisassemblerForm: TDisassemblerForm
         Width = 80
         Caption = 'Simple'
         OnClick = btnSimpleClick
-        TabOrder = 1
+        TabOrder = 0
       end
     end
     object btnSaveSettings: TButton
@@ -190,7 +192,7 @@ object DisassemblerForm: TDisassemblerForm
       Width = 120
       Caption = 'Save Settings'
       OnClick = btnSaveSettingsClick
-      TabOrder = 4
+      TabOrder = 5
     end
     object btnLoadSettings: TButton
       Left = 304
@@ -199,7 +201,7 @@ object DisassemblerForm: TDisassemblerForm
       Width = 120
       Caption = 'Load Settings'
       OnClick = btnLoadSettingsClick
-      TabOrder = 5
+      TabOrder = 6
     end
     object cbSpacings: TComboBox
       Left = 16
@@ -212,7 +214,7 @@ object DisassemblerForm: TDisassemblerForm
         'Narrow Spacing'
         'Wide Spacing'
       )
-      TabOrder = 6
+      TabOrder = 4
       Text = 'Wide Spacing'
     end
     object edDesc: TLabeledEdit
@@ -225,7 +227,7 @@ object DisassemblerForm: TDisassemblerForm
       EditLabel.Caption = 'Description:'
       EditLabel.ParentColor = False
       LabelPosition = lpLeft
-      TabOrder = 7
+      TabOrder = 3
     end
   end
   object Panel2: TPanel

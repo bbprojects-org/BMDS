@@ -34,6 +34,7 @@ object TraceFrame: TTraceFrame
     ParentFont = False
     ScrollBars = ssVertical
     TabOrder = 0
+    TabStop = False
     TitleFont.Color = clWindowText
     TitleFont.Height = -12
     TitleFont.Name = 'Monaco'

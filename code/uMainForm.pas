@@ -29,29 +29,10 @@
   =============================================================================}
 
                                                                              
-{ TODO : uMainForm -> fix and restore Editor functionality }
 { TODO : uMainForm -> recheck Cross-Platform guidance for Free Pascal, adjust
-                      as necessary
-                      (http://wiki.lazarus.freepascal.org/Multiplatform_Programming_Guide) }
+                      as necessary (http://wiki.lazarus.freepascal.org/Multiplatform_Programming_Guide) }
 { TODO : uMainForm -> do 'Step Over' code }
-{ TODO : uMainForm -> add OnDropFiles functionality }
-{ TODO : uMainForm -> general - check Tab order for all forms / frames }
-
-
-{ APPLICATION BUGS LIST ========================================================
-
-  - Setting DeveloperMode causing severe Memory Leak
-  - RegistersFrame: Not updating registers properly on Step (6502 or all?)
-  - RegistersFrame: Editing regs not working properly?
-  - M65: single step/proceed not working as per M65 manual
-  - Disassembler: sort data addresses
-  - CHIP-8: ensure Mach/Config disabled if no Config form
-}
-
-{  OSX ISSUES / DIFFERENCES  ===================================================
-
-  - Text sizes
-}
+{ TODO : uMainForm -> when drop BIN file on form, need to acknowledge action }
 
 unit uMainForm;
 
@@ -60,32 +41,31 @@ unit uMainForm;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, ComCtrls,
-  ExtCtrls, Menus, Buttons, ActnList, StdActns, LCLType, StdCtrls, fphtml,
-  //EventLog,
+  Classes, SysUtils, FileUtil, Forms, Controls, Graphics,
+  Dialogs, ComCtrls, ExtCtrls, Menus, Buttons, ActnList, StdActns, LCLType,
+  StdCtrls, fphtml,
+  {$ifdef debug}
+  EventLog,
+  {$endif}
   //
-  uCommon, uIniFile, uAboutForm, uPreferencesForm, {uSourceEditorForm,}
-  uAssembler, uDisassembler, uCompareForm, uMachineBase, uDebugForm,
-  uMachineInfoForm;
+  uCommon, uIniFile, uAboutForm, uPreferencesForm, uDisassembler, uCompareForm,
+  uMachineBase, uDebugForm, uAssemblerForm, uEdPrefsFrame, uDefs8080;
 
 type
-
+  
   { TMainForm }
 
   TMainForm = class(TForm)
+    actShowAssembler: TAction;
     actShowDebug: TAction;
     actMaxSpeed: TAction;
     actShowDisassembler: TAction;
     actMachineConfig: TAction;
     actShowCompare: TAction;
-    actShowBreakpoints: TAction;
     actMode: TAction;
-    actShowTrace: TAction;
-    actShowMemory: TAction;
     actStep: TAction;
     actStepOver: TAction;
     actInterrupt: TAction;
-    actAssemble: TAction;
     actQuit: TAction;
     actReset: TAction;
     actStop: TAction;
@@ -93,54 +73,66 @@ type
     ActionList1: TActionList;
     actLoadCode: TFileOpen;
     actSaveCode: TFileSaveAs;
-    btnDebug: TButton;
-    btnAssemble: TButton;
-    cbAutoStep: TCheckBox;
-    lblDebug: TLabel;
+    btnTest: TButton;
+    Label1: TLabel;
+    Label2: TLabel;
+    memoInfo: TMemo;
+    memoDebug: TMemo;
+    menuAsm: TMenuItem;
+    menuAsmNew: TMenuItem;
+    menuAsmOpen: TMenuItem;
+    menuAsmRecent: TMenuItem;
+    menuAsmSave: TMenuItem;
+    menuAsmSaveAs: TMenuItem;
+    menuAsmSaveAll: TMenuItem;
+    menuAsmClose: TMenuItem;
+    menuAsmCloseAll: TMenuItem;
+    menuEdit: TMenuItem;
+    menuEditUndo: TMenuItem;
+    menuEditRedo: TMenuItem;
+    menuEditCut: TMenuItem;
+    menuEditCopy: TMenuItem;
+    menuEditPaste: TMenuItem;
+    menuEditSelectAll: TMenuItem;
+    menuSearchReplace: TMenuItem;
+    menuSearchFindPrev: TMenuItem;
+    menuSearchFindNext: TMenuItem;
+    menuSearchFind: TMenuItem;
+    menuSearch: TMenuItem;
+    N4: TMenuItem;
+    N3: TMenuItem;
+    N2: TMenuItem;
+    N1: TMenuItem;
+    menuShowAssembler: TMenuItem;
     menuOptionsWindows: TMenuItem;
     menuDisassemble: TMenuItem;
     menuCompare: TMenuItem;
-    MenuItem3: TMenuItem;
-    MenuItem4: TMenuItem;
-    MenuItem5: TMenuItem;
-    MenuItem7: TMenuItem;
+    N7: TMenuItem;
+    N6: TMenuItem;
+    N11: TMenuItem;
     menuInfo: TMenuItem;
     menuSize4: TMenuItem;
     menuMaxSpeed: TMenuItem;
     menuMac: TMenuItem;
     menuAboutMac: TMenuItem;
-    MenuItem6: TMenuItem;
+    N5: TMenuItem;
     menuMachineConfig: TMenuItem;
     menuPreferencesMac: TMenuItem;
     menuMode: TMenuItem;
     menuShowDebug: TMenuItem;
     menuStep: TMenuItem;
-    menuSep6: TMenuItem;
+    N10: TMenuItem;
     menuSep5: TMenuItem;
     menuSelect: TMenuItem;
     ImageList1: TImageList;
     MainMenu: TMainMenu;
     menuHelpWindows: TMenuItem;
     menuAboutWindows: TMenuItem;
-    MenuItem1: TMenuItem;
-    MenuItem2: TMenuItem;
-    menuSepQuit: TMenuItem;
-    menuSep2: TMenuItem;
-    menuAssemble: TMenuItem;
-    menuCloseFile: TMenuItem;
-    menuCut: TMenuItem;
-    menuCopy: TMenuItem;
+    N9: TMenuItem;
+    N8: TMenuItem;
     menuDebug: TMenuItem;
     menuStepOver: TMenuItem;
-    menuPaste: TMenuItem;
     menuQuit: TMenuItem;
-    menuSaveFileAs: TMenuItem;
-    menuSaveFile: TMenuItem;
-    menuOpenFile: TMenuItem;
-    menuNewFile: TMenuItem;
-    menuOpenRecent: TMenuItem;
-    menuSep4: TMenuItem;
-    menuEditor: TMenuItem;
     menuSaveCode: TMenuItem;
     menuLoadCode: TMenuItem;
     menuSize3: TMenuItem;
@@ -150,26 +142,29 @@ type
     menuStop: TMenuItem;
     menuRun: TMenuItem;
     menuMachine: TMenuItem;
-    ButtonsPanel: TPanel;
     OpenDialog1: TOpenDialog;
     panelButtons: TPanel;
     StatusBar: TStatusBar;
     tbRun: TToolButton;
+    tbSep2: TToolButton;
+    tbSep0: TToolButton;
+    tbSep3: TToolButton;
+    tbStepOver: TToolButton;
     Timer1: TTimer;
     MainToolBar: TToolBar;
-    DebugToolBar: TToolBar;
-    TimerAutoStep: TTimer;
     tbSaveCode: TToolButton;
     tbSep1: TToolButton;
     tbReset: TToolButton;
     tbStop: TToolButton;
     tbLoadCode: TToolButton;
-    tbStepOver: TToolButton;
-    tbSep0: TToolButton;
-    TrackBarAutoStep: TTrackBar;
-    procedure actAssembleExecute(Sender: TObject);
+    tbStep: TToolButton;
+    tbShowDebug: TToolButton;
+    tbShowCompare: TToolButton;
+    tbShowAssembler: TToolButton;
+    tbShowDisassembler: TToolButton;
     procedure actMachineConfigExecute(Sender: TObject);
     procedure actMaxSpeedExecute(Sender: TObject);
+    procedure actShowAssemblerExecute(Sender: TObject);
     procedure actShowDebugExecute(Sender: TObject);
     procedure actShowCompareExecute(Sender: TObject);
     procedure actShowDisassemblerExecute(Sender: TObject);
@@ -184,55 +179,59 @@ type
     procedure actStepExecute(Sender: TObject);
     procedure actStepOverExecute(Sender: TObject);
     procedure actStopExecute(Sender: TObject);
-    procedure btnDebugClick(Sender: TObject);
+    procedure btnAssembleClick(Sender: TObject);
     procedure btnTestClick(Sender: TObject);
-    procedure cbAutoStepChange(Sender: TObject);
+    procedure btnTest2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure FormDropFiles(Sender: TObject; const {%H-}FileNames: array of String);
+    procedure FormDropFiles(Sender: TObject; const {%H-}Files: array of string);
     procedure FormKeyDown(Sender: TObject; var {%H-}Key: Word; {%H-}Shift: TShiftState);
-    procedure menuAboutWindowsClick(Sender: TObject);
+    procedure menuAboutClick(Sender: TObject);
     procedure menuMachineInfoClick(Sender: TObject);
-    procedure menuOptionsWindowsClick(Sender: TObject);
+    procedure menuOptionsMacClick(Sender: TObject);
     procedure menuMachineClick(Sender: TObject);
-    procedure menuSize1Click(Sender: TObject);
+    procedure menuSizeClick(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
-    procedure TimerAutoStepTimer(Sender: TObject);
-    procedure TrackBarAutoStepChange(Sender: TObject);
-  private    
-    PreferencesForm: TPreferencesForm;
+  private     // Forms
     DebugForm: TDebugForm;
     DisassemblerForm: TDisassemblerForm;
     CompareForm: TCompareForm;
-    //
-    CurrentMachineId: integer;
-    DeveloperMode: boolean;             // Show debug windows?
-    CalculatedFPS: integer;
-    //
-    procedure CreateAppIni;
-procedure FreeDeveloperForms;
-    procedure MakeDebugForm;
     procedure MakeDeveloperForms;
+    procedure FreeDeveloperForms;
+    procedure MakePreferencesForm;
+    procedure MakeDebugForm;
     procedure MakeDisassemblerForm;
     procedure MakeCompareForm;
+    procedure MakeAssemblerForm;
+    procedure ShowMachineInfoInMemo;
+    procedure ShowPreferences(category: TCategoryIndex);
+    procedure OnShowHideAsmForm(Sender: TObject);
+  private     // Machine
+    CurrentMachineID: string;
+    DeveloperMode: boolean;             // Show debug windows?
+    CalculatedFPS: integer;
+    tmpScreenSize: TPoint;
+    tmpScreenPosition: TPoint;
+    procedure StopMachine;
     procedure MakeMachine;
     procedure MakeMachineMenu;
-    procedure MakePreferencesForm;
-    procedure MakeMachineAndForms;
-    procedure FreeMachineAndForms;
-    procedure SetButtons(IsRunning: boolean);
     procedure SetMachineScreenSize(aMultiplier: integer);
-    procedure ShowFormsState;
-    procedure StopMachine;
-    procedure UpdateStatus;
+  private     // INI file
+    procedure CreateAppIni;
     procedure ReadIniSettings;
     procedure WriteIniSettings;
     procedure DoCustomSection(var aSect: string);
-    procedure WriteMachineID(aID: integer);
-    procedure ShowPreferences(aTab: Integer);
+    procedure WriteMachineID(aID: string);
+  private
+    procedure MakeMachineAndForms;
+    procedure FreeMachineAndForms;
+    procedure SetButtonsState(IsRunning: boolean);
+    procedure ShowFormsState;
+    procedure UpdateStatus;
+    procedure UpdateEditorPrefs(Sender: TObject);
+    procedure DoDebugButton(Sender: TObject; button: TDebugButton);
   public
-    Machine: TMachineBase;              // Current machine instance
   end;
 
 var
@@ -244,26 +243,35 @@ implementation
 {$R *.lfm}
 
 const
-  SECT_MAIN      = 'MainForm';          // INI file settings
-  DEVELOPER_MODE = 'Mode';
-  MACHINE_ID     = 'MachineID';
-  SCREEN         = 'Scr';
+  INI_FILE      = 'BMDS.ini';           // INI file settings
 
+  SECT_MAIN     = 'MainForm';
+  INI_DEV_MODE  = 'Mode';
+  INI_MACH_ID   = 'MachineID';
+  INI_SCREEN    = 'Scr';
+  INI_SHOW_INFO = 'ShowInfo';
+
+  FORM_MIN_HEIGHT = 92;
   {$ifdef darwin}
     FORM_EXTRA_HEIGHT = 44;
   {$else}
-    FORM_EXTRA_HEIGHT = 44;             { TODO : To Be Checked }
+    FORM_EXTRA_HEIGHT = 44;             { TODO : uMainForm -> Windows to be checked }
   {$endif}
   INITIAL_SCALE_FACTOR = 3;
+  DEBUGFORM_TRACE_ADJ  = 360;
+
 
 { FORM CREATE }
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
-  //AppLog := TEventLog.Create(self);
-  //AppLog.LogType := ltFile;
-  //AppLog.FileName := ExpandFileName('~/') + 'BMDS_log.txt';
-  //AppLog.Active := True;
+  {$ifdef debug}
+  AppLog := TEventLog.Create(self);     // Create debug logfile
+  AppLog.LogType := ltFile;
+  AppLog.FileName := GetAppDataDirectory + 'BMDS_log.txt';
+  AppLog.Active := True;
+  AppLog.Debug('TMainForm.FormCreate');
+  {$endif}
 
   {$ifdef darwin}
     menuMac.Caption := #$EF#$A3#$BF;    // 'Apple logo', add this to App menu
@@ -272,15 +280,14 @@ begin
     menuHelpWindows.Visible := True;    // Default for these is not visible
   {$endif}
 
-  Height := 92;
-  GlobalVars.MachineDataFolder := '';   { TODO : Replace all global vars }
+  MachineDataFolder := '';
   CreateAppIni;
   ReadIniSettings;
   MakeMachineMenu;
   MakeMachineAndForms;
   ShowFormsState;
   CalculatedFPS := 0;
-  Timer1.Enabled := True;               // Maintain GUI in sync with windows etc
+  Timer1.Enabled := True;               // Maintains GUI in sync with windows etc
 end;
 
 
@@ -291,9 +298,7 @@ begin
   tmpFolder := GetAppDataDirectory;
   if (not DirectoryExists(tmpFolder)) then // Ensure there is an App Data folder
     ForceDirectories(tmpFolder);
-
-  //AppLog.Debug('Creating AppIni');
-  AppIni := TAppIni.Create(tmpFolder + 'BMDS.ini', @DoCustomSection);
+  AppIni := TAppIni.Create(tmpFolder + INI_FILE, @DoCustomSection);
 end;
 
 
@@ -307,24 +312,27 @@ begin
   WriteIniSettings;
   FreeMachineAndForms;
   AppIni.Free;
-  //AppLog.Free;
+  {$ifdef debug}
+  AppLog.Free;
+  {$endif}
 end;
 
 
 { FORM DROP FILES }
 
-{ Appears there is a bug in Lazarus/FPC, on OSX at least, that dropping anything
-  on any window in a Lazarus application, will only activate the main form's
-  OnDropFiles event, irrespective of whether the AllowDropFiles property is set
-  to True or not!
-  So have used this procedure to pass source files to editor form }
-
-procedure TMainForm.FormDropFiles(Sender: TObject; const FileNames: array of String);
+procedure TMainForm.FormDropFiles(Sender: TObject; const Files: array of String);
+var
+  Stream: TFileStream;
 begin
-  (*
-  if (EditorForm <> nil) then
-    EditorForm.DropFiles(Filenames);
-  *)
+  if (Length(Files) = 1) then
+    begin
+      // Need to get load addr from filename
+      Stream := TFileStream.Create(Files[0], fmOpenRead);
+      Stream.Read(Machine.Memory[$100], Stream.Size);
+      Stream.Free;
+      // Load .bin and .hex files into memory
+      { TODO : uMainForm -> provide some feedback that load has been done! }
+    end;
 end;
 
 
@@ -336,21 +344,17 @@ procedure TMainForm.MakeMachineMenu;
 var
   idx: integer;
   NewItem: TMenuItem;
-  temp: string;
 begin
-  for idx := 0 to (Length(MACHINES) - 1) do // One menu item for each machine
+  for idx := 0 to (MachineFactory.Count-1) do // One menu item for each machine
     begin
-      NewItem := TMenuItem.Create(Self);
-      NewItem.Caption := MACHINES[idx].Name;
-      temp := MACHINES[idx].Version;
-      if (temp <> '') then              // Check if this is a machine variant
-        NewItem.Caption := NewItem.Caption + ' (' + temp + ')';
+      NewItem := TMenuItem.Create(self);
+      NewItem.Caption := MachineFactory.GetIdForIdx(idx);
       NewItem.OnClick := @menuMachineClick;
-      NewItem.Tag := idx;               // Menu tag -> MachineIndex (into array)
-      NewItem.RadioItem := True;        // Enable auto deselect of items...
-      NewItem.GroupIndex := 2;          // when new one clicked
+      NewItem.Tag := idx;               // Menu tag -> MACHINES[tag]
       menuSelect.Add(NewItem);
     end;
+  if (CurrentMachineID = '') then       // Set default to first machine
+    CurrentMachineID := MachineFactory.GetIdForIdx(0);
 end;
 
 
@@ -360,10 +364,10 @@ end;
 
 procedure TMainForm.menuMachineClick(Sender: TObject);
 var
-  Index: integer;
+  ID: string;
 begin
-  Index := (Sender as TMenuItem).Tag;   // Get index into MACHINES array
-  if (Index <> CurrentMachineId) then
+  ID := (Sender as TMenuItem).Caption;
+  if (ID <> CurrentMachineID) then
     begin
       Timer1.Enabled := False;
       StopMachine;                      // Shutdown current machine
@@ -372,7 +376,7 @@ begin
       AppIni.Free;
 
       CreateAppIni;
-      WriteMachineID(Index);            // Set ID to new machine
+      WriteMachineID(ID);               // Set ID to new machine
       ReadIniSettings;                  // and create it...
       MakeMachineAndForms;
       Timer1.Enabled := True;
@@ -387,8 +391,7 @@ end;
 
 procedure TMainForm.MakeMachineAndForms;
 begin
-  //AppLog.Debug('MakeMachineAndForms');
-  MakeMachine;
+  MakeMachine;                          // Includes making MachineConfig frame
   MakePreferencesForm;
   if (DeveloperMode) then
     MakeDeveloperForms;
@@ -399,6 +402,7 @@ end;
 procedure TMainForm.MakeDeveloperForms;
 begin
   MakeDebugForm;
+  MakeAssemblerForm;
   MakeDisassemblerForm;
   MakeCompareForm;
 end;
@@ -419,6 +423,7 @@ procedure TMainForm.FreeDeveloperForms;
 begin
   CompareForm.Free;
   DisassemblerForm.Free;
+  AssemblerForm.Free;
   DebugForm.Free;
 end;
 
@@ -427,37 +432,41 @@ end;
 
 procedure TMainForm.MakeMachine;
 var
-  ThisFreq: integer;
+  ThisFreq, Idx: integer;
 begin
-  Machine := TMachineBase.CreateMachine(CurrentMachineId);
+  MachineDataFolder := GetAppResourcesDirectory + CurrentMachineID + DIRECTORY_SEPARATOR;
+  Machine := MachineFactory.CreateMachineFromID(CurrentMachineID);
+  Machine.Name := CurrentMachineID;
 
   // If ScreenSize is defined in INI file, then set machine screen size, else
   // leave default size
-  if (GlobalVars.ScreenSize.X <> -1) then
-    Machine.ScreenSize := GlobalVars.ScreenSize
+  if (tmpScreenSize.X <> -1) then
+    Machine.ScreenSize := tmpScreenSize
   else
     begin
       SetMachineScreenSize(INITIAL_SCALE_FACTOR); // Set initial size as large
       menuSize3.Checked := True;
     end;
 
-  // If ScreenPosition undefined in INI file, put Screen below MainForm
-  if (GlobalVars.ScreenPosition.X = -1) then
+  // If ScreenPosition not defined in INI file, put Screen below MainForm
+  if (tmpScreenPosition.X = -1) then
     begin
-      GlobalVars.ScreenPosition.X := self.Left;
-      GlobalVars.ScreenPosition.Y := self.Top + self.Height + FORM_EXTRA_HEIGHT;
+      tmpScreenPosition.X := self.Left;
+      tmpScreenPosition.Y := self.Top + self.Height + FORM_EXTRA_HEIGHT;
     end;
-  Machine.ScreenPosition := GlobalVars.ScreenPosition;
-  Machine.ScreenCaption := Format('%s (%d)', [Machine.Info.Name, Machine.Info.Year]);
+  Machine.ScreenPosition := tmpScreenPosition;
+  Machine.ScreenCaption := Format('%s (%d)', [CurrentMachineID, Machine.Info.Year]);
   Machine.Reset;
 
-  Caption := Format('%s - %s',  [APP_NAME, Machine.Info.Name]);
-  menuSelect.Items[CurrentMachineId].Checked := True;
+  Caption := Format('%s - %s',  [APP_NAME, CurrentMachineID]);
+  for Idx := 0 to menuSelect.Count-1 do
+    menuSelect.Items[Idx].Checked := False;
+  Idx := MachineFactory.FindIndexForID(CurrentMachineID);
+  menuSelect.Items[Idx].Checked := True;
   actRun.Enabled := Machine.Info.HasCodeToExecute; // Enabled if ROMS loaded
-  actMachineConfig.Enabled := (Machine.ConfigFrame <> nil);
 
   // These items only change with Machine, update once only here
-  StatusBar.Panels[1].Text := Machine.CPU.Name;
+  StatusBar.Panels[1].Text := Machine.CPU.Info.Name;
   ThisFreq := Machine.Info.CpuFreqKhz;
   if (ThisFreq > 0) then
     if (ThisFreq < 1000) then
@@ -466,19 +475,27 @@ begin
       StatusBar.Panels[2].Text := Format('%.1f MHz', [ThisFreq / 1000])
   else
     StatusBar.Panels[2].Text := '';
+  ShowMachineInfoInMemo;
 end;
 
 
 { MAKE PREFERENCES FORM }
 
-{ The assembler tab is only shown if the current CPU supports it, and the
-  machine config tab is assigned to that for the current machine }
+{ Use callbacks to update Editor's preferences }
 
 procedure TMainForm.MakePreferencesForm;
 begin
   PreferencesForm := TPreferencesForm.Create(nil);
-  PreferencesForm.MachineConfigFrame := Machine.ConfigFrame;
-  PreferencesForm.ShowAsmConfig := Machine.CPU.SupportsAssembler;
+  PreferencesForm.Frames[ciDisplay].OnChange := @UpdateEditorPrefs;
+  PreferencesForm.Frames[ciColours].OnChange := @UpdateEditorPrefs;
+  PreferencesForm.SetMachineConfigFrame(Machine.Name, Machine.ConfigFrame);
+end;
+
+
+procedure TMainForm.UpdateEditorPrefs(Sender: TObject);
+begin
+  if (Sender is TEdPrefsFrame) then
+    AssemblerForm.SetEditorPreferences((Sender as TEdPrefsFrame).Prefs);
 end;
 
 
@@ -487,9 +504,28 @@ end;
 procedure TMainForm.MakeDebugForm;
 begin
   DebugForm := TDebugForm.Create(nil);
-  DebugForm.MachineRef := Machine;
-  DebugForm.TraceWidth := Machine.CPU.TraceWidth;
-  DebugForm.RegistersHeight := Machine.CPU.RegistersHeight;
+  DebugForm.Width := Machine.CPU.Info.TraceWidth + DEBUGFORM_TRACE_ADJ;
+  DebugForm.Constraints.MinWidth := DebugForm.Width;
+  DebugForm.OnDebugButton := @DoDebugButton;
+end;
+
+
+{ MAKE ASSEMBLER FORM }
+
+procedure TMainForm.MakeAssemblerForm;
+begin
+  AssemblerForm := TAssemblerForm.Create(nil);
+  AssemblerForm.OnShow := @OnShowHideAsmForm;
+  AssemblerForm.OnHide := @OnShowHideAsmForm;
+  AssemblerForm.MruMenuRef := menuAsmRecent;
+end;
+
+
+procedure TMainForm.OnShowHideAsmForm(Sender: TObject);
+begin
+  menuAsm.Visible := AssemblerForm.Visible;
+  menuEdit.Visible := AssemblerForm.Visible;
+  menuSearch.Visible := AssemblerForm.Visible;
 end;
 
 
@@ -499,10 +535,9 @@ end;
 
 procedure TMainForm.MakeDisassemblerForm;
 begin
-  if (Machine.CPU.SupportsDisassembler) then
+  if (Machine.CPU.Info.SupportsDisassembler) then
     begin
       DisassemblerForm := TDisassemblerForm.Create(nil);
-      DisassemblerForm.MachineRef := Machine;
       actShowDisassembler.Enabled := True;
     end
   else
@@ -515,7 +550,6 @@ end;
 procedure TMainForm.MakeCompareForm;
 begin
   CompareForm := TCompareForm.Create(nil);
-  CompareForm.MachineRef := Machine;
 end;
 
 
@@ -534,26 +568,25 @@ end;
 
 procedure TMainForm.ShowFormsState;
 begin
+  actMode.Checked := DeveloperMode;
+  menuDebug.Visible := DeveloperMode;
+  menuAsm.Visible  := DeveloperMode;
+  menuEdit.Visible  := DeveloperMode;
+  menuSearch.Visible  := DeveloperMode;
   if (DeveloperMode) then
     begin
       actShowDebug.Checked := DebugForm.Visible;
+      actShowAssembler.Checked := AssemblerForm.Visible;
+      OnShowHideAsmForm(self);
       actShowDisassembler.Checked := DisassemblerForm.Visible;
       actShowCompare.Checked := CompareForm.Visible;
     end;
-  actMode.Checked := DeveloperMode;
-  DebugToolbar.Visible := DeveloperMode;
-  menuDebug.Visible := DeveloperMode;
-  menuEditor.Visible := DeveloperMode;
 end;
 
 
 { MENU - SET SCREEN SIZE }
 
-{ GlobalVars.ScaleModifier is an adjustment for very small screen sizes,
-  like the CHIP-8 }
-{ TODO : Need to replace ScaleModifier GLOBAL }
-
-procedure TMainForm.menuSize1Click(Sender: TObject);
+procedure TMainForm.menuSizeClick(Sender: TObject);
 var
   Scale: integer;
 begin
@@ -566,63 +599,76 @@ procedure TMainForm.SetMachineScreenSize(aMultiplier: integer);
 var
   Size: TPoint;
 begin
-  Size.X := Machine.Info.ScreenWidthPx * aMultiplier * GlobalVars.ScaleModifier;
-  Size.Y := Machine.Info.ScreenHeightPx * aMultiplier * GlobalVars.ScaleModifier;
+  Size.X := Machine.Info.ScreenWidthPx * aMultiplier * Machine.Info.ScaleModifier;
+  Size.Y := Machine.Info.ScreenHeightPx * aMultiplier * Machine.Info.ScaleModifier;
   Machine.ScreenSize := Size;
 end;
 
 
 { MENU - ABOUT }
 
-procedure TMainForm.menuAboutWindowsClick(Sender: TObject);
+{ TODO : uMainForm -> showing the About form using ShowModal seems to be causing
+  a small memory leak, even with just the form and no code, perhaps a widgetset
+  bug? Using Show and freeing elsewhere does not cause a leak }
+
+procedure TMainForm.menuAboutClick(Sender: TObject);
 var
-  aboutForm: TAboutForm;
+  af: TAboutForm;
 begin
-  aboutForm := TAboutForm.Create(nil);
+  af := TAboutForm.Create(nil);
   try
-    aboutForm.MachineDataFolder := GlobalVars.MachineDataFolder;
-    aboutForm.ShowModal;
+    af.ShowModal;
   finally
-    aboutForm.Free;
+    af.Free;
   end;
 end;
 
 
 { MENU - PREFERENCES / OPTIONS }
 
-procedure TMainForm.menuOptionsWindowsClick(Sender: TObject);
+procedure TMainForm.menuOptionsMacClick(Sender: TObject);
 begin
-  ShowPreferences(MAIN_TAB);
+  ShowPreferences(ciGeneral);
 end;
 
 
 { MENU - MACHINE CONFIG }
 
-{ Show config form; it exists or menu option would be disabled }
+{ TODO : uMainForm -> build config itself dynamically? See 'Tickle' source }
 
 procedure TMainForm.actMachineConfigExecute(Sender: TObject);
 begin
-  ShowPreferences(MACH_CONFIG_TAB);
+  ShowPreferences(ciMachName);
 end;
 
 
-procedure TMainForm.ShowPreferences(aTab: Integer);
+procedure TMainForm.ShowPreferences(category: TCategoryIndex);
 begin
-  PreferencesForm.ConfigTabCaption := Machine.Info.Name + ' Config';
-  PreferencesForm.Tab := aTab;
+  if (category <> ciGeneral) then       // Machine config call?
+    PreferencesForm.Category := category;
   PreferencesForm.ShowModal;
 end;
 
 
 { MENU - MACHINE INFO }
+
 procedure TMainForm.menuMachineInfoClick(Sender: TObject);
-var
-  MachineInfoForm: TMachineInfoForm;
 begin
-  MachineInfoForm := TMachineInfoForm.Create(nil);
-  MachineInfoForm.Machine := Machine;
-  MachineInfoForm.ShowModal;
-  MachineInfoForm.Free;
+  menuInfo.Checked := not menuInfo.Checked;
+  ShowMachineInfoInMemo;
+end;
+
+
+procedure TMainForm.ShowMachineInfoInMemo;
+begin
+  memoInfo.Visible := menuInfo.Checked;
+  if (menuInfo.Checked) then
+    begin
+      memoInfo.Text := Machine.Description;
+      Height := FORM_MIN_HEIGHT + 320;
+    end
+  else
+    Height := FORM_MIN_HEIGHT;
 end;
 
 
@@ -630,7 +676,7 @@ end;
 
 procedure TMainForm.actModeExecute(Sender: TObject);
 begin
-  DeveloperMode := (not DeveloperMode); 
+  DeveloperMode := (not DeveloperMode);
   actMode.Checked := DeveloperMode;
   if (DeveloperMode) then
     begin
@@ -647,7 +693,8 @@ end;
 
 procedure TMainForm.actLoadCodeBeforeExecute(Sender: TObject);
 begin
-  actLoadCode.Dialog.DefaultExt := '.c8';                                       { TODO : uMainForm -> put these in each Machine's defs }
+  { TODO : uMainForm -> put these in each Machine's defs }
+  actLoadCode.Dialog.DefaultExt := '.c8';
   actLoadCode.Dialog.Filter := 'CHIP-8 Files|*.c8';
 end;
 
@@ -701,7 +748,7 @@ end;
 procedure TMainForm.actRunExecute(Sender: TObject);
 begin
   Machine.CPU.ResetTrace;
-  SetButtons(True);
+  SetButtonsState(True);
 
   Machine.State := msRunning;
   UpdateStatus;
@@ -713,7 +760,7 @@ begin
 
   if (Machine.Info.State = msStoppedOnBrkpt) then
     begin
-      SetButtons(False);
+      SetButtonsState(False);
       UpdateStatus;
     end;
 
@@ -721,9 +768,9 @@ begin
 end;
 
 
-{ SET BUTTONS }
+{ SET BUTTONS STATE }
 
-procedure TMainForm.SetButtons(IsRunning: boolean);
+procedure TMainForm.SetButtonsState(IsRunning: boolean);
 begin
   actRun.Enabled := (not IsRunning);
   actStop.Enabled := IsRunning;
@@ -742,7 +789,7 @@ end;
 
 procedure TMainForm.StopMachine;
 begin
-  SetButtons(False);
+  SetButtonsState(False);
   Machine.State := msStopped;
   UpdateStatus;
 end;
@@ -789,6 +836,20 @@ begin
 end;
 
 
+{ ON DEBUG FORM BUTTONS - callback from DebugForm }
+
+procedure TMainForm.DoDebugButton(Sender: TObject; button: TDebugButton);
+begin
+  case button of
+    dbRun:      actRunExecute(nil);
+    dbStop:     actStopExecute(nil);
+    dbReset:    actResetExecute(nil);
+    dbStep:     actStepExecute(nil);
+    dbStepOver: actStepOverExecute(nil);
+  end;
+end;
+
+
 { SHOW / HIDE FORMS }
 
 { Debug menu options and debug toolbar only avilable to user if in Developer
@@ -807,10 +868,22 @@ begin
   actShowCompare.Checked := CompareForm.Visible;
 end;
 
+procedure TMainForm.actShowAssemblerExecute(Sender: TObject);
+begin
+  AssemblerForm.Visible := (not AssemblerForm.Visible);
+  actShowAssembler.Checked := AssemblerForm.Visible;
+end;
+
 procedure TMainForm.actShowDisassemblerExecute(Sender: TObject);
 begin
   DisassemblerForm.Visible := (not DisassemblerForm.Visible);
   actShowDisassembler.Checked := DisassemblerForm.Visible;
+end;
+
+
+procedure TMainForm.btnAssembleClick(Sender: TObject);
+begin
+  AssemblerForm.Show;
 end;
 
 
@@ -820,7 +893,7 @@ end;
   CPU frequency, display etc, to give experience as per the original machine
   performance. As modern computers are substantially faster, this is done by
   waiting a set amount of time after each frame has been executed. This 'wait'
-  can be switched off to run a 'full speed' of the emulating system. The
+  can be switched off to run at 'full speed' of the emulating system. The
   resultant FPS will be displayed on the main GUI bar, and is usually just
   used to check performance changes to program architecture, etc }
 
@@ -831,68 +904,55 @@ begin
 end;
 
 
-{ ASSEMBLER }
-
-{ Run the assembler for the current CPU against the current source file.
-  Other elements covered in Editor Form; links to ActionList therein }
-
-procedure TMainForm.actAssembleExecute(Sender: TObject);
-var
-  ThisInputFile: string;
-  ThisAssembler: TAssembler;
-begin
-  //ThisInputFile := EditorForm.SourceFilename; // Need a valid filename
-  ThisInputFile := GetAppDataDirectory + 'test' + DIRECTORY_SEPARATOR + 'tanbug.asm'; (* DEBUG ONLY *)
-  ThisAssembler := TAssembler.Create(Machine);
-  try
-    ThisAssembler.Execute(ThisInputFile);
-  finally
-    ThisAssembler.Free;
-  end;
-//  SymbolsPanel.Visible := True;
-//  SymbolsSplitter.Visible := True;
-//  DebugForm.EditorText.LoadFromFile(GlobalVars.DataPath + 'test' + DIRECTORY_SEPARATOR + 'tanbug.lst'); (* DEBUG ONLY *)
-end;
-
-
 { UPDATE STATUS }
 
 procedure TMainForm.UpdateStatus;
+var
+  tmp: string;
 begin
   case (Machine.Info.State) of
-    msRunning: StatusBar.Panels[0].Text := 'Running';
-    msStopped: StatusBar.Panels[0].Text := 'Stopped';
-    msStoppedOnBrkpt: StatusBar.Panels[0].Text := Format('Breakpoint $%.4x', [Machine.CPU.PC]);
+    msRunning:        tmp := 'Running';
+    msStopped:        tmp := 'Stopped';
+    msStoppedOnBrkpt: tmp := Format('Breakpoint $%.4x', [Machine.CPU.PC]);
   end;
+  StatusBar.Panels[0].Text := tmp;
   if (DeveloperMode) then
-    DebugForm.Refresh;
+    begin
+      DebugForm.Status := tmp;
+      DebugForm.Refresh;
+    end;
 end;
 
 
-{ INIFILE READ/WRITE }
+{ INIFILE READ / WRITE }
 
 { This procedure builds Custom Section header based on selected machine, it
   is called from uIniFile if SECT_CUSTOM is used to identify the section }
 
 procedure TMainForm.DoCustomSection(var aSect: string);
 begin
-  aSect := Format('Mach%d', [CurrentMachineID]);
+  aSect := CurrentMachineID;
 end;
 
 
-{ READ / WRITE INI SETTINGS }
+procedure TMainForm.WriteMachineID(aID: string);
+begin
+  AppIni.WriteString(SECT_MAIN, INI_MACH_ID, aID);
+end;
+
 
 procedure TMainForm.ReadIniSettings;
 begin
-  CurrentMachineID := AppIni.ReadInteger(SECT_MAIN, MACHINE_ID, 0);
+  CurrentMachineID := AppIni.ReadString(SECT_MAIN, INI_MACH_ID, '');
   Left := AppIni.ReadInteger(SECT_CUSTOM, INI_WDW_LEFT, 20);
   Top := AppIni.ReadInteger(SECT_CUSTOM, INI_WDW_TOP, 20);
-  DeveloperMode := AppIni.ReadBool(SECT_CUSTOM, DEVELOPER_MODE, False);
+  DeveloperMode := AppIni.ReadBool(SECT_CUSTOM, INI_DEV_MODE, False);
+  menuInfo.Checked := AppIni.ReadBool(SECT_CUSTOM, INI_SHOW_INFO, True);
 
-  GlobalVars.ScreenPosition.X := AppIni.ReadInteger(SECT_CUSTOM, SCREEN + INI_WDW_LEFT, -1);
-  GlobalVars.ScreenPosition.Y := AppIni.ReadInteger(SECT_CUSTOM, SCREEN + INI_WDW_TOP, -1);
-  GlobalVars.ScreenSize.X := AppIni.ReadInteger(SECT_CUSTOM, SCREEN + INI_WDW_WIDTH, -1);
-  GlobalVars.ScreenSize.Y := AppIni.ReadInteger(SECT_CUSTOM, SCREEN + INI_WDW_HEIGHT, -1);
+  tmpScreenPosition.X := AppIni.ReadInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_LEFT, -1);
+  tmpScreenPosition.Y := AppIni.ReadInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_TOP, -1);
+  tmpScreenSize.X := AppIni.ReadInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_WIDTH, -1);
+  tmpScreenSize.Y := AppIni.ReadInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_HEIGHT, -1);
 end;
 
 
@@ -901,11 +961,12 @@ begin
   WriteMachineID(CurrentMachineID);
   AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_LEFT, Left);
   AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_TOP, Top);
-  AppIni.WriteBool(SECT_CUSTOM, DEVELOPER_MODE, DeveloperMode);
-  AppIni.WriteInteger(SECT_CUSTOM, SCREEN + INI_WDW_LEFT, Machine.ScreenPosition.X);
-  AppIni.WriteInteger(SECT_CUSTOM, SCREEN + INI_WDW_TOP, Machine.ScreenPosition.Y);
-  AppIni.WriteInteger(SECT_CUSTOM, SCREEN + INI_WDW_WIDTH, Machine.ScreenSize.X);
-  AppIni.WriteInteger(SECT_CUSTOM, SCREEN + INI_WDW_HEIGHT, Machine.ScreenSize.Y);
+  AppIni.WriteBool(SECT_CUSTOM, INI_DEV_MODE, DeveloperMode);
+  AppIni.WriteBool(SECT_CUSTOM, INI_SHOW_INFO, menuInfo.Checked);
+  AppIni.WriteInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_LEFT, Machine.ScreenPosition.X);
+  AppIni.WriteInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_TOP, Machine.ScreenPosition.Y);
+  AppIni.WriteInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_WIDTH, Machine.ScreenSize.X);
+  AppIni.WriteInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_HEIGHT, Machine.ScreenSize.Y);
 
   // Cannot write these in DebugForm's or others OnDestroy events as forms
   // always appear to be invisible at that point. So write state here, but read
@@ -913,15 +974,10 @@ begin
   if (DeveloperMode) then
     begin
       AppIni.WriteBool(SECT_CUSTOM, 'Dbg' + INI_WDW_VIS, DebugForm.Visible);   
+      AppIni.WriteBool(SECT_CUSTOM, 'Asm' + INI_WDW_VIS, AssemblerForm.Visible);
       AppIni.WriteBool(SECT_CUSTOM, 'Dis' + INI_WDW_VIS, DisassemblerForm.Visible);
       AppIni.WriteBool(SECT_CUSTOM, 'Compare' + INI_WDW_VIS, CompareForm.Visible);
     end;
-end;
-
-
-procedure TMainForm.WriteMachineID(aID: integer);
-begin
-  AppIni.WriteInteger(SECT_MAIN, MACHINE_ID, aID);
 end;
 
 
@@ -937,33 +993,11 @@ begin
     begin
       actShowDebug.Checked := DebugForm.Visible;      
       actShowDisassembler.Checked := DisassemblerForm.Visible;
+      actShowAssembler.Checked := AssemblerForm.Visible;
       actShowCompare.Checked := CompareForm.Visible;
     end;
   StatusBar.Panels[3].Text := Format('%d fps', [CalculatedFPS]);
   CalculatedFPS := 0;                   // Reset each second
-end;
-
-
-{ AUTO STEP TIMER }
-
-procedure TMainForm.TimerAutoStepTimer(Sender: TObject);
-begin
-  actStepExecute(nil);                  // Execute one 'step' on each timeout
-end;
-
-
-procedure TMainForm.cbAutoStepChange(Sender: TObject);
-begin
-  TimerAutoStep.Interval := TrackBarAutoStep.Position;
-  TimerAutoStep.Enabled := cbAutoStep.Checked;
-  //
-  // ConvertForm.Show;  (* CANNOT REMEMBER WHY THIS HERE !! *)
-end;
-
-
-procedure TMainForm.TrackBarAutoStepChange(Sender: TObject);
-begin
-  TimerAutoStep.Interval := TrackBarAutoStep.Position;
 end;
 
 
@@ -976,9 +1010,18 @@ begin
 end;
 
 
-{ DEBUG ??? }
+{ TEST }
 
 procedure TMainForm.btnTestClick(Sender: TObject);
+begin
+  Label1.Caption := Format('D is register %d (should be 3)', [GetRegisterIndex('D', INFO_8080.Registers)]);
+  Label2.Caption := Format('PO is register %d (should be 16)', [GetRegisterIndex('PO', INFO_8080.Registers)]);
+end;
+
+
+{ DEBUG }
+
+procedure TMainForm.btnTest2Click(Sender: TObject);
 {
 var
   WriteHex: TWriteHex;
@@ -1001,19 +1044,6 @@ begin
   EditorForm.Memo.Lines.Add(Format('Start address %.4x for %d bytes', [ReadHex.StartAddress, ReadHex.BytesRead]));
   ReadHex.Free;
   }
-end;
-
-
-{ DEBUG BUTTON }
-
-procedure TMainForm.btnDebugClick(Sender: TObject);
-begin
-  //Machine.ScreenRefresh;
-  case (DebugForm.TraceWidth) of
-      0: DebugForm.TraceWidth := 440;
-    440: DebugForm.TraceWidth := 580;
-    580: DebugForm.TraceWidth := 0;
-  end;
 end;
 
 

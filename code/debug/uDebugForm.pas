@@ -32,60 +32,65 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
+  Spin, Buttons, ComCtrls,
   //
   uMemoryFrame, uTraceFrame, uBreakpointsFrame, uWatchesFrame, uMachineBase,
   uRegistersFrameBase, uIniFile, uCommon;
 
 type
+  TDebugButton = (dbRun, dbStop, dbReset, dbStep, dbStepOver);
+  TDebugButtonEvent = procedure(Sender: TObject; Button: TDebugButton) of object;
 
   { TDebugForm }
 
   TDebugForm = class(TForm)
-    gbRegisters: TGroupBox;
-    gbBreakpoints: TGroupBox;
+    cbAutoStep: TCheckBox;
+    cbBrkptsEnabled: TCheckBox;
+    cbWatchesEnabled: TCheckBox;
+    gbButtons: TGroupBox;
     gbMemory: TGroupBox;
-    gbEditor: TGroupBox;
-    gbWatches: TGroupBox;
+    gbBreakpoints: TGroupBox;
+    gbRegisters: TGroupBox;
     gbTrace: TGroupBox;
+    gbWatches: TGroupBox;
     panelLeft: TPanel;
-    panelMiddle: TPanel;
     panelRight: TPanel;
+    seAutoStep: TSpinEdit;
+    TimerAutoStep: TTimer;
+    ToolBar1: TToolBar;
+    tbRun: TToolButton;
+    tbStop: TToolButton;
+    tbReset: TToolButton;
+    tbSep1: TToolButton;
+    tbStep: TToolButton;
+    tbStepOver: TToolButton;
+    procedure cbAutoStepChange(Sender: TObject);
+    procedure cbBrkptsEnabledChange(Sender: TObject);
+    procedure cbWatchesEnabledChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure seAutoStepChange(Sender: TObject);
+    procedure TimerAutoStepTimer(Sender: TObject);
   private
-    fMachineRef: TMachineBase;
+    fOnDebugButton: TDebugButtonEvent;
     MemoryFrame: TMemoryFrame;
     TraceFrame: TTraceFrame;
     BreakpointsFrame: TBreakpointsFrame;     
     WatchesFrame: TWatchesFrame;
-    (*
-    EditorFrame: TEditorFrame;
-    *)
-    procedure SetMachine(const aMachine: TMachineBase);
+    procedure DoDebugButton(button: TDebugButton);
+    procedure SetStatus(aValue: string);
     procedure SetupRegistersFrame;
     procedure SetupMemoryFrame;
     procedure SetupTraceFrame;
     procedure SetupBreakpointsFrame;
     procedure SetupWatchesFrame;
-    procedure SetupEditorFrame;
-    procedure SetEditorText(const aStrings: TStrings);
-    function  GetEditorText: TStrings;
-    procedure SetRegistersWidth(const aValue: integer);
-    procedure SetTraceWidth(const aValue: integer);
-    procedure SetRegistersHeight(const aValue: integer);
-    function GetRegistersHeight: integer;
-    function GetRegistersWidth: integer;
-    function GetTraceWidth: integer;
   public
     procedure Refresh;
     procedure CheckBreakpointRead(aAddr: word; out IsBrkpt: boolean);
     procedure CheckBreakpointWrite(aAddr: word; out IsBrkpt: boolean);
     //
-    property MachineRef: TMachineBase write SetMachine;
-    property EditorText: TStrings read GetEditorText write SetEditorText;
-    property RegistersWidth: integer read GetRegistersWidth write SetRegistersWidth;
-    property TraceWidth: integer read GetTraceWidth write SetTraceWidth;
-    property RegistersHeight: integer read GetRegistersHeight write SetRegistersHeight;
+    property OnDebugButton: TDebugButtonEvent read fOnDebugButton write fOnDebugButton;
+    property Status: string write SetStatus;
   end;
 
 
@@ -94,28 +99,51 @@ implementation
 {$R *.lfm}
 
 const
-  INI_PREFIX = 'Dbg';
-
+  SECT_DEBUG   = 'DebugForm';
+  INI_PREFIX   = 'Dbg';
+  INI_AUTOSTEP = 'AutoStep';
+  INI_BRKPTS   = 'BrkptsEnabled';
+  INI_WATCHES  = 'WatchesEnabled';
 
 { CREATE }
 
 procedure TDebugForm.FormCreate(Sender: TObject);
 begin
-  Top := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, 20);
-  Left := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, 620);
-  Width := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_WIDTH, 0);
+  Top := AppIni.ReadInteger(SECT_DEBUG, INI_WDW_TOP, 20);
+  Left := AppIni.ReadInteger(SECT_DEBUG, INI_WDW_LEFT, 620);
+  // Width is set in Mainform.MakeDebugForm dependent on which CPU selected, not saved
   Height := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_HEIGHT, 0);
-  Visible := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WDW_VIS, True); // Written out in uMainForm
+  // Following is written out in MainForm.WriteIniSettings, but read here
+  Visible := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WDW_VIS, True);
+  cbBrkptsEnabled.Checked := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_BRKPTS, True);
+  cbWatchesEnabled.Checked := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WATCHES, True);
+
+  cbAutoStep.Checked := False;
+  TimerAutoStep.Enabled := False;
+  seAutoStep.Value := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_AUTOSTEP, 1000);
+
+  SetupRegistersFrame;
+  SetupMemoryFrame;
+  SetupTraceFrame;
+  SetupBreakpointsFrame;
+  SetupWatchesFrame;
+  Machine.BreakpointHandler := @CheckBreakpointRead;
+
+  panelRight.Width := Machine.CPU.Info.TraceWidth;
+  gbRegisters.Height := Machine.CPU.Info.RegistersHeight;
 end;
+
 
 { DESTROY }
 
 procedure TDebugForm.FormDestroy(Sender: TObject);
 begin
-  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, Top);
-  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, Left);
-  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_WIDTH, Width);
+  AppIni.WriteInteger(SECT_DEBUG, INI_WDW_TOP, Top);
+  AppIni.WriteInteger(SECT_DEBUG, INI_WDW_LEFT, Left);
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_HEIGHT, Height);
+  AppIni.WriteBool(SECT_CUSTOM, INI_PREFIX + INI_BRKPTS, cbBrkptsEnabled.Checked);
+  AppIni.WriteBool(SECT_CUSTOM, INI_PREFIX + INI_WATCHES, cbWatchesEnabled.Checked);
+  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_AUTOSTEP, seAutoStep.Value);
   //
   MemoryFrame.Parent := nil;
   MemoryFrame.Free;
@@ -125,48 +153,12 @@ begin
   BreakpointsFrame.Free;             
   WatchesFrame.Parent := nil;
   WatchesFrame.Free;
-  (*
-  EditorFrame.Parent := nil;
-  EditorFrame.Free;
-  *)
 end;
 
 
-{ SET MACHINE }
-
-procedure TDebugForm.SetMachine(const aMachine: TMachineBase);
+procedure TDebugForm.SetStatus(aValue: string);
 begin
-  fMachineRef := aMachine;
-  SetupRegistersFrame;
-  SetupMemoryFrame;
-  SetupTraceFrame;         
-  SetupBreakpointsFrame;   
-  SetupWatchesFrame;
-  (*
-  SetupEditorFrame;
-  *)
-  fMachineRef.BreakpointHandler := @CheckBreakpointRead;
-end;
-
-
-{ SET & GET EDITOR TEXT }
-
-procedure TDebugForm.SetEditorText(const aStrings: TStrings);
-begin
-  (*
-  if (EditorFrame <> nil) then
-    EditorFrame.Lines := aStrings;
-  *)
-end;
-
-function TDebugForm.GetEditorText: TStrings;
-begin
-  (*
-  if (EditorFrame <> nil) then
-    Result := EditorFrame.Lines
-  else
-  *)
-    Result := nil;
+  Caption := 'BMDS Debug [' + aValue + ']';
 end;
 
 
@@ -176,13 +168,13 @@ end;
 
 procedure TDebugForm.SetupRegistersFrame;
 begin
-  if (fMachineRef.CPU.RegisterFrame <> nil) then
+  if (Machine.CPU.RegisterFrame <> nil) then
     begin                                                              
-      fMachineRef.CPU.RegisterFrame.Parent := gbRegisters;
-      fMachineRef.CPU.RegisterFrame.MemoryRef := fMachineRef.Memory;
-      fMachineRef.CPU.RegisterFrame.Initialise;
+      Machine.CPU.RegisterFrame.Parent := gbRegisters;
+      Machine.CPU.RegisterFrame.MemoryRef := Machine.Memory;
+      Machine.CPU.RegisterFrame.Initialise;
       //
-      gbRegisters.Caption := fMachineRef.CPU.Name + ' Registers';
+      gbRegisters.Caption := Machine.CPU.Info.Name + ' Registers';
     end
   else
     gbRegisters.Caption := 'Registers: panel not implemented';
@@ -198,13 +190,13 @@ var
 begin
   MemoryFrame := TMemoryFrame.Create(self);
   MemoryFrame.Parent := gbMemory;
-  MemoryFrame.MemoryRef := fMachineRef.Memory;      
+  MemoryFrame.MemoryRef := Machine.Memory;
   MemoryFrame.Initialise;
   //
-  gbMemory.Caption := 'Memory Display (' + IntToStr(Trunc(Length(fMachineRef.Memory) / 1024)) + 'K)';
+  gbMemory.Caption := 'Memory Display (' + IntToStr(Trunc(Length(Machine.Memory) / 1024)) + 'K)';
   buttons := TStringList.Create;
   try
-    buttons.CommaText := fMachineRef.Info.MemoryButtons;
+    buttons.CommaText := Machine.Info.MemoryButtons;
     for idx := 0 to buttons.Count - 1 do
       MemoryFrame.AddButton(buttons.Names[idx], GetHex(buttons.ValueFromIndex[idx]));
   finally
@@ -219,7 +211,7 @@ procedure TDebugForm.SetupTraceFrame;
 begin
   TraceFrame := TTraceFrame.Create(nil);
   TraceFrame.Parent := gbTrace;
-  TraceFrame.CpuRef := fMachineRef.CPU; 
+  TraceFrame.CpuRef := Machine.CPU;
   TraceFrame.Initialise;
 end;
 
@@ -231,10 +223,38 @@ begin
   BreakpointsFrame := TBreakpointsFrame.Create(nil);
   BreakpointsFrame.Parent := gbBreakpoints;
   BreakpointsFrame.Initialise;
+  cbBrkptsEnabledChange(self);
 
   // The breakpoints array size depends on the allocated machine memory size,
   // so that breakpoints can be set anywhere code might be
-  BreakpointsFrame.ArraySize := Length(fMachineRef.Memory);
+  BreakpointsFrame.ArraySize := Length(Machine.Memory);
+end;
+
+
+procedure TDebugForm.cbBrkptsEnabledChange(Sender: TObject);
+begin
+  if (BreakpointsFrame <> nil) then
+    BreakpointsFrame.Enabled := cbBrkptsEnabled.Checked;
+end;
+
+
+{ CHECK BREAKPOINTS }
+
+procedure TDebugForm.CheckBreakpointRead(aAddr: word; out IsBrkpt: boolean);
+begin
+  if (BreakpointsFrame.Enabled) then
+    IsBrkpt := BreakpointsFrame.CheckRead(aAddr)
+  else
+    IsBrkpt := False;
+end;
+
+
+procedure TDebugForm.CheckBreakpointWrite(aAddr: word; out IsBrkpt: boolean);
+begin
+  if (BreakpointsFrame.Enabled) then
+    IsBrkpt := BreakpointsFrame.CheckWrite(aAddr)
+  else
+    IsBrkpt := False;
 end;
 
 
@@ -243,34 +263,16 @@ end;
 procedure TDebugForm.SetupWatchesFrame;
 begin
   WatchesFrame := TWatchesFrame.Create(nil);
-  WatchesFrame.Parent := gbWatches;            
+  WatchesFrame.Parent := gbWatches;
   WatchesFrame.Initialise;
+  cbWatchesEnabledChange(self);
 end;
 
 
-{ EDITOR }
-
-procedure TDebugForm.SetupEditorFrame;
+procedure TDebugForm.cbWatchesEnabledChange(Sender: TObject);
 begin
-  (*
-  EditorFrame := TEditorFrame.Create(nil);
-  EditorFrame.Parent := gbEditor;
-  EditorFrame.Initialise;
-  *)
-end;
-
-
-{ CHECK BREAKPOINTS }
-
-procedure TDebugForm.CheckBreakpointRead(aAddr: word; out IsBrkpt: boolean);
-begin
-  IsBrkpt := BreakpointsFrame.CheckRead(aAddr);
-end;
-
-
-procedure TDebugForm.CheckBreakpointWrite(aAddr: word; out IsBrkpt: boolean);
-begin
-  IsBrkpt := BreakpointsFrame.CheckWrite(aAddr);
+  if (WatchesFrame <> nil) then
+    WatchesFrame.Enabled := cbWatchesEnabled.Checked;
 end;
 
 
@@ -280,46 +282,39 @@ procedure TDebugForm.Refresh;
 begin
   if (TraceFrame <> nil) then
     begin
-      TraceFrame.Rows := fMachineRef.CPU.TraceCount + 1;
+      TraceFrame.Rows := Machine.CPU.TraceCount + 1;
       TraceFrame.Refresh;
     end;
-  if (fMachineRef.CPU.RegisterFrame <> nil) then
-    fMachineRef.CPU.RegisterFrame.Refresh;
+  if (Machine.CPU.RegisterFrame <> nil) then
+    Machine.CPU.RegisterFrame.Refresh;
 end;
 
 
-{ GET & SET LAYOUT SIZES }
+{ AUTOSTEP TIMER }
 
-function TDebugForm.GetRegistersWidth: integer;
+procedure TDebugForm.DoDebugButton(button: TDebugButton);
 begin
-  Result := panelLeft.Width;
-end;
-
-procedure TDebugForm.SetRegistersWidth(const aValue: integer);
-begin
-  panelLeft.Width := aValue;
+  if Assigned(fOnDebugButton) then
+    fOnDebugButton(self, button);
 end;
 
 
-function TDebugForm.GetTraceWidth: integer;
+procedure TDebugForm.TimerAutoStepTimer(Sender: TObject);
 begin
-  Result := panelMiddle.Width;
-end;
-
-procedure TDebugForm.SetTraceWidth(const aValue: integer);
-begin
-  panelMiddle.Width := aValue;
+  DoDebugButton(dbStep);
 end;
 
 
-function TDebugForm.GetRegistersHeight: integer;
+procedure TDebugForm.seAutoStepChange(Sender: TObject);
 begin
-  Result := gbRegisters.Height;
+  TimerAutoStep.Interval := seAutoStep.Value;
 end;
 
-procedure TDebugForm.SetRegistersHeight(const aValue: integer);
+
+procedure TDebugForm.cbAutoStepChange(Sender: TObject);
 begin
-  gbRegisters.Height := aValue;
+  TimerAutoStep.Interval := seAutoStep.Value;
+  TimerAutoStep.Enabled := cbAutoStep.Checked;
 end;
 
 

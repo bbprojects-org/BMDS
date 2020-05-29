@@ -69,10 +69,14 @@ type
     procedure edValueDecimalExit(Sender: TObject);
     procedure edValueHexExit(Sender: TObject);
   private              
+    fEnabled: boolean;
     WatchValue: word;
+    procedure SetEnabled(aFlag: boolean);
   public         
     procedure Initialise;
     destructor Destroy; override;
+    //
+    property Enabled: boolean read fEnabled write SetEnabled;
   end;
 
 
@@ -100,6 +104,18 @@ destructor TWatchesFrame.Destroy;
 begin
   //
   inherited;
+end;
+
+
+{SET ENABLED STATE }
+
+procedure TWatchesFrame.SetEnabled(aFlag: boolean);
+var
+  i: integer;
+begin
+  fEnabled := aFlag;
+  for i := 0 to self.ControlCount-1 do
+    self.Controls[i].Enabled := fEnabled;
 end;
 
 

@@ -1,4 +1,5 @@
-_bin
-_obj
 _AppDataDirectory
 _AppResourcesDirectory
+_bin
+_build
+_local only

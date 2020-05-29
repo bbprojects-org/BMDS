@@ -30,14 +30,17 @@
 
   =============================================================================}
 
-{ TODO : uDisassembler -> in SetMachine, fix crash if AddrDefs does not exist (use "if FileExists"?) }
-{ TODO : uDisassembler -> in DoHeader, copy header file rather than using equates (keeps comments) }
 { TODO : uDisassembler -> in ButtonLoadSettingsClick, load filename of previously loaded file }
-{ TODO : uDisassembler -> add option to create mnemonics in lower case? }
+{ TODO : uDisassembler -> in SetMachine, fix crash if AddrDefs does not exist }
+{ TODO : uDisassembler -> in DoHeader, copy header file rather than using equates (keeps comments) }
+{ TODO : uDisassembler -> sort data addresses }
+{ TODO : uDisassembler -> add option to create mnemonics in lower case ? }
+{ TODO : uDisassembler -> add user defined address definition file for labelling ? }
 
 unit uDisassembler;
 
 {$mode objfpc}{$H+}
+{.$define disassembler_debug}
 
 interface
 
@@ -45,7 +48,7 @@ uses
   LCLIntf, LCLType, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls, Buttons, StdCtrls, ActnList, FileUtil,
   //
-  uMachineBase, uCpuBase, uDefs6502, uAddrDefs, uIniFile, uCommon;
+  uMachineBase, uCpuBase, uCpuTypes, uDefs6502, uAddrDefs, uIniFile, uCommon;
 
 type
   TDataAddress = record
@@ -94,7 +97,6 @@ type
     procedure btnLoadSettingsClick(Sender: TObject);
     procedure lbDataAddressesClick(Sender: TObject);
   private
-    fMachineRef: TMachineBase;
     CurrentAddr: integer;
     StartAddr: word;
     EndAddr: word;
@@ -107,7 +109,7 @@ type
     OutputStr: string;
     DefSpcStr: string;
     DefByteStr: string;
-    procedure SetMachine(const aMachine: TMachineBase);
+    procedure SetMachine;
     function  CheckOperand(Mnemonic: string; OperandVal: word): string;
     function  CheckAddressesOK(nStart, nEnd: Word): boolean;
     procedure SetDataAddressArray;
@@ -115,7 +117,6 @@ type
     function  InRange(Addr: word): boolean;
     procedure DoHeading(IsSimple: boolean = False);
   public
-    property MachineRef: TMachineBase write SetMachine;
   end;
 
 
@@ -131,16 +132,19 @@ const
 
 procedure TDisassemblerForm.FormCreate(Sender: TObject);
 begin
+  {$ifdef disassembler_debug}
+  AppLog.Debug('TDisassemblerForm.FormCreate');
+  {$endif}
   Top := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, 20);
   Left := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, 320);
   Width := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_WIDTH, 0);
   Height := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_HEIGHT, 0);
-  Visible := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WDW_VIS, True); // Written out in uMainForm
+  // Following is written out in uMainForm, but read here
+  Visible := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WDW_VIS, True);
   //
   CurrentAddr := 0;
   btnCopyToClipboard.Enabled := False;
-  DefSpcStr  := 'RMB';                  // Defaults, set in SetMachine below
-  DefByteStr := 'FCB';
+  SetMachine;
 end;
 
 
@@ -148,6 +152,9 @@ end;
 
 procedure TDisassemblerForm.FormDestroy(Sender: TObject);
 begin
+  {$ifdef disassembler_debug}
+  AppLog.Debug('TDisassemblerForm.FormDestroy');
+  {$endif}
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, Top);
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, Left);
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_WIDTH, Width);
@@ -167,26 +174,25 @@ end;
 
 { SET MACHINE }
 
-procedure TDisassemblerForm.SetMachine(const aMachine: TMachineBase);
+procedure TDisassemblerForm.SetMachine;
 var
-  Filename: string;
+  FileName: string;
 begin
-  fMachineRef := aMachine;
-  if (fMachineRef.Info.MachineDefsFilename <> '') then
+  if (Machine.Info.MachineDefsFileName <> '') then
     begin
       AddrDefsProcessor := TAddrDefsProcessor.Create;
-      Filename := GlobalVars.MachineDataFolder + fMachineRef.Info.MachineDefsFilename;
-      AddrDefsArray := AddrDefsProcessor.GetAddrDefs(Filename);
+      FileName := MachineDataFolder + Machine.Info.MachineDefsFileName;
+      AddrDefsArray := AddrDefsProcessor.GetAddrDefs(FileName);
     end;
-  Caption := fMachineRef.CPU.Name + ' Disassembler';
+  Caption := 'BMDS Disassembler for ' + Machine.CPU.Info.Name;
 
-  case fMachineRef.CPU.CpuType of
-    ctR6502, ct65C02, ctCHIP8, ct6800, ct6809:
+  case Machine.CPU.CpuType of
+    ct6502, ct65C02, ctCHIP8:
       begin
         DefSpcStr :=  'RMB';
         DefByteStr := 'FCB';
       end;
-    ct8080, ctZ80:
+    ct8080:
       begin
         DefSpcStr :=  'DS';
         DefByteStr := 'DB';
@@ -327,12 +333,6 @@ var
   WasInDataBlock: boolean;
   DisData: TDisassembledData;
 begin
-  if (not Assigned(fMachineRef)) then
-    begin
-      MessageDlg('No machine assigned!', mtWarning, [mbOK], 0);
-      Exit;
-    end;
-
   // Make sure address range is sensible, i.e. End comes after Start
   if (not CheckAddressesOK(StartAddr, EndAddr)) then
     begin
@@ -349,7 +349,7 @@ begin
       if (InDataBlock) then
         // If in an identified data block, just output byte definitions
         begin
-          CurrentByte := fMachineRef.Memory[CurrentAddr];
+          CurrentByte := Machine.Memory[CurrentAddr];
           memoDis.Lines.Add(Format('%.4x %-8.2x= %s $%.2x  // %s', [CurrentAddr,
                                  CurrentByte, DefByteStr, CurrentByte, GetAscii(CurrentByte)]));
           Inc(CurrentAddr);
@@ -362,7 +362,7 @@ begin
             memoDis.Lines.Add('');      // Blank line after data section
           WasInDataBlock := False;
           PrevAddress := CurrentAddr;
-          DisData := fMachineRef.CPU.GetDisassembly(CurrentAddr);
+          DisData := Machine.CPU.GetDisassembly(CurrentAddr);
           memoDis.Lines.Add(DisData.Text); // Add disassembled line to output
           if (DisData.AddBlankLine) then // Blank line after RTS/JMP like instructions
             memoDis.Lines.Add('');
@@ -399,12 +399,6 @@ var
   DisData: TDisassembledData;
   Temp: string;
 begin
-  if (not Assigned(fMachineRef)) then
-    begin
-      MessageDlg('No machine assigned!', mtWarning, [mbOK], 0);
-      Exit;
-    end;
-
   if (not CheckAddressesOK(StartAddr, EndAddr)) then
     begin
       edStart.SetFocus;
@@ -422,7 +416,7 @@ begin
   for i := 0 to $FFFF do
     AddressesUsed[i] := False;          // Set no addresses referenced
   AddressesUsed[StartAddr] := True;     // Ensure start line has label
-  for i := 1 to Length(AddrDefsArray) do
+  for i := 0 to Length(AddrDefsArray)-1 do
     AddrDefsArray[i].Used := False;     // and no defined addresses used
 
   // First pass, get addresses referenced
@@ -434,7 +428,7 @@ begin
         Inc(CurrentAddr)
       else
         begin
-          DisData := fMachineRef.CPU.GetDisassembly(CurrentAddr);
+          DisData := Machine.CPU.GetDisassembly(CurrentAddr);
           PrevAddress := CurrentAddr;
           if (DisData.HasOperand) then  // Replaceable operand?
             begin
@@ -464,7 +458,7 @@ begin
       CommentStr := '';                 // Default = no comment
       if (InDataBlock) then
         begin                           // If in a data section, just show byte
-          CurrentByte := fMachineRef.Memory[CurrentAddr];
+          CurrentByte := Machine.Memory[CurrentAddr];
           memoDis.Lines.Add(Format(OutputStr, [LabelStr,
                                                DefByteStr,
                                                Format('$%.2x', [CurrentByte]),
@@ -475,7 +469,7 @@ begin
         end;
 
       PrevAddress := CurrentAddr;
-      DisData := fMachineRef.CPU.GetDisassembly(CurrentAddr);
+      DisData := Machine.CPU.GetDisassembly(CurrentAddr);
 
       // MnemonicStr := Lowercase(DisData.MnemStr);
       MnemonicStr := DisData.MnemStr;
@@ -542,7 +536,7 @@ begin
   if (Length(edDesc.Text) > 0) then
     memoDis.Lines.Add('// Description: ' + edDesc.Text);
   memoDis.Lines.Add('//');
-  memoDis.Lines.Add('// CPU: ' + fMachineRef.CPU.Name);
+  memoDis.Lines.Add('// CPU: ' + Machine.CPU.Info.Name);
   memoDis.Lines.Add('//');
   memoDis.Lines.Add('// Address range:');
   memoDis.Lines.Add(Format('//   $%.4x - $%.4x', [StartAddr, EndAddr]));
@@ -573,7 +567,7 @@ begin
         Count := 0;
         repeat
           Inc(Count);
-        until (AddressesUsed[i + Count] or ((i + Count) = Length(AddressesUsed)));
+        until (AddressesUsed[i + Count] or ((i + Count) = Length(AddressesUsed)-1));
         memoDis.Lines.Add(Format(OutputStr, [Format('Lbl_%.4x', [i]),
                                              DefSpcStr,
                                              Format('%d', [Count]),

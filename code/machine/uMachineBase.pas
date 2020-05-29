@@ -2,7 +2,8 @@
 
   MACHINE BASE
 
-  This unit provides the base class for all Machines
+    This unit provides the base class for all Machines, and also the
+    machine factory for registering and creating machines
 
 
   LICENSE:
@@ -22,6 +23,8 @@
 
   =============================================================================}
 
+{ TODO : uMachineBase -> add back fConfigFrame as per current GitHub }
+
 unit uMachineBase;
 
 {$mode objfpc}{$H+}
@@ -31,47 +34,43 @@ interface
 uses
   ExtCtrls, Graphics, LCLIntf, LCLType, Classes, Forms, SysUtils, Dialogs,
   //
-  uCpuBase, uMachineConfigBase, uBreakpointsFrame, uMemoryMgr, uGfxMgr, uCommon;
+  uCpuBase, uBreakpointsFrame, uMemoryMgr, uGfxMgr, uCpuTypes, uPrefsFrameBase;
 
 type
   TMachineState = (msStopped, msRunning, msStoppedOnBrkpt, msStoppedOnRead,
                    msStoppedOnWrite);
 
-  TMachineItem = record
-    Name: string;                       // Name of Machine (identifier)
-    Version: string;                    // Used if machine has multiple variants
-                                        // with minor variations
-  end;
+  TBrkptHandler = procedure(Addr: word; out IsBrkpt: boolean) of object;
 
   TMachineInfo = record
+    // Name is used to register Machine class, and saved in CurrentMachineID
     Year: integer;                      // Year introduced
-    Name: string;
     CpuType: TCpuType;                  // Main CPU driving this machine
     CpuFreqKhz: integer;
     MemoryButtons: string;              // Optional: up to 3 buttons to put on Memory form
-    MachineDefsFilename: string;        // Optional: file with standard machine defs
+    MachineDefsFileName: string;        // Optional: file with standard machine defs
     State: TMachineState;
     ScreenWidthPx, ScreenHeightPx: integer;
-    HasCodeToExecute: boolean;
+    ScaleModifier: integer;             // Used for small screen sizes (eg CHIP-8)
+    HasCodeToExecute: boolean;          // If a ROM available and loaded
   end;
-
-  TBrkptHandler = procedure(Addr: word; out IsBrkpt: boolean) of object;
 
   { TMachineBase }
 
   TMachineBase = class(TObject)
   private
     function GetMemory: TMemory;
-  protected  
-    fConfigFrame: TMachineConfigFrame;
+  protected
+    fName: string;
+    fConfigFrame: TPrefsFrame;
     fMemoryMgr: TMemoryMgr;
+    fGfx: TGfxManager;
     fFPS: integer;
     fInfo: TMachineInfo;
-    fGfx: TGfxManager;
     TexIdxScreen: integer;              // Main screen texture array index
     fMaxSpeed: boolean;
-    fBkptHandler: TBrkptHandler;
     CyclesToGo: integer;
+    fBkptHandler: TBrkptHandler;
     BreakpointType: TBkptType;                  
     procedure DoBreakpoint(Sender: TObject; Value: TBkptType);
     procedure SetFPS(Value: integer); virtual;
@@ -83,9 +82,6 @@ type
     procedure SetScreenSize(Value: TPoint); virtual;
     procedure SetScreenCaption(Value: string); virtual;
   public
-    class function CreateMachine(aMachineId: integer): TMachineBase;
-    class destructor Destroy;
-
     constructor Create;           virtual; abstract;
     procedure Reset;              virtual; abstract;
     procedure RunForOneFrame;     virtual; abstract;
@@ -93,7 +89,8 @@ type
     procedure ScreenRefresh;      virtual; abstract;
     procedure SetFocus;
 
-    property ConfigFrame: TMachineConfigFrame read fConfigFrame write fConfigFrame;
+    property Name: string read fName write fName;
+    property ConfigFrame: TPrefsFrame read fConfigFrame write fConfigFrame;
     property CPU: TCpuBase read GetCPU;
     property Info: TMachineInfo read fInfo;    
     property State: TMachineState read fInfo.State write fInfo.State;
@@ -104,53 +101,47 @@ type
     property ScreenSize: TPoint read GetScreenSize write SetScreenSize;
     property ScreenCaption: string write SetScreenCaption;
     property MaxSpeed: boolean read fMaxSpeed write fMaxSpeed;
-    property BreakpointHandler: TBrkptHandler read fBkptHandler write fBkptHandler;
     property Description: string read GetDescription;
+    property BreakpointHandler: TBrkptHandler read fBkptHandler write fBkptHandler;
   end;
 
-const
 
-  { DEFINE EACH MACHINE }
+  { TMachineFactory }
 
-  MACHINES: array[0..2] of TMachineItem = (
-    (Name: 'Microtan65';      Version: ''),
-    (Name: 'CHIP-8';          Version: ''),
-    (Name: 'Space Invaders';  Version: '') );
+  TMachineClass = class of TMachineBase;
 
-  MACHINE_M65   = 0;
-  MACHINE_CHIP8 = 1;
-  MACHINE_SI    = 2;
+  TMachineRegistration = record
+    ID: string;
+    MachineClass: TMachineClass;
+  end;
+
+
+  TMachineFactory = class
+  private
+  public
+    class procedure RegisterMachine(const aID: string; aMachineClass: TMachineClass);
+    class function CreateMachineFromID(const aID: string): TMachineBase;
+    class function FindMachineClassForID(const aID: string): TMachineClass;
+    class function FindIdForMachineClass(aMachineClass: TMachineClass): string;
+    class function FindIndexForID(const aID: string): integer;
+    class function GetIdForIdx(const aIdx: integer): string;
+    class function Count: integer;
+  end;
+
+
+var
+  MachineFactory: TMachineFactory;
+  MachineDataFolder: string;
+  Machine: TMachineBase;
 
 
 implementation
 
-uses
-  uMachineMicrotan, uMachineChip8, uMachineSpaceInvaders;
+var
+  RegisteredMachines: array of TMachineRegistration;
 
 
-{ CREATE MACHINE }
-
-class function TMachineBase.CreateMachine(aMachineId: integer): TMachineBase;
-begin
-  GlobalVars.MachineDataFolder := GetAppResourcesDirectory + MACHINES[aMachineID].Name + DIRECTORY_SEPARATOR;
-  case (aMachineId) of
-    MACHINE_M65:   Result := TMachineMicrotan.Create;
-    MACHINE_CHIP8: Result := TMachineChip8.Create;
-    MACHINE_SI:    Result := TMachineSpaceInvaders.Create;
-  else
-    Result := nil
-  end;
-  if (Result <> nil) then
-    Result.MaxSpeed := False;
-end;
-
-
-{ DESTROY  }
-
-class destructor TMachineBase.Destroy;
-begin
-  //
-end;
+{ TMachineBase }
 
 
 { SET FOCUS TO MACHINE WINDOW }
@@ -178,7 +169,7 @@ begin
 end;
 
 
-{ GET / SET = FPS }
+{ SET = FPS }
 
 procedure TMachineBase.SetFPS(Value: integer);
 begin
@@ -192,7 +183,7 @@ end;
 
 function TMachineBase.GetDescription: string;
 begin
-  Result := 'No description provided';
+  Result := 'Description';
 end;
 
 
@@ -202,6 +193,7 @@ function TMachineBase.GetScreenPosition: TPoint;
 begin
   Result := Gfx.GetWindowPosition;
 end;
+
 
 procedure TMachineBase.SetScreenPosition(Value: TPoint);
 begin
@@ -216,18 +208,133 @@ begin
   Result := Gfx.GetWindowSize;
 end;
 
+
 procedure TMachineBase.SetScreenSize(Value: TPoint);
 begin
   Gfx.SetWindowSize(Value.X, Value.Y);
 end;
 
 
-{ GET / SET = SCREEN CAPTION }
+{ SET = SCREEN CAPTION }
 
 procedure TMachineBase.SetScreenCaption(Value: string);
 begin
   Gfx.SetCaption(Value);
 end;
+
+
+{ TMachineFactory }
+
+
+{ REGISTER MACHINE - if not already registered, add the machine to the list
+                     of registered machines }
+
+class procedure TMachineFactory.RegisterMachine(const aID: string; aMachineClass: TMachineClass);
+var
+  i, Len: integer;
+begin
+  Len := Length(RegisteredMachines);
+  for i := 0 to Len - 1 do
+    if (RegisteredMachines[i].ID = aID) and (RegisteredMachines[i].MachineClass = aMachineClass) then
+      Exit;
+
+  SetLength(RegisteredMachines, Len + 1);
+  RegisteredMachines[Len].ID := aID;
+  RegisteredMachines[Len].MachineClass := aMachineClass;
+end;
+
+
+{ CREATE MACHINE FROM ID - given an ID string, find in the list of registered
+                           machines and create it }
+
+class function TMachineFactory.CreateMachineFromID(const aID: string): TMachineBase;
+var
+  MachineClass: TMachineClass;
+begin
+  MachineClass :=  FindMachineClassForId(aID);
+  if (MachineClass <> nil) then
+    Result := MachineClass.Create
+  else
+    Result := nil;
+end;
+
+
+{ FIND MACHINE CLASS FOR GIVEN ID }
+
+class function TMachineFactory.FindMachineClassForID(const aID: string): TMachineClass;
+var
+  i, Len: integer;
+begin
+  Result := nil;
+  Len := Length(RegisteredMachines);
+  for i := 0 to Len - 1 do
+    if (RegisteredMachines[i].ID = aID) then
+      begin
+        Result := RegisteredMachines[i].MachineClass;
+        break;
+      end;
+end;
+
+
+{ FIND ID FOR GIVEN MACHINE CLASS }
+
+class function TMachineFactory.FindIdForMachineClass(aMachineClass: TMachineClass): string;
+var
+  i, Len: integer;
+begin
+  Result := '';
+  Len := Length(RegisteredMachines);
+  for i := 0 to Len - 1 do
+    if (RegisteredMachines[i].MachineClass = aMachineClass) then
+      begin
+        Result := RegisteredMachines[i].ID;
+        break;
+      end;
+end;
+
+
+{ FIND INDEX FOR GIVEN ID }
+
+class function TMachineFactory.FindIndexForID(const aID: string): integer;
+var
+  i, Len: integer;
+begin
+  Result := -1;
+  Len := Length(RegisteredMachines);
+  for i := 0 to Len - 1 do
+    if (RegisteredMachines[i].ID = aID) then
+      begin
+        Result := i;
+        break;
+      end;
+end;
+
+
+{ GET ID FOR GIVEN INDEX }
+
+class function TMachineFactory.GetIdForIdx(const aIdx: integer): string;
+begin
+  Result := '';
+  if (aIdx < Count) then
+    Result := RegisteredMachines[aIdx].ID;
+end;
+
+
+{ GET COUNT - number of registered machines }
+
+class function TMachineFactory.Count: integer;
+begin
+  Result := Length(RegisteredMachines);
+end;
+
+
+{ INITIALISE THE MACHINE FACTORY }
+
+initialization
+  MachineFactory := TMachineFactory.Create;
+
+finalization
+  MachineFactory.Free;
 
 
 end.

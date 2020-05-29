@@ -25,16 +25,15 @@
 
   =============================================================================}
 
-{ TODO : uParser -> in GetNumber, if first char = 0, check for 0xNNN (hex),
-                    or ends in H, O, D, B }
-
 unit uParser;
 
 {$mode objfpc}{$H+}
+{$R-}
+{$define parser_debug}
 
 interface
 
-uses Classes, SysUtils, StrUtils;
+uses Classes, SysUtils, StrUtils, uCommon;
 
 type
   // EParserError  - defined in Classes
@@ -85,6 +84,8 @@ type
 
   TOnGetLineEvent = procedure(Sender: TObject; var Line: string; var IsEof: boolean) of object;
 
+  { TParser }
+
   TParser = class
   private
     fOnGetLine: TOnGetLineEvent;        // To allow parser to request next line
@@ -126,6 +127,9 @@ type
     procedure GetLine;
     procedure GetNumber(Radix: integer);
     procedure GetId(tok: TTokenType);
+    {$ifdef parser_debug}
+    function  ListToken: string;
+    {$endif}
   public
     constructor Create(OnGetLine: TOnGetLineEvent); // Caller must pass function
                                                     // for getting source line
@@ -133,7 +137,7 @@ type
     function  GetToken: TToken;
     function  PeekNextToken: TToken;
     procedure Initialise;               // Reinitialise parser
-    procedure SkipRestOfLine;  
+    procedure SkipRestOfLine;
     procedure MarkPosition; 
     function  GetLineText(aFrom, aTo: integer): string;
     property  Token: TToken read fToken;
@@ -144,6 +148,8 @@ type
 
 implementation
 
+
+{ CREATE / DESTROY }
 
 constructor TParser.Create(OnGetLine: TOnGetLineEvent);
 begin
@@ -161,6 +167,8 @@ begin
 end;
 
 
+{ INITIALISE }
+
 procedure TParser.Initialise;           // First token assumed End Of Line
 begin
   fToken.Typ := tkEOL;
@@ -173,9 +181,12 @@ procedure TParser.GetLine;
 begin
   NextToken.Typ := tkNil;
   Eof := False;
-  OnGetLine(self, fLine, Eof);          // Get line from Parent
+  OnGetLine(self, fLine, Eof);          // Get line from Parent, defined in Create
   LineLen := Length(fLine);
   CharPtr := 1;
+  {$ifdef parser_debug}
+  AppLog.Debug('TParser.GetLine, line="' + fLine + '"');
+  {$endif}
 end;
 
 
@@ -201,8 +212,13 @@ begin
       NextToken.Typ := tkEOF;
       fLine := '';                      // No source line applies
     end;
+  {$ifdef parser_debug}
+  AppLog.Debug('TParser.GetToken, tok=' + ListToken);
+  {$endif}
 end;
 
+
+{ PEEK AT THE NEXT TOKEN }
 
 function TParser.PeekNextToken: TToken;
 begin
@@ -228,7 +244,7 @@ begin
 end;
 
 
-{ Build jumptables for characters and procedures }
+{ BUILD JUMP TABLES FOR CHARACTERS AND PROCEDURES }
 
 procedure TParser.MakeIdentTable;
 var
@@ -281,7 +297,7 @@ begin
 end;
 
 
-{ Character jump procedures }
+{ CHARACTER JUMP PROCEDURES }
 
 procedure TParser.IdentProc;
 begin
@@ -491,9 +507,11 @@ begin
 end;
 
 
-{ Support elements }
+{ SUPPORT ELEMENTS }
 
-procedure TParser.GetNumber(Radix: integer);                                    { TODO : uParser -> if first char = 0, check for 0xNNN (hex), or ends in H, O, D, B ? }
+{ TODO : uParser -> if first char = 0, check for 0xNNN (hex), or ends in H, O, D, B ? }
+
+procedure TParser.GetNumber(Radix: integer);
 var
   nDigit, nValue: integer;
   bDone: boolean;
@@ -516,11 +534,9 @@ begin
         Inc(CharPtr);
       end
     else
-      begin
-        NextToken.NumberVal := nValue;  // Assign value to token
-        bDone := True;
-      end;
-  until bDone;
+      bDone := True;
+  until bDone or (CharPtr > LineLen);
+  NextToken.NumberVal := nValue;        // Assign value to token
   NextToken.Typ := tkNumber;
 end;
 
@@ -558,6 +574,44 @@ function TParser.GetLineText(aFrom, aTo: integer): string;
 begin
   Result := MidStr(fLine, aFrom, aTo - aFrom);
 end;
+
+
+{$ifdef parser_debug}
+function TParser.ListToken: string;
+begin
+  case fToken.Typ of
+    tkNil:           Result := 'tkNIL';
+    tkEOL:           Result := 'tkEOL';
+    tkLabel:         Result := Format('tkLabel [%s]', [fToken.StringVal]);
+    tkId:            Result := Format('tkId [%s]', [fToken.StringVal]);
+    tkNumber:        Result := Format('tkNumber [%d]', [fToken.NumberVal]);
+    tkString:        Result := Format('tkString "%s"', [fToken.StringVal]);
+    tkComment:       Result := Format('tkComment [%s]', [fToken.StringVal]);
+    tkHashDirective: Result := Format('tkHashDirective [%s]', [fToken.StringVal]);
+    tkDirective:     Result := Format('tkDirective [%s]', [fToken.StringVal]);
+    tkEOF:           Result := 'tkEOF';
+    tkHash:          Result := 'tkHash';
+    tkDollar:        Result := 'tkDollar';
+    tkLeftParen:     Result := 'tkLeftParen';
+    tkRightParen:    Result := 'tkRightParen';
+    tkStar:          Result := 'tkStar';
+    tkPlus:          Result := 'tkPlus';
+    tkComma:         Result := 'tkComma';
+    tkColon:         Result := 'tkColon';
+    tkMinus:         Result := 'tkMinus';
+    tkSlash:         Result := 'tkSlash';
+    tkLower:         Result := 'tkLower';
+    tkGreater:       Result := 'tkGreater';
+    tkEqual:         Result := 'tkEqual';
+    tkLowerEqual:    Result := 'tkLowerEqual';
+    tkNotEqual:      Result := 'tkNotEqual';
+    tkGreaterEqual:  Result := 'tkGreaterEqual';
+
+  else
+    Result := '';
+  end;
+end;
+{$endif}
 
 
 end.

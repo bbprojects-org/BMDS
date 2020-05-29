@@ -11,6 +11,7 @@
 unit uHashTables;
 
 {$mode delphi}{$H+}
+{$R-}
 
 interface
 

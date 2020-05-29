@@ -1,107 +1,203 @@
 object DebugForm: TDebugForm
-  Left = 2785
-  Height = 680
-  Top = 156
-  Width = 1200
-  Caption = 'Debug'
-  ClientHeight = 680
-  ClientWidth = 1200
-  Constraints.MinHeight = 680
-  Constraints.MinWidth = 1200
+  Left = 1760
+  Height = 600
+  Top = 23
+  Width = 800
+  Caption = 'BMDS Debug'
+  ClientHeight = 600
+  ClientWidth = 800
+  Constraints.MinHeight = 600
+  Constraints.MinWidth = 800
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  LCLVersion = '2.0.1.0'
+  ShowHint = True
+  LCLVersion = '2.1.0.0'
   object panelLeft: TPanel
-    Left = 4
-    Height = 680
+    Left = 6
+    Height = 594
     Top = 0
     Width = 342
     Align = alLeft
-    BorderSpacing.Left = 4
-    BorderSpacing.Right = 4
+    BorderSpacing.Left = 6
+    BorderSpacing.Right = 6
+    BorderSpacing.Bottom = 6
     BevelOuter = bvNone
-    ClientHeight = 680
+    ClientHeight = 594
     ClientWidth = 342
     TabOrder = 0
-    object gbRegisters: TGroupBox
+    object gbButtons: TGroupBox
       Left = 0
-      Height = 208
+      Height = 44
       Top = 0
       Width = 342
       Align = alTop
-      Caption = 'Registers'
+      Caption = 'Control'
+      ClientHeight = 26
+      ClientWidth = 334
       TabOrder = 0
-    end
-    object gbBreakpoints: TGroupBox
-      Left = 0
-      Height = 160
-      Top = 520
-      Width = 342
-      Align = alBottom
-      Caption = 'Breakpoints'
-      TabOrder = 1
+      object ToolBar1: TToolBar
+        Left = 2
+        Height = 22
+        Top = 2
+        Width = 198
+        Align = alClient
+        BorderSpacing.Right = 132
+        BorderSpacing.Around = 2
+        Caption = 'ToolBar1'
+        EdgeInner = esNone
+        EdgeOuter = esNone
+        Images = MainForm.ImageList1
+        Indent = 0
+        TabOrder = 0
+        object tbRun: TToolButton
+          Left = 0
+          Top = 0
+          Action = MainForm.actRun
+          ShowCaption = False
+        end
+        object tbStop: TToolButton
+          Left = 23
+          Top = 0
+          Action = MainForm.actStop
+          ShowCaption = False
+        end
+        object tbReset: TToolButton
+          Left = 46
+          Top = 0
+          Action = MainForm.actReset
+          ShowCaption = False
+        end
+        object tbSep1: TToolButton
+          Left = 69
+          Height = 22
+          Top = 0
+          Caption = 'tbSep1'
+          Style = tbsSeparator
+        end
+        object tbStep: TToolButton
+          Left = 77
+          Top = 0
+          Action = MainForm.actStep
+          ShowCaption = False
+        end
+        object tbStepOver: TToolButton
+          Left = 100
+          Top = 0
+          Action = MainForm.actStepOver
+          ShowCaption = False
+        end
+      end
+      object cbAutoStep: TCheckBox
+        Left = 210
+        Height = 18
+        Top = 6
+        Width = 123
+        Caption = 'Auto                 ms'
+        OnChange = cbAutoStepChange
+        TabOrder = 1
+      end
+      object seAutoStep: TSpinEdit
+        Left = 258
+        Height = 21
+        Top = 3
+        Width = 54
+        Increment = 100
+        MaxValue = 5000
+        MinValue = 100
+        OnChange = seAutoStepChange
+        TabOrder = 2
+        Value = 5000
+      end
     end
     object gbMemory: TGroupBox
       Left = 0
-      Height = 312
-      Top = 208
+      Height = 182
+      Top = 252
       Width = 342
       Align = alClient
       Caption = 'Memory'
       TabOrder = 2
     end
-  end
-  object panelMiddle: TPanel
-    Left = 350
-    Height = 680
-    Top = 0
-    Width = 440
-    Align = alLeft
-    BorderSpacing.Left = 4
-    BorderSpacing.Right = 4
-    BevelOuter = bvNone
-    ClientHeight = 680
-    ClientWidth = 440
-    TabOrder = 2
-    object gbWatches: TGroupBox
+    object gbBreakpoints: TGroupBox
       Left = 0
       Height = 160
-      Top = 520
-      Width = 440
+      Top = 434
+      Width = 342
       Align = alBottom
-      Caption = 'Watches'
-      TabOrder = 0
+      Caption = 'Breakpoints'
+      ParentFont = False
+      TabOrder = 4
     end
-    object gbTrace: TGroupBox
+    object gbRegisters: TGroupBox
       Left = 0
-      Height = 520
-      Top = 0
-      Width = 440
-      Align = alClient
-      Caption = 'Trace'
+      Height = 208
+      Top = 44
+      Width = 342
+      Align = alTop
+      Caption = 'Registers'
       TabOrder = 1
+    end
+    object cbBrkptsEnabled: TCheckBox
+      Left = 76
+      Height = 18
+      Top = 432
+      Width = 22
+      Anchors = [akLeft, akBottom]
+      Checked = True
+      Font.Height = -11
+      OnChange = cbBrkptsEnabledChange
+      ParentFont = False
+      State = cbChecked
+      TabOrder = 3
     end
   end
   object panelRight: TPanel
-    Left = 794
-    Height = 680
+    Left = 354
+    Height = 594
     Top = 0
-    Width = 402
+    Width = 442
     Align = alClient
     BorderSpacing.Left = 4
     BorderSpacing.Right = 4
+    BorderSpacing.Bottom = 6
     BevelOuter = bvNone
-    ClientHeight = 680
-    ClientWidth = 402
+    ClientHeight = 594
+    ClientWidth = 442
     TabOrder = 1
-    object gbEditor: TGroupBox
+    object gbWatches: TGroupBox
       Left = 0
-      Height = 680
+      Height = 160
+      Top = 434
+      Width = 442
+      Align = alBottom
+      Caption = 'Watches'
+      TabOrder = 2
+    end
+    object gbTrace: TGroupBox
+      Left = 0
+      Height = 434
       Top = 0
-      Width = 402
+      Width = 442
       Align = alClient
-      Caption = 'Editor'
+      Caption = 'Trace'
       TabOrder = 0
     end
+    object cbWatchesEnabled: TCheckBox
+      Left = 58
+      Height = 18
+      Top = 432
+      Width = 22
+      Anchors = [akLeft, akBottom]
+      Checked = True
+      OnChange = cbWatchesEnabledChange
+      State = cbChecked
+      TabOrder = 1
+    end
+  end
+  object TimerAutoStep: TTimer
+    Enabled = False
+    OnTimer = TimerAutoStepTimer
+    left = 264
+    top = 80
   end
 end

@@ -31,7 +31,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Dialogs,
   //
-  uCommon;
+  uMachineBase;
 
 type
 
@@ -44,12 +44,12 @@ type
     constructor Create;
     destructor  Destroy; override;
     //
-    procedure OpenStream(strm: TMemoryStream; Filename: string; Length, CRC: LongWord);
-    function LoadRom(RomFilename: string; Dest: pbyte; Length, CRC: LongWord): boolean;
+    procedure OpenStream(strm: TMemoryStream; FileName: string; Length, CRC: LongWord);
+    function LoadRom(RomFileName: string; Dest: pbyte; Length, CRC: LongWord): boolean;
   end;
 
 
-function GetFullFilename(Filename: string): string;
+function GetFullFileName(FileName: string): string;
 function CalcCRC32(strm: TMemoryStream): LongWord;
 
 const
@@ -95,9 +95,9 @@ implementation
 
 { Get full filepath to MACHINES folder for given filename }
 
-function GetFullFilename(Filename: string): string;
+function GetFullFileName(FileName: string): string;
 begin
-  Result := GlobalVars.MachineDataFolder + Filename;
+  Result := MachineDataFolder + FileName;
 end;
 
 
@@ -147,7 +147,7 @@ end;
 { Load file from machine-named subfolder in App's resources folder. If
   not found then report an error }
 
-function TFileMgr.LoadRom(RomFilename: string; Dest: pbyte; Length, CRC: LongWord): boolean;
+function TFileMgr.LoadRom(RomFileName: string; Dest: pbyte; Length, CRC: LongWord): boolean;
 var
   FileStream: TMemoryStream;
 begin
@@ -155,7 +155,7 @@ begin
   FileStream := TMemoryStream.Create;
   try
     try
-      OpenStream(FileStream, RomFilename, Length, CRC);
+      OpenStream(FileStream, RomFileName, Length, CRC);
       FileStream.Position := 0;
       FileStream.Read(Dest^, Length);
       Result := True;
@@ -172,22 +172,22 @@ end;
 
 { OPEN STREAM }
 
-procedure TFileMgr.OpenStream(strm: TMemoryStream; Filename: string; Length, CRC: LongWord);
+procedure TFileMgr.OpenStream(strm: TMemoryStream; FileName: string; Length, CRC: LongWord);
 var
-  FullFilename: string;
+  FullFileName: string;
 begin
-  FullFilename := GetFullFilename(Filename);
-  if (not FileExists(FullFilename)) then
-    raise Exception.CreateFmt('File [%s] not found in machine subfolder', [Filename]);
-  strm.LoadFromFile(FullFilename);
+  FullFileName := GetFullFileName(FileName);
+  if (not FileExists(FullFileName)) then
+    raise Exception.CreateFmt('File [%s] not found in machine subfolder', [FileName]);
+  strm.LoadFromFile(FullFileName);
 
   if (strm.Size <> Length) then
-    raise Exception.CreateFmt('File [%s] has incorrect size', [Filename]);
+    raise Exception.CreateFmt('File [%s] has incorrect size', [FileName]);
 
   // If CRC=0 then no need to check, else check the CRC is correct
   if (CRC <> 0) then
     if (CalcCRC32(strm) <> CRC) then
-      raise Exception.CreateFmt('File [%s] has CRC error', [Filename]);
+      raise Exception.CreateFmt('File [%s] has CRC error', [FileName]);
 end;
 
 

@@ -1,7 +1,7 @@
 object RegistersFormChip8: TRegistersFormChip8
-  Left = 1501
+  Left = 1281
   Height = 327
-  Top = 424
+  Top = 297
   Width = 336
   BorderIcons = []
   BorderStyle = bsDialog
@@ -13,7 +13,7 @@ object RegistersFormChip8: TRegistersFormChip8
   OnDestroy = FormDestroy
   OnShow = FormShow
   ParentFont = True
-  LCLVersion = '2.0.1.0'
+  LCLVersion = '2.0.9.0'
   object GroupBox1: TGroupBox
     Left = 0
     Height = 327
@@ -21,130 +21,17 @@ object RegistersFormChip8: TRegistersFormChip8
     Width = 336
     Align = alClient
     Caption = 'Chip8 Registers / State'
-    ClientHeight = 305
+    ClientHeight = 309
     ClientWidth = 328
     TabOrder = 0
-    object edV0: TLabeledEdit
-      Left = 32
-      Height = 22
-      Top = 40
-      Width = 38
-      EditLabel.Height = 16
-      EditLabel.Width = 27
-      EditLabel.Caption = 'V0='
-      EditLabel.ParentColor = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      LabelPosition = lpLeft
-      ParentFont = False
-      TabOrder = 0
-      OnExit = edRegisterExit
-    end
-    object edA2: TEdit
-      Left = 80
-      Height = 22
-      Top = 40
-      Width = 76
-      Color = clBtnFace
-      Enabled = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      ParentFont = False
-      TabOrder = 1
-      Text = 'XX, ''X'', XXXXXXXX'
-    end
-    object edX2: TEdit
-      Left = 80
-      Height = 22
-      Top = 64
-      Width = 76
-      Color = clBtnFace
-      Enabled = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      ParentFont = False
-      TabOrder = 2
-      Text = 'XX, ''X'', XXXXXXXX'
-    end
-    object edV1: TLabeledEdit
-      Tag = 1
-      Left = 32
-      Height = 22
-      Top = 64
-      Width = 38
-      EditLabel.Height = 16
-      EditLabel.Width = 27
-      EditLabel.Caption = 'V1='
-      EditLabel.ParentColor = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      LabelPosition = lpLeft
-      ParentFont = False
-      TabOrder = 3
-      OnExit = edRegisterExit
-    end
-    object edV2: TLabeledEdit
-      Tag = 2
-      Left = 32
-      Height = 22
-      Top = 88
-      Width = 38
-      EditLabel.Height = 16
-      EditLabel.Width = 27
-      EditLabel.Caption = 'V2='
-      EditLabel.ParentColor = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      LabelPosition = lpLeft
-      ParentFont = False
-      TabOrder = 4
-      OnExit = edRegisterExit
-    end
-    object edY2: TEdit
-      Left = 80
-      Height = 22
-      Top = 88
-      Width = 76
-      Color = clBtnFace
-      Enabled = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      ParentFont = False
-      TabOrder = 5
-      Text = 'XX, ''X'', XXXXXXXX'
-    end
-    object edSP: TLabeledEdit
-      Tag = 4
-      Left = 32
-      Height = 22
-      Top = 272
-      Width = 38
-      EditLabel.Height = 16
-      EditLabel.Width = 25
-      EditLabel.Caption = 'SP='
-      EditLabel.ParentColor = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      LabelPosition = lpLeft
-      ParentFont = False
-      TabOrder = 6
-      OnExit = edRegisterExit
-    end
     object edPC: TLabeledEdit
       Tag = 5
       Left = 32
-      Height = 22
+      Height = 20
       Top = 8
       Width = 40
       EditLabel.Height = 16
-      EditLabel.Width = 27
+      EditLabel.Width = 26
       EditLabel.Caption = 'PC='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -157,7 +44,7 @@ object RegistersFormChip8: TRegistersFormChip8
     end
     object edInstruction: TEdit
       Left = 80
-      Height = 22
+      Height = 20
       Top = 8
       Width = 237
       Color = clBtnFace
@@ -169,28 +56,109 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 8
       Text = '00E0 = CLS'
     end
-    object edSP2: TEdit
+    object edV0: TLabeledEdit
+      Left = 32
+      Height = 20
+      Top = 40
+      Width = 38
+      EditLabel.Height = 16
+      EditLabel.Width = 25
+      EditLabel.Caption = 'V0='
+      EditLabel.ParentColor = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      LabelPosition = lpLeft
+      ParentFont = False
+      TabOrder = 0
+      OnExit = edRegisterExit
+    end
+    object ed0: TEdit
       Left = 80
-      Height = 22
-      Top = 272
-      Width = 237
+      Height = 20
+      Top = 40
+      Width = 76
       Color = clBtnFace
       Enabled = False
       Font.Color = clWindowText
       Font.Height = -12
       Font.Name = 'Monaco'
       ParentFont = False
-      TabOrder = 9
-      Text = 'XX XX'
+      TabOrder = 1
+      Text = 'XX, ''X'', XXXXXXXX'
+    end
+    object edV1: TLabeledEdit
+      Tag = 1
+      Left = 32
+      Height = 20
+      Top = 64
+      Width = 38
+      EditLabel.Height = 16
+      EditLabel.Width = 23
+      EditLabel.Caption = 'V1='
+      EditLabel.ParentColor = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      LabelPosition = lpLeft
+      ParentFont = False
+      TabOrder = 3
+      OnExit = edRegisterExit
+    end
+    object ed1: TEdit
+      Left = 80
+      Height = 20
+      Top = 64
+      Width = 76
+      Color = clBtnFace
+      Enabled = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      ParentFont = False
+      TabOrder = 2
+      Text = 'XX, ''X'', XXXXXXXX'
+    end
+    object edV2: TLabeledEdit
+      Tag = 2
+      Left = 32
+      Height = 20
+      Top = 88
+      Width = 38
+      EditLabel.Height = 16
+      EditLabel.Width = 25
+      EditLabel.Caption = 'V2='
+      EditLabel.ParentColor = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      LabelPosition = lpLeft
+      ParentFont = False
+      TabOrder = 4
+      OnExit = edRegisterExit
+    end
+    object ed2: TEdit
+      Left = 80
+      Height = 20
+      Top = 88
+      Width = 76
+      Color = clBtnFace
+      Enabled = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      ParentFont = False
+      TabOrder = 5
+      Text = 'XX, ''X'', XXXXXXXX'
     end
     object edV3: TLabeledEdit
       Tag = 3
       Left = 32
-      Height = 22
+      Height = 20
       Top = 112
       Width = 38
       EditLabel.Height = 16
-      EditLabel.Width = 27
+      EditLabel.Width = 25
       EditLabel.Caption = 'V3='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -201,9 +169,9 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 10
       OnExit = edRegisterExit
     end
-    object edY3: TEdit
+    object ed3: TEdit
       Left = 80
-      Height = 22
+      Height = 20
       Top = 112
       Width = 76
       Color = clBtnFace
@@ -218,11 +186,11 @@ object RegistersFormChip8: TRegistersFormChip8
     object edV4: TLabeledEdit
       Tag = 4
       Left = 32
-      Height = 22
+      Height = 20
       Top = 136
       Width = 38
       EditLabel.Height = 16
-      EditLabel.Width = 27
+      EditLabel.Width = 25
       EditLabel.Caption = 'V4='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -233,9 +201,9 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 12
       OnExit = edRegisterExit
     end
-    object edY4: TEdit
+    object ed4: TEdit
       Left = 80
-      Height = 22
+      Height = 20
       Top = 136
       Width = 76
       Color = clBtnFace
@@ -250,11 +218,11 @@ object RegistersFormChip8: TRegistersFormChip8
     object edV5: TLabeledEdit
       Tag = 5
       Left = 32
-      Height = 22
+      Height = 20
       Top = 160
       Width = 38
       EditLabel.Height = 16
-      EditLabel.Width = 27
+      EditLabel.Width = 25
       EditLabel.Caption = 'V5='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -265,9 +233,9 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 14
       OnExit = edRegisterExit
     end
-    object edY5: TEdit
+    object ed5: TEdit
       Left = 80
-      Height = 22
+      Height = 20
       Top = 160
       Width = 76
       Color = clBtnFace
@@ -282,11 +250,11 @@ object RegistersFormChip8: TRegistersFormChip8
     object edV6: TLabeledEdit
       Tag = 6
       Left = 32
-      Height = 22
+      Height = 20
       Top = 184
       Width = 38
       EditLabel.Height = 16
-      EditLabel.Width = 27
+      EditLabel.Width = 25
       EditLabel.Caption = 'V6='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -297,9 +265,9 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 16
       OnExit = edRegisterExit
     end
-    object edY6: TEdit
+    object ed6: TEdit
       Left = 80
-      Height = 22
+      Height = 20
       Top = 184
       Width = 76
       Color = clBtnFace
@@ -314,11 +282,11 @@ object RegistersFormChip8: TRegistersFormChip8
     object edV7: TLabeledEdit
       Tag = 7
       Left = 32
-      Height = 22
+      Height = 20
       Top = 208
       Width = 38
       EditLabel.Height = 16
-      EditLabel.Width = 27
+      EditLabel.Width = 24
       EditLabel.Caption = 'V7='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -329,9 +297,9 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 18
       OnExit = edRegisterExit
     end
-    object edY7: TEdit
+    object ed7: TEdit
       Left = 80
-      Height = 22
+      Height = 20
       Top = 208
       Width = 76
       Color = clBtnFace
@@ -343,9 +311,27 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 19
       Text = 'XX, ''X'', XXXXXXXX'
     end
-    object edA3: TEdit
+    object edV8: TLabeledEdit
+      Tag = 8
+      Left = 195
+      Height = 20
+      Top = 40
+      Width = 38
+      EditLabel.Height = 16
+      EditLabel.Width = 25
+      EditLabel.Caption = 'V8='
+      EditLabel.ParentColor = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      LabelPosition = lpLeft
+      ParentFont = False
+      TabOrder = 28
+      OnExit = edRegisterExit
+    end
+    object ed8: TEdit
       Left = 241
-      Height = 22
+      Height = 20
       Top = 40
       Width = 76
       Color = clBtnFace
@@ -357,9 +343,27 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 20
       Text = 'XX, ''X'', XXXXXXXX'
     end
-    object edX3: TEdit
+    object edV9: TLabeledEdit
+      Tag = 9
+      Left = 195
+      Height = 20
+      Top = 64
+      Width = 38
+      EditLabel.Height = 16
+      EditLabel.Width = 25
+      EditLabel.Caption = 'V9='
+      EditLabel.ParentColor = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      LabelPosition = lpLeft
+      ParentFont = False
+      TabOrder = 29
+      OnExit = edRegisterExit
+    end
+    object ed9: TEdit
       Left = 241
-      Height = 22
+      Height = 20
       Top = 64
       Width = 76
       Color = clBtnFace
@@ -371,9 +375,27 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 21
       Text = 'XX, ''X'', XXXXXXXX'
     end
-    object edY8: TEdit
+    object edVA: TLabeledEdit
+      Tag = 10
+      Left = 195
+      Height = 20
+      Top = 88
+      Width = 38
+      EditLabel.Height = 16
+      EditLabel.Width = 24
+      EditLabel.Caption = 'VA='
+      EditLabel.ParentColor = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      LabelPosition = lpLeft
+      ParentFont = False
+      TabOrder = 30
+      OnExit = edRegisterExit
+    end
+    object edA: TEdit
       Left = 241
-      Height = 22
+      Height = 20
       Top = 88
       Width = 76
       Color = clBtnFace
@@ -385,152 +407,10 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 22
       Text = 'XX, ''X'', XXXXXXXX'
     end
-    object edY9: TEdit
-      Left = 241
-      Height = 22
-      Top = 112
-      Width = 76
-      Color = clBtnFace
-      Enabled = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      ParentFont = False
-      TabOrder = 23
-      Text = 'XX, ''X'', XXXXXXXX'
-    end
-    object edY10: TEdit
-      Left = 241
-      Height = 22
-      Top = 136
-      Width = 76
-      Color = clBtnFace
-      Enabled = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      ParentFont = False
-      TabOrder = 24
-      Text = 'XX, ''X'', XXXXXXXX'
-    end
-    object edY11: TEdit
-      Left = 241
-      Height = 22
-      Top = 160
-      Width = 76
-      Color = clBtnFace
-      Enabled = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      ParentFont = False
-      TabOrder = 25
-      Text = 'XX, ''X'', XXXXXXXX'
-    end
-    object edY12: TEdit
-      Left = 241
-      Height = 22
-      Top = 184
-      Width = 76
-      Color = clBtnFace
-      Enabled = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      ParentFont = False
-      TabOrder = 26
-      Text = 'XX, ''X'', XXXXXXXX'
-    end
-    object edY13: TEdit
-      Left = 241
-      Height = 22
-      Top = 208
-      Width = 76
-      Color = clBtnFace
-      Enabled = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      ParentFont = False
-      TabOrder = 27
-      Text = 'XX, ''X'', XXXXXXXX'
-    end
-    object edV8: TLabeledEdit
-      Tag = 8
-      Left = 195
-      Height = 22
-      Top = 40
-      Width = 38
-      EditLabel.Height = 16
-      EditLabel.Width = 27
-      EditLabel.Caption = 'V8='
-      EditLabel.ParentColor = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      LabelPosition = lpLeft
-      ParentFont = False
-      TabOrder = 28
-      OnExit = edRegisterExit
-    end
-    object edV9: TLabeledEdit
-      Tag = 9
-      Left = 195
-      Height = 22
-      Top = 64
-      Width = 38
-      EditLabel.Height = 16
-      EditLabel.Width = 27
-      EditLabel.Caption = 'V9='
-      EditLabel.ParentColor = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      LabelPosition = lpLeft
-      ParentFont = False
-      TabOrder = 29
-      OnExit = edRegisterExit
-    end
-    object edVA: TLabeledEdit
-      Tag = 10
-      Left = 195
-      Height = 22
-      Top = 88
-      Width = 38
-      EditLabel.Height = 16
-      EditLabel.Width = 28
-      EditLabel.Caption = 'VA='
-      EditLabel.ParentColor = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      LabelPosition = lpLeft
-      ParentFont = False
-      TabOrder = 30
-      OnExit = edRegisterExit
-    end
-    object edVC: TLabeledEdit
-      Tag = 12
-      Left = 195
-      Height = 22
-      Top = 136
-      Width = 38
-      EditLabel.Height = 16
-      EditLabel.Width = 28
-      EditLabel.Caption = 'VC='
-      EditLabel.ParentColor = False
-      Font.Color = clWindowText
-      Font.Height = -12
-      Font.Name = 'Monaco'
-      LabelPosition = lpLeft
-      ParentFont = False
-      TabOrder = 31
-      OnExit = edRegisterExit
-    end
     object edVB: TLabeledEdit
       Tag = 11
       Left = 195
-      Height = 22
+      Height = 20
       Top = 112
       Width = 38
       EditLabel.Height = 16
@@ -545,14 +425,60 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 32
       OnExit = edRegisterExit
     end
+    object edB: TEdit
+      Left = 241
+      Height = 20
+      Top = 112
+      Width = 76
+      Color = clBtnFace
+      Enabled = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      ParentFont = False
+      TabOrder = 23
+      Text = 'XX, ''X'', XXXXXXXX'
+    end
+    object edVC: TLabeledEdit
+      Tag = 12
+      Left = 195
+      Height = 20
+      Top = 136
+      Width = 38
+      EditLabel.Height = 16
+      EditLabel.Width = 26
+      EditLabel.Caption = 'VC='
+      EditLabel.ParentColor = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      LabelPosition = lpLeft
+      ParentFont = False
+      TabOrder = 31
+      OnExit = edRegisterExit
+    end
+    object edC: TEdit
+      Left = 241
+      Height = 20
+      Top = 136
+      Width = 76
+      Color = clBtnFace
+      Enabled = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      ParentFont = False
+      TabOrder = 24
+      Text = 'XX, ''X'', XXXXXXXX'
+    end
     object edVD: TLabeledEdit
       Tag = 13
       Left = 195
-      Height = 22
+      Height = 20
       Top = 160
       Width = 38
       EditLabel.Height = 16
-      EditLabel.Width = 29
+      EditLabel.Width = 26
       EditLabel.Caption = 'VD='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -563,14 +489,28 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 33
       OnExit = edRegisterExit
     end
+    object edD: TEdit
+      Left = 241
+      Height = 20
+      Top = 160
+      Width = 76
+      Color = clBtnFace
+      Enabled = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      ParentFont = False
+      TabOrder = 25
+      Text = 'XX, ''X'', XXXXXXXX'
+    end
     object edVE: TLabeledEdit
       Tag = 14
       Left = 195
-      Height = 22
+      Height = 20
       Top = 184
       Width = 38
       EditLabel.Height = 16
-      EditLabel.Width = 26
+      EditLabel.Width = 25
       EditLabel.Caption = 'VE='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -581,14 +521,28 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 34
       OnExit = edRegisterExit
     end
+    object edE: TEdit
+      Left = 241
+      Height = 20
+      Top = 184
+      Width = 76
+      Color = clBtnFace
+      Enabled = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      ParentFont = False
+      TabOrder = 26
+      Text = 'XX, ''X'', XXXXXXXX'
+    end
     object edVF: TLabeledEdit
       Tag = 15
       Left = 195
-      Height = 22
+      Height = 20
       Top = 208
       Width = 38
       EditLabel.Height = 16
-      EditLabel.Width = 26
+      EditLabel.Width = 24
       EditLabel.Caption = 'VF='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -599,14 +553,28 @@ object RegistersFormChip8: TRegistersFormChip8
       TabOrder = 35
       OnExit = edRegisterExit
     end
+    object edF: TEdit
+      Left = 241
+      Height = 20
+      Top = 208
+      Width = 76
+      Color = clBtnFace
+      Enabled = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      ParentFont = False
+      TabOrder = 27
+      Text = 'XX, ''X'', XXXXXXXX'
+    end
     object edI: TLabeledEdit
       Tag = 4
       Left = 32
-      Height = 22
+      Height = 20
       Top = 240
       Width = 40
       EditLabel.Height = 16
-      EditLabel.Width = 22
+      EditLabel.Width = 20
       EditLabel.Caption = 'IX='
       EditLabel.ParentColor = False
       Font.Color = clWindowText
@@ -616,6 +584,38 @@ object RegistersFormChip8: TRegistersFormChip8
       ParentFont = False
       TabOrder = 36
       OnExit = edRegisterExit
+    end
+    object edSP: TLabeledEdit
+      Tag = 4
+      Left = 32
+      Height = 20
+      Top = 272
+      Width = 38
+      EditLabel.Height = 16
+      EditLabel.Width = 25
+      EditLabel.Caption = 'SP='
+      EditLabel.ParentColor = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      LabelPosition = lpLeft
+      ParentFont = False
+      TabOrder = 6
+      OnExit = edRegisterExit
+    end
+    object edSP2: TEdit
+      Left = 80
+      Height = 20
+      Top = 272
+      Width = 237
+      Color = clBtnFace
+      Enabled = False
+      Font.Color = clWindowText
+      Font.Height = -12
+      Font.Name = 'Monaco'
+      ParentFont = False
+      TabOrder = 9
+      Text = 'XX XX'
     end
   end
 end

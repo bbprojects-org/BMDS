@@ -22,8 +22,6 @@
 
   =============================================================================}
 
-{ TODO : uCommon -> remove all GlobalVars; set as properties somewhere }
-
 unit uCommon;
 
 {$mode objfpc}{$H+}
@@ -45,56 +43,12 @@ uses
   machoreader       {for reading MACH-O executables, MacOS};
 
 type
-  // === GLOBAL VARIABLES ======================================================
-  TGlobalVars = record
-    MachineDataFolder: string;          // Path to AppResources/machinename/ folder
-    ScreenSize: TPoint;                 // Screen X,Y dimensions in pixels
-    ScreenPosition: TPoint;
-    ScaleModifier: integer;             // Used for small screen sizes (eg CHIP-8)
-  end;
-
-  // === DISASSEMBLER ==========================================================
-  TAddrLabel = record
-    Address: word;                      // Address of location counter
-    LabelStr: string;                   // Associated machine string label
-    RW: char;                           // Read/Write flag, '' if either
-    Used: boolean;                      // Has this label been used in disassembly?
-  end;
-  TAddrDefsArray = array of TAddrLabel;
-
-  // Data to support disassembly; machine specific module returns generic
-  // data in this record to enable complex disassembly, or just a simple text
-
-  TDisassembledData = record
-    Addr: word;                         // Instruction address
-    MnemStr: string;                    // Mnemonic value
-    Opcode: word;                       // Opcode value, caters for word size opcodes
-    NumBytes: integer;                  // Number of bytes for this opcode
-    BytesStr: string;                   // Representation of opcode/operand data
-    HasOperand: boolean;                // Operand can be replaced by label
-    Operand: word;                      // Operand value
-    OperandStr: string;                 // Hex string value (2 or 4 char)
-    AddrModeStr: string;                // Address mode string
-    AddBlankLine: boolean;              // Add blank line in disassembly (after JMP/RTS/etc)
-    RegStr: array of string;            // Array of register representations
-    Text: string;                       // 'Simple' disassembled string
-  end;
-
-  // === TRACE =================================================================
-
-  // Definitions array for columns in trace display; defined for each CPU
-
-  TTraceColumns = record
-    Title: string;                      // Column title
-    Width: integer;                     // Column width
-    Align: TAlignment;                  // taCenter, taLeftJustify, taRightJustify
-  end;
-  TTraceColArray = array of TTraceColumns;
-
   TReadIniProcedure = procedure of object;
 
   function  GetAppResourcesDirectory: string;
   function  GetAppDataDirectory: string;
+  procedure Split(Input: string; const Delimiter: char; const Strings: TStrings);
+  function  GetRegisterIndex(aRegToFind: string; aRegisters: string): integer;
   function  MessageQuery(aText: string): boolean;
   procedure MessageWarning(aText: string);
   function  ConfirmResetDefault: boolean;
@@ -103,8 +57,7 @@ type
   function  GetAppInfo: string;
 
 var
-  GlobalVars: TGlobalVars;
-  //AppLog: TEventLog;
+  AppLog: TEventLog;
 
 const
   {$ifdef darwin}
@@ -124,12 +77,17 @@ implementation
   permission to do so. Can *read* Application resources from the bundle though }
 
 function GetAppResourcesDirectory: string;
+var
+  ResFolder: string;
 begin
+  ResFolder := DIRECTORY_SEPARATOR + 'Resources' + DIRECTORY_SEPARATOR;
   {$ifdef darwin}
-    Result := ExtractFileDir(Application.ExeName) + '/Resources/';
+    // Uses ../BMDS.app/Contents/Resources/ folder
+    Result := ExtractFileDir(ExtractFileDir(Application.ExeName)) + ResFolder;
   {$endif}
   {$ifdef windows}
-    Result := ExtractFilePath(Application.ExeName)
+    // Uses ../BMDS.exe/Resources/ folder
+    Result := ExtractFilePath(Application.ExeName) + ResFolder;
   {$endif}
 end;
 
@@ -140,19 +98,45 @@ end;
 
 function GetAppDataDirectory: string;
 var
-  AppName: string;
+  AppFolder: string;
 begin
-  AppName := ExtractFilename(Application.ExeName);
-  Result := '/usr/share/' + AppName + '/';
+  AppFolder := ExtractFileName(Application.ExeName);
+  Result := '/usr/share/' + AppFolder + '/';
   {$ifdef darwin}    
-    { TODO : Should be ExpandFileNameUTF8 ? }
-    Result := ExpandFileName('~/Library/Application Support/') + AppName + '/';
+    { TODO : uCommon -> should be ExpandFileNameUTF8 ? }
+    Result := ExpandFileName('~/Library/Application Support/') + AppFolder + '/';
   {$endif}
   {$ifdef windows}
     Result := ExtractFilePath(Application.ExeName);
     // Or perhaps...
-    // Result := GetEnvironmentVariableUTF8('appdata')+ '\' + AppName;
+    // Result := GetEnvironmentVariableUTF8('appdata')+ '\' + AppFolder;
   {$endif}
+end;
+
+
+procedure Split(Input: string; const Delimiter: char; const Strings: TStrings);
+begin
+   Assert(Assigned(Strings));
+   Strings.Clear;
+   Strings.StrictDelimiter := true;
+   Strings.Delimiter := Delimiter;
+   Strings.DelimitedText := Input;
+end;
+
+
+function GetRegisterIndex(aRegToFind: string; aRegisters: string): integer;
+var
+  n, i: integer;
+begin
+  Result := -1;
+  n := Pos(aRegToFind, aRegisters);
+  if (n > 0) then
+    begin
+      Inc(Result);
+      for i := 1 to n do
+        if (aRegisters[i] = ' ') then
+          Inc(Result);
+    end;
 end;
 
 
@@ -250,7 +234,7 @@ begin
     // FileVerInfo.VersionStrings.Values['FileDescription'];
     // FileVerInfo.VersionStrings.Values['InternalName'];
     // FileVerInfo.VersionStrings.Values['LegalCopyright'];
-    // FileVerInfo.VersionStrings.Values['OriginalFilename'];
+    // FileVerInfo.VersionStrings.Values['OriginalFileName'];
     // FileVerInfo.VersionStrings.Values['ProductName'];
     // FileVerInfo.VersionStrings.Values['ProductVersion'];
   finally

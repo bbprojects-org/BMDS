@@ -3,10 +3,10 @@
   MICROTAN 65 BOARD
 
     This class provides an emulation of the Microtan 65 basic board, produced
-    by Tangerine Systems from 1979
+    by Tangerine Systems from 1979.
 
-    CPU:        NMOS 6502 CPU running at 750kHz
-    Video:      16 rows of 32 characters (64 x 64 chunky graphics)
+    CPU:        6502 running at 750kHz
+    Video:      16 rows of 32 characters, or 64 x 64 chunky graphics
     Memory map: As below
 
       RAM (1K):
@@ -24,6 +24,8 @@
       $bff2 write    Strobe keypad (not used here since have ASCII keyboard)
       $bff3 read     Read keypad / keyboard input
       $bff3 write    Turn graphics off
+
+    The frequency, memory and ROM can be changed in the preferences pane.
 
     Much of the code here is based on a mixture of ideas / code reworked
     into Pascal from the following:
@@ -55,6 +57,7 @@
 { TODO : uMachineMicrotan -> have fully expanded machine with 64K }
 
 { TODO : uMachineMicrotan -> BUG: 1K Tanbug resetting on invalid command? }
+{ TODO : uMachineMicrotan -> BUG: single step/proceed not working as per M65 manual }
 
 unit uMachineMicrotan;
 
@@ -65,8 +68,8 @@ interface
 uses
   LCLIntf, LCLType, Forms, Classes, SysUtils, ExtCtrls, Graphics, Dialogs,
   //
-  uMachineBase, uCpuBase, uCpu6502, uDefs6502, uFilesMgr, uMemoryMgr,
-  uConfigMicrotan, uCommon, uGfxMgr, SDL2;
+  uMachineBase, uCpuBase, uCpuTypes, uCpu6502, uDefs6502, uFilesMgr, uMemoryMgr,
+  uPrefsMicrotan, uCommon, uGfxMgr, SDL2;
 
 type
   TGraphicsBits = array[$200..$3FF] of boolean;
@@ -86,7 +89,7 @@ type
     DelayedNmiCounter: integer;         // Used to support M65 delayed NMI processing
     LastPC: word;
                             
-    procedure DoConfigChange(idx: integer);
+    procedure DoConfigChange(Sender: TObject);
     procedure BuildTextures;
     procedure CheckInput;
     procedure SetMachineInfo;
@@ -111,18 +114,10 @@ type
     procedure Step; override;   
     procedure ScreenRefresh; override;
     procedure SaveToFile(strm: TStream);
-    procedure LoadFromFile(Filename: string);
-
+    procedure LoadFromFile(FileName: string);
+    //
     property CPU: TCpuBase read GetCPU;
 end;
-
-const
-  MICROTAN_PALETTE_G: array[0..1] of TGfxColour
-                      = ($000000FF, $00FF00FF); // Black, green
-  MICROTAN_PALETTE_A: array[0..1] of TGfxColour
-                      = ($000000FF, $FFBF00FF); // Black, amber
-  MICROTAN_PALETTE_W: array[0..1] of TGfxColour
-                      = ($000000FF, $FFFFFFFF); // Black, white
 
 
 implementation
@@ -131,8 +126,10 @@ implementation
 
 constructor TMachineMicrotan.Create;
 begin
-  fConfigFrame := TConfigMicrotan.Create(nil);
-  fConfigFrame.Init(@DoConfigChange);   // Initialise callback, get config settings
+  // fConfigFrame referenced by PreferencesForm for config when M65 selected
+  fConfigFrame := TM65PrefsFrame.Create(nil);
+  fConfigFrame.OnChange := @DoConfigChange;
+  fConfigFrame.Init;                    // Get INI settings required below
 
   SetMachineInfo;
   CreateMemoryManager;
@@ -152,13 +149,13 @@ end;
 
 procedure TMachineMicrotan.SetMachineInfo;
 begin
-  fInfo.Name := MACHINES[MACHINE_M65].Name;
   fInfo.Year := 1979;
-  fInfo.CpuType := ctR6502;
-  fInfo.CpuFreqKhz := 750;
+  fInfo.CpuType := ct6502;
+  fInfo.CpuFreqKhz := (fConfigFrame as TM65PrefsFrame).Frequency;
   fInfo.ScreenWidthPx := 256;
   fInfo.ScreenHeightPx := 256;
-  fInfo.MachineDefsFilename := 'MicrotanDefs.asm';
+  fInfo.ScaleModifier := 1;
+  fInfo.MachineDefsFileName := 'MicrotanDefs.asm';
   fInfo.State := msStopped;
 end;
 
@@ -170,10 +167,11 @@ var
   idx: integer; 
   fFileMgr: TFileMgr;
 begin
+  // Allocate full 64K but access limited to allocations below
   fMemoryMgr := TMemoryMgr.Create(0, MEM_SIZE_64K);
   fFileMgr := TFileMgr.Create;
   try
-    case ((fConfigFrame as TConfigMicrotan).RomIndex) of
+    case ((fConfigFrame as TM65PrefsFrame).RomIndex) of
 
       // Basic machine, 1K RAM, 1K TANBUG
       0: begin
@@ -218,7 +216,7 @@ end;
 
 procedure TMachineMicrotan.Create6502Cpu;
 begin
-  fCPU := TCpu6502.Create;
+  fCPU := TCpu6502.Create(ct6502);
   fCPU.OnRead := @fMemoryMgr.MemReadHandler;
   fCPU.OnWrite := @fMemoryMgr.MemWriteHandler;
   fCPU.Reset;
@@ -231,7 +229,7 @@ procedure TMachineMicrotan.CreateScreenAndGraphics;
 var
   idx: integer;
 begin
-  Gfx := TGfxManager.Create;
+  Gfx := TGfxManager.Create(2);
   Gfx.SetWindowSize(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
   TexIdxScreen := Gfx.GetTexture(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
   TexIdxChunkyChars := 0;               // No textures assigned yet
@@ -250,7 +248,6 @@ begin
   Gfx.Free;
   fCPU.Free;
   fMemoryMgr.Free;
-  fConfigFrame.Free;
   inherited;
 end;
 
@@ -268,12 +265,14 @@ end;
 function TMachineMicrotan.GetDescription: string;
 begin
   Result := 'MICROTAN 65' + CRLF + CRLF +
-            'The Tangerine Microtan 65 was a 6502 based single board microcomputer, first sold in 1979, with the following specification:' + CRLF + CRLF +
+            'The Tangerine Microtan 65 was a 6502 based single board microcomputer, ' +
+            'first sold in 1979, with the following specification:' + CRLF + CRLF +
             'Main Board:' + CRLF +
             '  - NMOS 6502 running at 750 kHz' + CRLF +
             '  - 1K RAM (inc display memory)' + CRLF +
             '  - 1K ROM for TANBUG monitor' + CRLF +
-            '  - screen (' + IntToStr(fInfo.ScreenWidthPx) + 'x' + IntToStr(fInfo.ScreenHeightPx) + ' pixels) 16 rows of 32 characters / 64x64 block graphics' + CRLF + CRLF +
+            '  - screen (' + IntToStr(fInfo.ScreenWidthPx) + 'x' + IntToStr(fInfo.ScreenHeightPx) +
+            ' pixels) 16 rows of 32 characters / 64x64 block graphics' + CRLF + CRLF +
             'Expansion Board (TANEX):' + CRLF +
             '  - add-on to TANBUG called XBUG' + CRLF +
             '  - additional 7K RAM' + CRLF +
@@ -529,11 +528,16 @@ end;
 
 { MICROTAN CONFIG CHANGE }
 
-procedure TMachineMicrotan.DoConfigChange(idx: integer);
+procedure TMachineMicrotan.DoConfigChange(Sender: TObject);
 begin
-  case idx of
-    0: ;                                // Dynamic load of ROM not allowed
-    1: BuildTextures;
+  { TODO : uMachineMicrotan -> implement ConfigChange where practical }
+  case (Sender as TM65PrefsFrame).ChangedItem of
+    0: begin
+         BuildTextures;
+       end;
+    1: {nothing};                       // ROM
+    2: BuildTextures;                   // Colour
+    3: {nothing};                       // Frequency
   end;
 end;
 
@@ -542,11 +546,8 @@ end;
 
 procedure TMachineMicrotan.BuildTextures;
 begin
-  case ((fConfigFrame as TConfigMicrotan).ColourIndex) of
-    0: Gfx.Palette := MICROTAN_PALETTE_G; // Green pixels on black
-    1: Gfx.Palette := MICROTAN_PALETTE_A; // Amber pixels on black
-    2: Gfx.Palette := MICROTAN_PALETTE_W; // White pixels on black
-  end;
+  Gfx.Palette[0] := (fConfigFrame as TM65PrefsFrame).ColourB;
+  Gfx.Palette[1] := (fConfigFrame as TM65PrefsFrame).ColourF;
   BuildChunkyCharacters;                // Build bitmaps for graphics chars
   BuildCharacterSet;                    // and normal font characters
   ScreenRefresh;
@@ -639,7 +640,7 @@ end;
 
 { LOAD / SAVE MACHINE STATE TO FILE }
 
-procedure TMachineMicrotan.LoadFromFile(Filename: string);
+procedure TMachineMicrotan.LoadFromFile(FileName: string);
 var
   LoadStream: TMemoryStream;
   LoadPtr: PChar;
@@ -648,7 +649,7 @@ var
 begin
   LoadStream := TMemoryStream.Create;
   try
-    LoadStream.LoadFromFile(Filename);
+    LoadStream.LoadFromFile(FileName);
     LoadPtr := LoadStream.Memory;
     if (LoadStream.Size = 8263) then    // Standard file?
     begin
@@ -680,6 +681,10 @@ procedure TMachineMicrotan.SaveToFile(strm: TStream);
 begin
   //
 end;
+
+
+initialization
+  MachineFactory.RegisterMachine('Microtan65', TMachineMicrotan);
 
 
 end.

@@ -2,7 +2,7 @@
 
   DISASSEMBLER FOR CHIP-8
 
-    Provides routines to disassemble code at a specified address into
+    Provides routines to disassemble CHIP-8 code at a specified address into
     readable assembler code
 
 
@@ -32,7 +32,7 @@ interface
 uses
   Classes, SysUtils, Dialogs,
   //
-  uCpuChip8, uDefsChip8, uCommon;
+  uCpuChip8, uDefsChip8, uCpuTypes;
 
 function DisassembleChip8(CPU: TCpuChip8; Addr: word): TDisassembledData;
 
@@ -47,15 +47,15 @@ function DisassembleChip8(CPU: TCpuChip8; Addr: word): TDisassembledData;
 var
   Opcode: word;
   X, Y: byte;
-  Operand3, Operand2, Operand1: word;
+  Operand0FFF, Operand00FF, Operand000F: word;
   MnemonicStr, OperandStr: string;
 begin
   Opcode := (CPU.MemRead(Addr) shl 8) or CPU.MemRead(Addr+1);
   X := (Opcode and $0F00) shr 8;
   Y := (Opcode and $00F0) shr 4;
-  Operand3 := Opcode and $0FFF;
-  Operand2 := Opcode and $00FF;
-  Operand1 := Opcode and $000F;
+  Operand0FFF := Opcode and $0FFF;
+  Operand00FF := Opcode and $00FF;
+  Operand000F := Opcode and $000F;
 
   Result.AddBlankLine := False;
   Result.HasOperand := False;
@@ -77,7 +77,7 @@ begin
     $1000: // $1NNN: jump to address NNN
            begin
              MnemonicStr := 'JP';
-             Result.Operand := Opcode and $0FFF;
+             Result.Operand := Operand0FFF;
              Result.HasOperand := True;
              OperandStr := Format('$%.4x', [Result.Operand]);
              Result.AddrModeStr := '%s';
@@ -86,7 +86,7 @@ begin
     $2000: // $2NNN: call subroutine at address NNN
            begin
              MnemonicStr := 'CALL';
-             Result.Operand := Opcode and $0FFF;
+             Result.Operand := Operand0FFF;
              Result.HasOperand := True;
              OperandStr := Format('$%.4x', [Result.Operand]);
            end;
@@ -94,13 +94,13 @@ begin
     $3000: // $3xNN: skips the next instruction if Vx equals NN
            begin
              MnemonicStr := 'SE';
-             OperandStr := Format('V%x,$%x', [X, Operand2]);
+             OperandStr := Format('V%x,$%x', [X, Operand00FF]);
            end;
 
     $4000: // $4xNN: skips the next instruction if Vx does not equal NN
            begin
              MnemonicStr := 'SNE';
-             OperandStr := Format('V%x,$%x', [X, Operand2]);
+             OperandStr := Format('V%x,$%x', [X, Operand00FF]);
            end;
 
     $5000: // $5xy0: skips the next instruction if Vx equals Vy
@@ -112,13 +112,13 @@ begin
     $6000: // $6xNN: set Vx to value NN
            begin
              MnemonicStr := 'LD';
-             OperandStr := Format('V%x,$%x', [X, Operand2]);
+             OperandStr := Format('V%x,$%x', [X, Operand00FF]);
            end;
 
     $7000: // $7xNN: add value NN to Vx
            begin
              MnemonicStr := 'ADD';
-             OperandStr := Format('V%x,$%x', [X, Operand2]);
+             OperandStr := Format('V%x,$%x', [X, Operand00FF]);
            end;
 
     $8000: // Various, check next bits
@@ -192,7 +192,7 @@ begin
     $A000: // $ANNN: set I to address NNN
            begin
              MnemonicStr := 'LD';
-             Result.Operand := Operand3;
+             Result.Operand := Operand0FFF;
              Result.HasOperand := True;
              OperandStr := Format('$%x', [Result.Operand]);
              Result.AddrModeStr := 'I,%s';
@@ -201,7 +201,7 @@ begin
     $B000: // $BNNN: jump to address (NNN + V0)
            begin
              MnemonicStr := 'JP';
-             Result.Operand := Operand3;
+             Result.Operand := Operand0FFF;
              Result.HasOperand := True;
              OperandStr := Format('%x', [Result.Operand]);
              Result.AddrModeStr := 'V0,%s';
@@ -210,7 +210,7 @@ begin
     $C000: // $CxNN: sets Vx to (RandomNumber and NN)
            begin
              MnemonicStr := 'RND';
-             OperandStr := Format('V%x,$%x', [X, Operand2]);
+             OperandStr := Format('V%x,$%x', [X, Operand00FF]);
            end;
 
     $D000: // $DxyN: draw sprite at coords Vx,Vy, width 8, height N
@@ -218,7 +218,7 @@ begin
            //        VF set to 1 if any active screen pixels collide
            begin
              MnemonicStr := 'DRW';
-             OperandStr := Format('V%x,V%x,%d', [X, Y, Operand1]);
+             OperandStr := Format('V%x,V%x,%d', [X, Y, Operand000F]);
            end;
 
     $E000: // Various, check next bits

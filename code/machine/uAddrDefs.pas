@@ -27,23 +27,23 @@
 unit uAddrDefs;
 
 {$mode objfpc}{$H+}
+{.$define adp_debug}
 
 interface
 
 uses
   Classes, SysUtils,
   //
-  uParser, uCommon;
+  uParser, uCpuTypes;
 
 type
   TAddrDefsProcessor = class
   private
-    ADA: TAddrDefsArray;
     AddrDefsLineNo: integer;
     AddrDefsLines: TStrings;
     procedure GetSourceLine(Sender: TObject; var Line: string; var IsEof: boolean);
   public
-    function GetAddrDefs(Filename: string): TAddrDefsArray;
+    function GetAddrDefs(FileName: string): TAddrDefsArray;
   end;
 
 
@@ -53,7 +53,7 @@ implementation
 
 { Given filename of Asm file to process, returns an array of addresses/symbols }
 
-function TAddrDefsProcessor.GetAddrDefs(Filename: string): TAddrDefsArray;
+function TAddrDefsProcessor.GetAddrDefs(FileName: string): TAddrDefsArray;
 var
   Parser: TParser;
   State: (stBOL, stInstruction, stEmptyLine, stEOL);
@@ -71,99 +71,98 @@ var
   end;
 
 begin
+  {$ifdef adp_debug}
+  AppLog.Debug('TAddrDefsProcessor.GetAddrDefs, filename=' + FileName);
+  AppLog.Debug('');
+  {$endif}
   Parser := TParser.Create(@GetSourceLine);
   AddrDefsLines := TStringList.Create;
-  AddrDefsLines.LoadFromFile(Filename); // Filename from current machine
+  if (not FileExists(FileName)) then
+    raise Exception.CreateFmt('File [%s] not found', [FileName]);
 
-  with Parser do
-  begin
-    AddrDefsLineNo := -1;
-    NumAddr := 0;
-    Parser.Initialise;
-    State := stBOL;                     // Beginning Of Line ...
-    while (Token.Typ <> tkEOF) do
-    try
-      case State of
+  AddrDefsLines.LoadFromFile(FileName); // FileName from current machine
 
-        stBOL: begin
-                 // Expecting label / comment / whitespace & instruction / EOL
-                 GetToken;
-                 case Token.Typ of
-                   tkLabel:   begin
-                                Inc(NumAddr);
-                                SetLength(Result, NumAddr);
-                                Result[NumAddr-1].LabelStr := Token.StringVal;
-                                Result[NumAddr-1].Used := False;
-                                GetToken;
-                                State := stInstruction;
-                              end;
-                   tkComment: begin
-                                State := stEOL;   // Ignore comment lines
-                              end;
-                   tkEOL:     begin
-                                State := stEmptyLine; // Blank line
-                              end;
-                 else
-                   begin
-                     State := stInstruction;
-                   end;
+  AddrDefsLineNo := -1;
+  NumAddr := 0;
+  Parser.Initialise;
+  State := stBOL;                     // Beginning Of Line ...
+  while (Parser.Token.Typ <> tkEOF) do
+  try
+    case State of
+
+      stBOL: begin
+               // Expecting label / comment / EOL / whitespace & instruction identifier
+               Parser.GetToken;
+               case Parser.Token.Typ of
+                 tkLabel:   begin
+                              Inc(NumAddr);
+                              SetLength(Result, NumAddr);
+                              Result[NumAddr-1].LabelStr := Parser.Token.StringVal;
+                              Result[NumAddr-1].Used := False;
+                              Parser.GetToken;
+                              State := stInstruction;
+                            end;
+                 tkComment: begin
+                              Parser.GetToken;    // Skip comment lines
+                              State := stEOL;
+                            end;
+                 tkEOL:     State := stEmptyLine; // Blank line
+               else
+                 State := stInstruction;
+               end;
+             end;
+
+    stInstruction:
+             begin
+               if (Parser.Token.Typ = tkId) then
+                 begin
+                   Instruction := LowerCase(Parser.Token.StringVal);
+                   if (Instruction = 'org') then
+                     begin
+                       PC := GetNumber;
+                     end
+                   else if ((Instruction = 'rmb') or (Instruction = 'ds') or (Instruction = 'defs')) then
+                     begin
+                       Result[NumAddr-1].Address := PC;
+                       Inc(PC, GetNumber);
+                       Result[NumAddr-1].RW := ' '; // Read/Write allowed
+                     end
+                   else if (Instruction = 'equ') then
+                     begin
+                       Result[NumAddr-1].Address := GetNumber;
+                       Result[NumAddr-1].RW := ' '; // Read/Write allowed
+                     end
+                   else
+                     Parser.SkipRestOfLine; // Ignore any other mnemonic
+                 end
+               else
+                 Parser.SkipRestOfLine;     // Ignore anything else
+               State := stEOL;
+             end;
+
+    stEmptyLine:
+             begin
+               State := stBOL;          // Skip empty lines
+             end;
+
+    stEOL:   begin
+               if (Parser.PeekNextToken.Typ <> tkEOF) then
+                 begin
+                   Parser.GetToken;
+                   if (Parser.Token.Typ <> tkEOL) then
+                     begin
+                       Parser.SkipRestOfLine;
+                       Parser.GetToken; // Skip over EOL
+                     end;
                  end;
-               end;
-
-      stInstruction:
-               begin
-                 if (Token.Typ = tkId) then
-                   begin
-                     Instruction := LowerCase(Token.StringVal);
-                     if (Instruction = 'org') then
-                       begin
-                         PC := GetNumber;
-                       end
-                     else if ((Instruction = 'rmb') or (Instruction = 'ds') or (Instruction = 'defs')) then
-                       begin
-                         Result[NumAddr-1].Address := PC;
-                         Inc(PC, GetNumber);
-                         Result[NumAddr-1].RW := ' '; // Read/Write allowed
-                       end
-                     else if (Instruction = 'equ') then
-                       begin
-                         Result[NumAddr-1].Address := GetNumber;
-                         Result[NumAddr-1].RW := ' '; // Read/Write allowed
-                       end
-                     else
-                       SkipRestOfLine;  // Ignore anything else
-                   end
-                 else
-                   SkipRestOfLine;
-                 State := stEOL;
-               end;
-
-      stEmptyLine:
-               begin
-                 State := stBOL;
-               end;
-
-      stEOL:   begin
-                 if (PeekNextToken.Typ = tkComment) then
-                   GetToken;            // Skip comment
-                 if (PeekNextToken.Typ <> tkEOF) then
-                   begin
-                     GetToken;
-                     if (Token.Typ <> tkEOL) then
-                       begin
-                         SkipRestOfLine;
-                         GetToken;      // Skip over EOL
-                       end;
-                   end;
-                 State := stBOL;        // Back to beginning of line
-               end;
-      end;
-
-    except
-      on E: Exception do {AddError(E.Message)};
+               State := stBOL;          // Back to beginning of line
+             end;
     end;
 
+  except
+    on E: Exception do {AddError(E.Message)};
   end;
+
   AddrDefsLines.Free;
   Parser.Free;
 end;
@@ -171,7 +170,7 @@ end;
 
 { GET SOURCE LINE }
 
-{ Return next line in ASM file until all lines processed }
+{ Return next line in file until all lines processed }
 
 procedure TAddrDefsProcessor.GetSourceLine(Sender: TObject;
             var Line: string;           // Return value for the next line
@@ -179,7 +178,10 @@ procedure TAddrDefsProcessor.GetSourceLine(Sender: TObject;
 begin
   Inc(AddrDefsLineNo);
   if (AddrDefsLineNo = AddrDefsLines.Count) then
-    IsEof := True
+    begin
+      Line := '';
+      IsEof := True;
+    end
   else
     begin
       Line := AddrDefsLines.Strings[AddrDefsLineNo];

@@ -20,6 +20,9 @@
 
   =============================================================================}
 
+{ TODO : uRegistersFrame6502 -> BUG: not updating registers properly on Step (6502 or all?) }
+{ TODO : uRegistersFrame6502 -> BUG: editing registers not working properly? }
+
 unit uRegistersFrame6502;
 
 {$mode objfpc}{$H+}

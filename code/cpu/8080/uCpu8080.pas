@@ -4,7 +4,8 @@
 
     This class emulates a basic 8080 microprocessor
 
-    Based largely on the version by Alessandro Scotti (www.walkofmind.com)
+    Based originally on the version by Alessandro Scotti (www.walkofmind.com)
+    tweaked over the years
 
 
   LICENSE:
@@ -27,13 +28,14 @@
 unit uCpu8080;
 
 {$mode objfpc}{$H+}
+{$rangechecks off}
 
 interface
 
 uses
   SysUtils,
   //
-  uCpuBase, uDefs8080, uCommon;
+  uCpuBase, uDefs8080, uCpuTypes, uCommon;
 
 type
   // Record containing each of 8080 CPU registers
@@ -69,8 +71,10 @@ type
     InterruptEnabledPending: boolean;
     InterruptNumber: integer;
     //
+    fOpcodesData: TOpcodeArray;
     OpcodePtrArray: array[0..255] of word;
     TraceList: array[0..TRACE_MAX-1] of TRegs8080;
+    fInvalidFlag: boolean;
 
     procedure FuncCompare(val: byte);
     procedure FuncXor(val: byte);
@@ -96,16 +100,17 @@ type
     procedure SetFlagsSZP(a: byte);
   protected
     function GetPC: word; override;
-    function GetAssemblerRegisters: string; override;
     function GetTraceColumns: TTraceColArray; override;
-    function GetOpcodeDataArray: TOpcodeArray; override;
+    function GetDataByIndex(Index: integer): TOpcodeRawData; override;
+    function GetDataByOpcode(Opcode: integer): TOpcodeRawData; override;
     function GetRegs: TRegs8080;
+    function GetInfo: TCpuInfo; override;
   public
-    constructor Create; override;
+    constructor Create({%H-}ct: TCpuType); override;
     destructor  Destroy; override;
     procedure Reset; override;
     function  ExecuteInstruction: integer; override;
-    procedure Interrupt(Index: byte; Value: boolean = True); override;
+    procedure Interrupt(Index: byte; {%H-}Value: boolean = True); override;
     function  GetTrace(Index: integer): TDisassembledData; override;
     function  GetDisassembly(Addr:word): TDisassembledData; override;
     //
@@ -113,9 +118,9 @@ type
     procedure WriteMem(Addr: Word; Value: Byte);
     function  ReadPort(Port: byte): byte;
     procedure WritePort(Port, value: byte);
-    function  OpcodeData(Opcode: byte): TOpcodeRawData;
-
+    //
     property  Regs: TRegs8080 read GetRegs write fRegs;
+    property  InvalidOpcode: boolean read fInvalidFlag;
   end;
 
 
@@ -127,28 +132,31 @@ uses
 
 { CREATE }
 
-constructor TCpu8080.Create;
+constructor TCpu8080.Create(ct: TCpuType);
 var
-  i: integer;
-  Opcode: byte;
+  i, Len: integer;
+  Opcode, ThisTypeMask: byte;
 begin
-  fName                  := CPU_8080;
-  fCpuType               := ct8080;
-  fSupportsAssembler     := False;
-  fSupportsDisassembler  := True;
-  fCpuState              := csStopped;
-  fTraceWidth            := 520;
-  fRegistersHeight       := 332;
+  fCpuType  := ct8080;
+  fCpuState := csStopped;
+
+  case ct of
+    ct8080:  ThisTypeMask := %01;       // No variants
+  end;
 
   for i := 0 to 255 do
     OpcodePtrArray[i] := 0;             // Initialise array to point at Undefined opcode
 
   for i := 0 to (Length(OPCODES_8080) - 1) do
     begin                               // Set opcode pointers into data array
-      if ((OPCODES_8080[i].T and 1) <> 1) then
+      if ((OPCODES_8080[i].T and ThisTypeMask) = 0) then
         Continue;                       // Just skips Undefined entry at start
+      Len := Length(fOpcodesData);
+      SetLength(fOpcodesData, Len + 1);
+      fOpcodesData[Len] := OPCODES_8080[i];
+
       Opcode := OPCODES_8080[i].O;
-      OpcodePtrArray[Opcode] := i;      // Set pointers into Opcode data
+      OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
     end;
 
     InterruptEnabledPending := False;
@@ -160,6 +168,8 @@ end;
 
 destructor TCpu8080.Destroy;
 begin
+  SetLength(fOpcodesData, 0);
+  fOpcodesData := nil;
   inherited;
 end;
 
@@ -198,24 +208,7 @@ begin
 end;
 
 
-{ GET CPU INFO }
-
-function TCpu8080.GetOpcodeDataArray: TOpcodeArray;
-var
-  idx: integer;
-begin
- // Cannot assign const array to dynamic array, so copy each item
- SetLength(Result, length(OPCODES_8080));
- for idx := 0 to length(OPCODES_8080)-1 do
-   Result[idx] := OPCODES_8080[idx];
-end;
-
-
-function TCpu8080.GetAssemblerRegisters: string;
-begin
-  Result := REGISTERS_8080;
-end;
-
+{ GETTERS }
 
 function TCpu8080.GetTraceColumns: TTraceColArray;
 var
@@ -227,7 +220,17 @@ begin
 end;
 
 
-{ GET PROGRAM COUNTER }
+function TCpu8080.GetDataByIndex(Index: integer): TOpcodeRawData;
+begin
+  Result := fOpcodesData[Index];
+end;
+
+
+function TCpu8080.GetDataByOpcode(Opcode: integer): TOpcodeRawData;
+begin
+  Result := fOpcodesData[OpcodePtrArray[Opcode]];
+end;
+
 
 function TCpu8080.GetPC: word;
 begin
@@ -235,21 +238,16 @@ begin
 end;
 
 
-{ GET REGISTERS }
+function TCpu8080.GetInfo: TCpuInfo;
+begin
+  Result := INFO_8080;
+end;
+
 
 function TCpu8080.GetRegs: TRegs8080;
 begin
   GetFlags;                             // Ensure flags packed
   Result := fRegs;
-end;
-
-
-{ GET OPCODE DATA ARRAY }
-
-function TCpu8080.OpcodeData(Opcode: byte): TOpcodeRawData;
-begin
-  // User pointers in array to get correct offset into Opcodes table
-  Result := OPCODES_8080[OpcodePtrArray[Opcode]];
 end;
 
 
@@ -527,6 +525,7 @@ function TCpu8080.ProcessOpcode: integer;
 var
   Opcode: byte;
 begin
+  fInvalidFlag := False;
   Cycles := 0;
 
   // Trace Execution: save all registers before executing opcode, includes PC
@@ -541,7 +540,7 @@ begin
   // Execute the current opcode
   Opcode := ReadMem(fRegs.PC);          // Read opcode to execute
   Inc(fRegs.PC);
-  Inc(Cycles, OpcodeData(Opcode).C);    // Get basic number of clock cycles
+  Inc(Cycles, DataByOpcode[Opcode].C);  // Get basic number of clock cycles
 
   case (Opcode) of                      // ... and process instruction
 
@@ -587,6 +586,7 @@ begin
 
     $08: begin                          // Invalid
            // MsgForm.Add(Format('Unimplemented instruction $08 at %.4x' [fRegs.PC - 1]));
+           fInvalidFlag := True;
          end;
 
     $09: begin                          // ADD  HL,BC
@@ -627,6 +627,7 @@ begin
 
     $10: begin                          // Invalid
            // MsgForm.Add(Format('Unimplemented instruction $10 at %.4x' [fRegs.PC - 1]));
+           fInvalidFlag := True;
          end;
 
     $11: begin                          // LD   DE,nn
@@ -669,6 +670,7 @@ begin
 
     $18: begin                          // Invalid
            // MsgForm.Add(Format('Unimplemented instruction $18 at %.4x' [fRegs.PC - 1]));
+           fInvalidFlag := True;
          end;
 
     $19: begin                          // ADD  HL,DE
@@ -711,6 +713,7 @@ begin
 
     $20: begin                          // Invalid [RIM = special?]
            // MsgForm.Add(Format('Unimplemented instruction $20 at %.4x' [fRegs.PC - 1]));
+           fInvalidFlag := True;
          end;
 
     $21: begin                          // LD   HL,nn
@@ -760,6 +763,7 @@ begin
 
     $28: begin                          // Invalid
            // MsgForm.Add(Format('Unimplemented instruction $28 at %.4x' [fRegs.PC - 1]));
+           fInvalidFlag := True;
          end;
 
     $29: begin                          // ADD  HL,HL
@@ -801,6 +805,7 @@ begin
 
     $30: begin                          // Invalid [SIM = special?]
            // MsgForm.Add(Format('Unimplemented instruction $30 at %.4x' [fRegs.PC - 1]));
+           fInvalidFlag := True;
          end;
 
     $31: fRegs.SP := ReadMemWord;       // LD   SP,nn
@@ -832,6 +837,7 @@ begin
 
     $38: begin                          // Invalid
            // MsgForm.Add(Format('Unimplemented instruction $38 at %.4x' [fRegs.PC - 1]));
+           fInvalidFlag := True;
          end;
 
     $39: begin                          // ADD  HL,SP
@@ -1082,7 +1088,7 @@ begin
          end;
 
     $CB: begin                          // Invalid
-           //
+           fInvalidFlag := True;
          end;
 
     $CC: begin                          // CALL Z,nn
@@ -1173,6 +1179,7 @@ begin
          end;
 
     $D9: begin                          // Invalid
+           fInvalidFlag := True;
          end;
 
     $DA: begin                          // JP   C,nn
@@ -1197,7 +1204,7 @@ begin
          end;
 
     $DD: begin                          // Invalid
-           //
+           fInvalidFlag := True;
          end;
 
     $DE: begin                          // SBC  A,n
@@ -1305,7 +1312,7 @@ begin
          end;
 
     $ED: begin                          // Invalid
-           //
+           fInvalidFlag := True;
          end;
 
     $EE: begin                          // XOR  n
@@ -1404,7 +1411,7 @@ begin
          end;
 
     $FD: begin                          // Invalid
-           //
+           fInvalidFlag := True;
          end;
 
     $FE: begin                          // CP   n

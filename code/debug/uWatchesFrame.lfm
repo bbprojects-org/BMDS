@@ -10,10 +10,10 @@ object WatchesFrame: TWatchesFrame
   DesignTop = 897
   object ComboBox1: TComboBox
     Left = 80
-    Height = 21
+    Height = 20
     Top = 8
     Width = 90
-    ItemHeight = 0
+    ItemHeight = 19
     TabOrder = 0
     Text = 'ComboBox1'
   end
@@ -21,7 +21,7 @@ object WatchesFrame: TWatchesFrame
     Left = 16
     Height = 16
     Top = 10
-    Width = 55
+    Width = 54
     Caption = 'Register:'
     ParentColor = False
   end
@@ -39,14 +39,14 @@ object WatchesFrame: TWatchesFrame
     Left = 80
     Height = 18
     Top = 60
-    Width = 79
+    Width = 77
     Caption = 'Not Equal'
     TabOrder = 2
   end
   object edValueHex: TLabeledEdit
     Tag = 200
     Left = 77
-    Height = 22
+    Height = 21
     Top = 106
     Width = 64
     EditLabel.Height = 16
@@ -59,7 +59,7 @@ object WatchesFrame: TWatchesFrame
   object edValueDecimal: TLabeledEdit
     Tag = 201
     Left = 152
-    Height = 22
+    Height = 21
     Top = 106
     Width = 64
     EditLabel.Height = 16
@@ -73,7 +73,7 @@ object WatchesFrame: TWatchesFrame
     Left = 32
     Height = 16
     Top = 109
-    Width = 39
+    Width = 37
     Caption = 'Value:'
     ParentColor = False
   end
@@ -115,5 +115,6 @@ object WatchesFrame: TWatchesFrame
     MultiSelect = True
     Sorted = True
     TabOrder = 8
+    TabStop = False
   end
 end

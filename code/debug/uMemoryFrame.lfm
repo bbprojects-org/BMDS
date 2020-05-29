@@ -75,6 +75,7 @@ object MemoryFrame: TMemoryFrame
     RowCount = 8192
     ScrollBars = ssVertical
     TabOrder = 4
+    TabStop = False
     TitleFont.Color = clWindowText
     TitleFont.Height = -12
     TitleFont.Name = 'Monaco'

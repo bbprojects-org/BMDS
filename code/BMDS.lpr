@@ -2,8 +2,6 @@ program BMDS;
 
 {$mode objfpc}{$H+}
 
-{$DEFINE debug}
-
 uses
   {$IFDEF UNIX}
     {$IFDEF UseCThreads}
@@ -14,17 +12,24 @@ uses
     SysUtils,
   {$ENDIF}
   Interfaces,                           // this includes the LCL widgetset
-  Forms, uMainForm;
+  Forms, uMainForm, uMachineMicrotan, uMachineSpaceInvaders, uMachineChip8,
+  uCommon;
 
 {$R *.res}
 
+{$IFDEF debug}
+var
+  FileName: string;
+{$ENDIF}
+
 begin
-  {$IFDEF DEBUG}
+  {$IFDEF debug}
     // Set up -gh output for the Leakview package:
-    if FileExists('/developer/heap.trc') then
-      DeleteFile('/developer/heap.trc');
-    SetHeapTraceOutput('/developer/heap.trc');
-  {$ENDIF DEBUG}
+    FileName := GetAppDataDirectory + 'heap.trc';
+    if FileExists(FileName) then
+      DeleteFile(FileName);
+    SetHeapTraceOutput(FileName);
+  {$ENDIF}
 
   RequireDerivedFormResource := True;
   Application.Initialize;

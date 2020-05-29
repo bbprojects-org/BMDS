@@ -81,8 +81,7 @@ type
   public
     Name: string;                       // Instruction name / opcode mnemonic
     InstructionType: TInstructionType;  // Assembler directive / macro / mnemonic
-    Value: integer;                     // Used to point into fOpcodeList
-    OpNum: Word;                        // Index into OpcodeDataList
+    Value: integer;                     // Used to point into opcode data array
   end;
 
   TSymbols = class(TObject)
@@ -109,7 +108,7 @@ type
     property  Symbol: TSymbol read GetSymbol;
     property  SymbolCount: integer read GetSymbolCount;
     //
-    procedure AddInstruction(Name: string; InstrType: TInstructionType; Value: integer; OpNum: Word);
+    procedure AddInstruction(Name: string; InstrType: TInstructionType; Value: integer);
     function  FindInstruction(Name: string): TInstruction;
 
     property  Instruction: TInstruction read GetInstruction;
@@ -248,7 +247,7 @@ end;
 { Instruction table contains pseudo ops, CPU mnemonics, and macros names. If
   an entry already exists a Duplicate Error is raised }
 
-procedure TSymbols.AddInstruction(Name: string; InstrType: TInstructionType; Value: integer; OpNum: Word);
+procedure TSymbols.AddInstruction(Name: string; InstrType: TInstructionType; Value: integer);
 var
   InstrData: TInstruction;
 begin
@@ -256,7 +255,6 @@ begin
   InstrData.Name := Name;
   InstrData.InstructionType := InstrType;
   InstrData.Value := Value;
-  InstrData.OpNum := OpNum;
   if (fInstructions.Items[Name] = nil) then
     fInstructions.Insert(Name, InstrData)
   else

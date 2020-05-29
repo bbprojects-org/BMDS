@@ -3,7 +3,7 @@
   MEMORY FRAME
 
     Displays the machine memory in a bytes list, with ASCII interpretation
-    where relevant. Has ptional buttons to jump to specific locations
+    where relevant. Has optional buttons to jump to specific locations
 
 
   LICENSE:
@@ -35,7 +35,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, StdCtrls, Grids, Types,
   //
-  uGetAddrForm, uMemoryMgr, uCommon;
+  uGetAddrForm, uMemoryMgr;
 
 type
 

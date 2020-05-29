@@ -32,34 +32,16 @@ interface
 uses
   Classes, Forms, SysUtils,
   //
-  uRegistersFrameBase, uCommon;
+  {$ifndef test6502}
+  uRegistersFrameBase,
+  {$endif}
+  uCpuTypes;
 
 const
   TRACE_MAX  = $800;                    // Size this so easy to mask off overrun
   TRACE_MASK = $7FF;
 
 type
-  TCpuType = (ctUndef, ctR6502, ct65C02, ctCHIP8, ct8080, ctZ80, ct6800, ct6809);
-  TCpuState = (csStopped, csRunning, csHalted, csStoppedOnBrk);
-
-  { Definitions for CPU opcodes tables used by assembler }
-
-  TRule = (rNIL,                        // Do nothing
-           rZP,                         // If operand < 256, use Zero Page opcode
-           rREL,                        // Relative instruction, single byte offset
-           rCR);                        // ???
-
-  TOpcodeRawData = record
-    M: string[5];                       // Mnemonic
-    A: string[10];                      // Address mode mask
-    S: byte;                            // Ordinal value of address mode
-    O: Longword;		        // Opcode, allows up to 4 bytes
-    N: byte;                            // Number of instruction bytes inc opcode
-    C: byte;                            // Number of basic cycles for opcode execution
-    R: TRule;                           // Rule used to modify instructions
-    T: byte;                            // CPU type, for extended instruction set
-  end;
-  TOpcodeArray = array of TOpcodeRawData;
 
   TInterruptData = record
     Name: string;
@@ -76,15 +58,13 @@ type
 
   TCpuBase = class(TObject)
   private
-  protected                     
+  protected
+    {$ifndef test6502}
     fRegistersFrame: TRegistersFrame;
+    {$endif}
     fCpuType: TCpuType;
-    fName: string;
-    fSupportsAssembler: boolean;
-    fSupportsDisassembler: boolean;
+    fDataCount: integer;
     fCpuState: TCpuState;
-    fTraceWidth: integer;
-    fRegistersHeight: integer;
     fTraceIndex: integer;
     fTraceOverflow: boolean;
     fOnRead: TOnReadEvent;
@@ -93,11 +73,12 @@ type
     fOnWritePort: TOnWritePortEvent;
     //
     function GetPC: word; virtual; abstract;
-    function GetAssemblerRegisters: string; virtual; abstract;
     function GetTraceColumns: TTraceColArray; virtual; abstract;
-    function GetOpcodeDataArray: TOpcodeArray; virtual; abstract;
+    function GetDataByIndex(Index: integer): TOpcodeRawData; virtual; abstract;
+    function GetDataByOpcode(Opcode: integer): TOpcodeRawData; virtual; abstract;
+    function GetInfo: TCpuInfo; virtual; abstract;
   public
-    constructor Create; virtual; abstract;
+    constructor Create(ct: TCpuType); virtual; abstract;
     //
     procedure Reset; virtual; abstract;
     function  ExecuteInstruction: integer; virtual; abstract;
@@ -107,18 +88,17 @@ type
     function  GetTrace(Index: integer): TDisassembledData; virtual; abstract;
     function  GetDisassembly(Addr:word): TDisassembledData; virtual; abstract;
     //
+    {$ifndef test6502}
     property RegisterFrame: TRegistersFrame read fRegistersFrame write fRegistersFrame;
+    {$endif}
     property CpuType: TCpuType read fCpuType;
-    property Name: string read fName;
-    property SupportsAssembler: boolean read fSupportsAssembler;
-    property SupportsDisassembler: boolean read fSupportsDisassembler;
-    property TraceWidth: integer read fTraceWidth;
-    property RegistersHeight: integer read fRegistersHeight;
-    property AssemblerRegisters: string read GetAssemblerRegisters;
     property TraceColumns: TTraceColArray read GetTraceColumns;
-    property OpcodeDataArray: TOpcodeArray read GetOpcodeDataArray;
+    property DataCount: integer read fDataCount;
+    property DataByIndex[Index: integer]: TOpcodeRawData read GetDataByIndex;
+    property DataByOpcode[Opcode: integer]: TOpcodeRawData read GetDataByOpcode;
     property CpuState: TCpuState read fCpuState write fCpuState;
     property PC: word read GetPC;
+    property Info: TCpuInfo read GetInfo;
 
     property OnRead: TOnReadEvent read fOnRead write fOnRead;
     property OnWrite: TOnWriteEvent read fOnWrite write fOnWrite;
@@ -130,7 +110,7 @@ type
   { Define helper functions }
 
   function GetAscii(value: byte): string;
-  function GetBinary(Value: byte): string;
+  function GetBinary(Value: integer): string;
   function Parity(Value: integer; Size: integer = 8): boolean;
 
 
@@ -154,7 +134,7 @@ end;
 
 { Convert byte to Binary string }
 
-function GetBinary(Value: byte): string;
+function GetBinary(Value: integer): string;
 var
   nBit: integer;
 begin
