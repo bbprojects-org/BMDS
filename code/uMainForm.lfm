@@ -1,13 +1,13 @@
 object MainForm: TMainForm
   Left = 2586
-  Height = 251
+  Height = 49
   Top = 908
   Width = 512
   AllowDropFiles = True
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'BMDS'
-  ClientHeight = 251
+  ClientHeight = 49
   ClientWidth = 512
   Font.Height = -10
   KeyPreview = True
@@ -124,7 +124,7 @@ object MainForm: TMainForm
   object StatusBar: TStatusBar
     Left = 0
     Height = 18
-    Top = 233
+    Top = 31
     Width = 512
     Panels = <    
       item
@@ -143,8 +143,8 @@ object MainForm: TMainForm
   end
   object memoInfo: TMemo
     Left = 2
-    Height = 201
-    Top = 30
+    Height = 0
+    Top = 29
     Width = 508
     Align = alClient
     BorderSpacing.Around = 2

@@ -248,7 +248,7 @@ const
   INI_SCREEN    = 'Scr';
   INI_SHOW_INFO = 'ShowInfo';
 
-  FORM_MIN_HEIGHT = 92;
+  FORM_MIN_HEIGHT = 44;
   {$ifdef darwin}
     FORM_EXTRA_HEIGHT = 44;
   {$else}
