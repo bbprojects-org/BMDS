@@ -1,6 +1,6 @@
 ## BMDS
 
-BMDS started life as an emulator for the Microtan 65, and was known as MDS (Microtan Development System). Having got most of that working, I moved on to emulating Space Invaders building on the existing architecture, then the CHIP-8. As a result it became BMDS (Beyond the Microtan Development System)!.
+BMDS started life a long time ago as an emulator for the Microtan 65, and was known as MDS (Microtan Development System). Having got most of that working, I moved on to emulating Space Invaders building on the existing program architecture, then the CHIP-8. As a result it became BMDS (Beyond the Microtan Development System)!.
 
 ![](images/bmds.jpg)
 
@@ -45,6 +45,8 @@ Something I have always enjoyed doing is finding out how code works, and disasse
 There is also a data compare window allowing byte-by-byte comparison of binary images, hex files or memory.
 
 ## Build Notes
+
+More details of the elements that go into BMDS can be found on my website at [bbprojects.org](https://bbprojects.org/computer/bmds-beyond-the-microtan-development-system/).
 
 When compiling, Lazarus/FPC will put all build files in a "*_build*" folder, and the executable in a "*_bin*" folder. I put the underscore in front of these (and some other folders) to remind me which folders do not need to be pushed to GitHub.
 
