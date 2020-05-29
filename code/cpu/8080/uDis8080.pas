@@ -32,7 +32,7 @@ interface
 uses
   Classes, SysUtils, Dialogs,
   //
-  uCpu8080, uDefs8080, uCpuTypes, uCommon;
+  uCpu8080, uDefs8080, uCpuTypes;
 
 function Disassemble8080(CPU: TCpu8080; Addr: word): TDisassembledData;
 

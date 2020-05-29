@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="68">
+    <Units Count="69">
       <Unit0>
         <Filename Value="BMDS.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -412,6 +412,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit67>
+      <Unit68>
+        <Filename Value="cpu\8080\uTest8080Form.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="Test8080Form"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit68>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

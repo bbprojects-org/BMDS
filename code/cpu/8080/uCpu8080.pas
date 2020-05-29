@@ -35,7 +35,7 @@ interface
 uses
   SysUtils,
   //
-  uCpuBase, uDefs8080, uCpuTypes, uCommon;
+  uCpuBase, uDefs8080, uCpuTypes;
 
 type
   // Record containing each of 8080 CPU registers
@@ -113,6 +113,7 @@ type
     procedure Interrupt(Index: byte; {%H-}Value: boolean = True); override;
     function  GetTrace(Index: integer): TDisassembledData; override;
     function  GetDisassembly(Addr:word): TDisassembledData; override;
+    procedure TestCpu; override;
     //
     function  ReadMem(Addr: Word): Byte;
     procedure WriteMem(Addr: Word; Value: Byte);
@@ -127,7 +128,7 @@ type
 implementation
 
 uses
-  uDis8080;
+  uDis8080, uTest8080Form;
 
 
 { CREATE }
@@ -1466,6 +1467,22 @@ end;
 function TCpu8080.GetDisassembly(Addr:word): TDisassembledData;
 begin
   Result := Disassemble8080(Self, Addr);
+end;
+
+
+{ TEST CPU }
+
+procedure TCpu8080.TestCpu;
+var
+  TestForm: TTest8080Form;
+begin
+  inherited;
+  TestForm := TTest8080Form.Create(nil);
+  try
+    TestForm.ShowModal;
+  finally
+    TestForm.Free;
+  end;
 end;
 
 
