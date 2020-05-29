@@ -16,7 +16,7 @@ Functionality includes:
 
 - **CHIP-8 Emulation**: I played Pong with my friends on one of the early consoles as a kid and thought I would revive it
 
-![](images/main.jpg)
+![](images/main-spaceinvaders.png)
 
 The main control panel buttons support run, stop and reset of the emulated machine. The machine screen window can be resized, and supported machine options changed through the preferences panel
 
@@ -24,19 +24,19 @@ In addition there is a developer mode which gives access to several other window
 
 ### Debug
 
-![](images/debug.jpg)
+![](images/debug.png)
 
 Debug offers a multi-frame window repeating the run / stop / reset / step controls of the main panel and adds the facility to single step automatically at a given rate. The various debug frames show Register states including status flags, machine Memory, a Trace of the last instructions processed, and Breakpoints where the machine can be run free until it reaches specific addresses when it will stop.
 
 ### Assembler
 
-![](images/assembler.jpg)
+![](images/assembler.png)
 
 The 6502 and 8080 have assembler support (CHIP-8 still in work), with a syntax highlighted editor offering a two-pass assembly with conditional assembly and macros. Output can be direct to the machine's memory, to binary or hex files. 
 
 ### Disassembler
 
-![](images/disassembler.jpg)
+![](images/disassembler.png)
 
 Something I have always enjoyed doing is finding out how code works, and disassembly is essential to that. Each machine supports disassembly for its associate processor, and gives output in a simple format with machine code and associated mnemonics, or an 'assembler ready' format with auomatically generated labels. If a machine definitions file is available the labels can be replaced with more meaningful ones. Once data sections have been identified these can be added and will generate byte values rather than code. All settings can be saved and recalled as required.
 
