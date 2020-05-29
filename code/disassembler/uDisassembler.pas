@@ -62,7 +62,6 @@ type
     acLoadSymbolsFile: TAction;
     ActionListDisassembler: TActionList;
     cbSpacings: TComboBox;
-    ImageList1: TImageList;
     edDesc: TLabeledEdit;
     OpenDialog1: TOpenDialog;
     Panel1: TPanel;
@@ -613,9 +612,9 @@ end;
 const
   SECT_DISASSEMBLER = 'DIS';
 
-  DIS_DESCRIPTION   = 'Desc';
   DIS_START         = 'Start';
   DIS_END           = 'End';
+  DIS_DESCRIPTION   = 'Desc';
   DIS_NUM_DATA_ADDR = 'NumDataAddr';
   DIS_DATA_START    = 'DataStart';
   DIS_DATA_END      = 'DataEnd';

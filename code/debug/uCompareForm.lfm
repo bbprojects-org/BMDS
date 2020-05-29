@@ -1,7 +1,7 @@
 object CompareForm: TCompareForm
-  Left = 1986
+  Left = 3181
   Height = 442
-  Top = 23
+  Top = 22
   Width = 562
   BorderStyle = bsDialog
   Caption = 'BMDS Compare Data'

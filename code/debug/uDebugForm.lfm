@@ -1,7 +1,7 @@
 object DebugForm: TDebugForm
-  Left = 1760
+  Left = 3182
   Height = 600
-  Top = 23
+  Top = 495
   Width = 800
   Caption = 'BMDS Debug'
   ClientHeight = 600

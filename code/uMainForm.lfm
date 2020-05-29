@@ -1,14 +1,14 @@
 object MainForm: TMainForm
-  Left = 2569
+  Left = 2586
   Height = 251
-  Top = 843
-  Width = 600
+  Top = 908
+  Width = 512
   AllowDropFiles = True
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'BMDS'
   ClientHeight = 251
-  ClientWidth = 600
+  ClientWidth = 512
   Font.Height = -10
   KeyPreview = True
   Menu = MainMenu
@@ -23,7 +23,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 28
     Top = 0
-    Width = 600
+    Width = 512
     ButtonHeight = 22
     ButtonWidth = 22
     Images = ImageList1
@@ -125,7 +125,7 @@ object MainForm: TMainForm
     Left = 0
     Height = 18
     Top = 233
-    Width = 600
+    Width = 512
     Panels = <    
       item
         Width = 120
@@ -141,54 +141,18 @@ object MainForm: TMainForm
       end>
     SimplePanel = False
   end
-  object panelButtons: TPanel
-    Left = 0
-    Height = 40
-    Top = 191
-    Width = 600
-    Align = alBottom
-    BorderSpacing.Bottom = 2
-    ClientHeight = 40
-    ClientWidth = 600
-    TabOrder = 1
-    object btnTest: TButton
-      Left = 16
-      Height = 22
-      Top = 8
-      Width = 80
-      Caption = 'Test'
-      OnClick = btnTestClick
-      TabOrder = 0
-    end
-    object Label1: TLabel
-      Left = 136
-      Height = 12
-      Top = 8
-      Width = 31
-      Caption = 'Label1'
-      ParentColor = False
-    end
-    object Label2: TLabel
-      Left = 136
-      Height = 12
-      Top = 22
-      Width = 32
-      Caption = 'Label2'
-      ParentColor = False
-    end
-  end
   object memoInfo: TMemo
     Left = 2
-    Height = 159
+    Height = 201
     Top = 30
-    Width = 596
+    Width = 508
     Align = alClient
     BorderSpacing.Around = 2
     Lines.Strings = (
       'memoInfo'
     )
     ScrollBars = ssAutoVertical
-    TabOrder = 2
+    TabOrder = 1
     TabStop = False
   end
   object MainMenu: TMainMenu

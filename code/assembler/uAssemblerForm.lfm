@@ -1,13 +1,13 @@
 object AssemblerForm: TAssemblerForm
-  Left = 1881
-  Height = 400
+  Left = 2578
+  Height = 600
   Top = 22
   Width = 600
   AllowDropFiles = True
   Caption = 'BMDS Assembler'
-  ClientHeight = 400
+  ClientHeight = 600
   ClientWidth = 600
-  Constraints.MinHeight = 400
+  Constraints.MinHeight = 600
   Constraints.MinWidth = 600
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -22,6 +22,7 @@ object AssemblerForm: TAssemblerForm
     BorderSpacing.Left = 4
     ButtonHeight = 22
     ButtonWidth = 22
+    Images = MainForm.ImageList1
     TabOrder = 0
     object tbSep0: TToolButton
       Left = 1
@@ -156,7 +157,7 @@ object AssemblerForm: TAssemblerForm
   object StatusBar1: TStatusBar
     Left = 0
     Height = 18
-    Top = 382
+    Top = 582
     Width = 600
     Panels = <    
       item
@@ -176,7 +177,7 @@ object AssemblerForm: TAssemblerForm
   end
   object panelRight: TPanel
     Left = 448
-    Height = 350
+    Height = 550
     Top = 30
     Width = 150
     Align = alRight
@@ -187,7 +188,7 @@ object AssemblerForm: TAssemblerForm
   end
   object splitterMiddle: TSplitter
     Left = 444
-    Height = 354
+    Height = 554
     Top = 28
     Width = 4
     Align = alRight
@@ -196,17 +197,17 @@ object AssemblerForm: TAssemblerForm
   end
   object panelLeft: TPanel
     Left = 2
-    Height = 350
+    Height = 550
     Top = 30
     Width = 440
     Align = alClient
     BorderSpacing.Around = 2
-    ClientHeight = 350
+    ClientHeight = 550
     ClientWidth = 440
     TabOrder = 1
     object Notebook: TExtendedNotebook
       Left = 1
-      Height = 294
+      Height = 494
       Top = 1
       Width = 438
       TabStop = False
@@ -217,7 +218,7 @@ object AssemblerForm: TAssemblerForm
     object panelBottom: TPanel
       Left = 1
       Height = 50
-      Top = 299
+      Top = 499
       Width = 438
       Align = alBottom
       Caption = 'panelBottom'
@@ -242,7 +243,7 @@ object AssemblerForm: TAssemblerForm
       Cursor = crVSplit
       Left = 1
       Height = 4
-      Top = 295
+      Top = 495
       Width = 438
       Align = alBottom
       MinSize = 50

@@ -73,9 +73,6 @@ type
     ActionList1: TActionList;
     actLoadCode: TFileOpen;
     actSaveCode: TFileSaveAs;
-    btnTest: TButton;
-    Label1: TLabel;
-    Label2: TLabel;
     memoInfo: TMemo;
     memoDebug: TMemo;
     menuAsm: TMenuItem;
@@ -144,7 +141,6 @@ type
     menuRun: TMenuItem;
     menuMachine: TMenuItem;
     OpenDialog1: TOpenDialog;
-    panelButtons: TPanel;
     StatusBar: TStatusBar;
     tbRun: TToolButton;
     tbSep2: TToolButton;
@@ -182,7 +178,6 @@ type
     procedure actStopExecute(Sender: TObject);
     procedure btnAssembleClick(Sender: TObject);
     procedure btnTestClick(Sender: TObject);
-    procedure btnTest2Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -1023,18 +1018,9 @@ begin
 end;
 
 
-{ TEST }
-
-procedure TMainForm.btnTestClick(Sender: TObject);
-begin
-  Label1.Caption := Format('D is register %d (should be 3)', [GetRegisterIndex('D', INFO_8080.Registers)]);
-  Label2.Caption := Format('PO is register %d (should be 16)', [GetRegisterIndex('PO', INFO_8080.Registers)]);
-end;
-
-
 { DEBUG }
 
-procedure TMainForm.btnTest2Click(Sender: TObject);
+procedure TMainForm.btnTestClick(Sender: TObject);
 {
 var
   WriteHex: TWriteHex;
