@@ -115,7 +115,7 @@ begin
 end;
 
 
-{ SHOW STACK }
+{ SHOW STACK - assumes started at $FF }
 
 procedure TRegistersFrame6502.ShowStack;
 var

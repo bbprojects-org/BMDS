@@ -128,7 +128,7 @@ type
 implementation
 
 uses
-  uDis8080, uTest8080Form;
+  uRegistersFrame8080, uDis8080, uTest8080Form;
 
 
 { CREATE }
@@ -139,7 +139,10 @@ var
   Opcode, ThisTypeMask: byte;
   ThisOpcode: TOpcodeRawData;
 begin
-  fCpuType  := ct8080;
+  fRegistersFrame := TRegistersFrame8080.Create(nil);
+  (fRegistersFrame as TRegistersFrame8080).CpuRef := self;
+
+  fCpuType  := ct;
   fCpuState := csStopped;
 
   case ct of
