@@ -73,6 +73,7 @@ type
     ActionList1: TActionList;
     actLoadCode: TFileOpen;
     actSaveCode: TFileSaveAs;
+    DebugToolBar: TToolBar;
     memoInfo: TMemo;
     memoDebug: TMemo;
     menuAsm: TMenuItem;
@@ -143,10 +144,10 @@ type
     OpenDialog1: TOpenDialog;
     StatusBar: TStatusBar;
     tbRun: TToolButton;
-    tbSep2: TToolButton;
-    tbSep0: TToolButton;
-    tbSep3: TToolButton;
-    tbStepOver: TToolButton;
+    tbShowAssembler: TToolButton;
+    tbShowCompare: TToolButton;
+    tbShowDebug: TToolButton;
+    tbShowDisassembler: TToolButton;
     Timer1: TTimer;
     MainToolBar: TToolBar;
     tbSaveCode: TToolButton;
@@ -154,11 +155,6 @@ type
     tbReset: TToolButton;
     tbStop: TToolButton;
     tbLoadCode: TToolButton;
-    tbStep: TToolButton;
-    tbShowDebug: TToolButton;
-    tbShowCompare: TToolButton;
-    tbShowAssembler: TToolButton;
-    tbShowDisassembler: TToolButton;
     procedure actMachineConfigExecute(Sender: TObject);
     procedure actMaxSpeedExecute(Sender: TObject);
     procedure actShowAssemblerExecute(Sender: TObject);
@@ -568,6 +564,7 @@ end;
 procedure TMainForm.ShowFormsState;
 begin
   actMode.Checked := DeveloperMode;
+  DebugToolbar.Visible := DeveloperMode;
   menuDebug.Visible := DeveloperMode;
   menuAsm.Visible  := DeveloperMode;
   menuEdit.Visible  := DeveloperMode;
@@ -676,7 +673,6 @@ end;
 procedure TMainForm.actModeExecute(Sender: TObject);
 begin
   DeveloperMode := (not DeveloperMode);
-  actMode.Checked := DeveloperMode;
   if (DeveloperMode) then
     begin
       MakeDeveloperForms;

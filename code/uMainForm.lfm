@@ -20,104 +20,89 @@ object MainForm: TMainForm
   ShowHint = True
   LCLVersion = '2.1.0.0'
   object MainToolBar: TToolBar
-    Left = 0
-    Height = 28
-    Top = 0
-    Width = 512
+    Left = 8
+    Height = 24
+    Top = 2
+    Width = 134
+    Align = alNone
     ButtonHeight = 22
     ButtonWidth = 22
+    EdgeInner = esNone
+    EdgeOuter = esNone
     Images = ImageList1
-    TabOrder = 0
-    object tbSep0: TToolButton
+    TabOrder = 2
+    object tbLoadCode: TToolButton
       Left = 1
-      Height = 22
-      Top = 2
-      Caption = 'ToolButton4'
-      Style = tbsSeparator
+      Top = 0
+      Action = actLoadCode
+      ShowCaption = False
     end
     object tbSaveCode: TToolButton
-      Left = 31
-      Top = 2
+      Left = 23
+      Top = 0
       Action = actSaveCode
       ShowCaption = False
     end
     object tbSep1: TToolButton
-      Left = 53
+      Left = 45
       Height = 22
-      Top = 2
-      Caption = 'ToolButton4'
+      Top = 0
+      ParentShowHint = False
+      ShowCaption = False
       Style = tbsSeparator
     end
+    object tbRun: TToolButton
+      Left = 67
+      Top = 0
+      Action = actRun
+      ShowCaption = False
+    end
+    object tbStop: TToolButton
+      Left = 89
+      Top = 0
+      Action = actStop
+      ShowCaption = False
+    end
     object tbReset: TToolButton
-      Left = 105
-      Top = 2
+      Left = 111
+      Top = 0
       Action = actReset
       ParentShowHint = False
       ShowCaption = False
       ShowHint = True
     end
-    object tbRun: TToolButton
-      Left = 61
-      Top = 2
-      Action = actRun
-      ShowCaption = False
-    end
-    object tbStop: TToolButton
-      Left = 83
-      Top = 2
-      Action = actStop
-      ShowCaption = False
-    end
-    object tbLoadCode: TToolButton
-      Left = 9
-      Top = 2
-      Action = actLoadCode
-      ShowCaption = False
-    end
-    object tbSep2: TToolButton
-      Left = 127
-      Height = 22
-      Top = 2
-      Caption = 'ToolButton4'
-      Style = tbsSeparator
-    end
-    object tbStep: TToolButton
-      Left = 135
-      Top = 2
-      Action = actStep
-      ShowCaption = False
-    end
-    object tbStepOver: TToolButton
-      Left = 157
-      Top = 2
-      Action = actStepOver
-      ShowCaption = False
-    end
-    object tbSep3: TToolButton
-      Left = 179
-      Height = 22
-      Top = 2
-      Caption = 'ToolButton4'
-      Style = tbsSeparator
-    end
+  end
+  object DebugToolBar: TToolBar
+    Left = 162
+    Height = 28
+    Top = 2
+    Width = 90
+    Align = alNone
+    ButtonHeight = 22
+    ButtonWidth = 22
+    EdgeBorders = []
+    EdgeInner = esNone
+    EdgeOuter = esNone
+    Images = ImageList1
+    TabOrder = 3
     object tbShowDebug: TToolButton
-      Left = 187
-      Top = 2
+      Left = 1
+      Top = 0
       Action = actShowDebug
     end
     object tbShowCompare: TToolButton
-      Left = 209
-      Top = 2
+      Left = 23
+      Top = 0
       Action = actShowCompare
     end
     object tbShowAssembler: TToolButton
-      Left = 231
-      Top = 2
+      Left = 45
+      Top = 0
       Action = actShowAssembler
     end
     object tbShowDisassembler: TToolButton
-      Left = 253
-      Top = 2
+      Left = 67
+      Top = 0
       Action = actShowDisassembler
     end
   end
@@ -143,16 +128,17 @@ object MainForm: TMainForm
   end
   object memoInfo: TMemo
     Left = 2
-    Height = 167
-    Top = 30
+    Height = 171
+    Top = 26
     Width = 508
     Align = alClient
+    BorderSpacing.Top = 24
     BorderSpacing.Around = 2
     Lines.Strings = (
       'memoInfo'
     )
     ScrollBars = ssAutoVertical
-    TabOrder = 1
+    TabOrder = 0
     TabStop = False
   end
   object MainMenu: TMainMenu
