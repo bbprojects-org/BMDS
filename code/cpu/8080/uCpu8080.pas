@@ -137,6 +137,7 @@ constructor TCpu8080.Create(ct: TCpuType);
 var
   i, Len: integer;
   Opcode, ThisTypeMask: byte;
+  ThisOpcode: TOpcodeRawData;
 begin
   fCpuType  := ct8080;
   fCpuState := csStopped;
@@ -150,18 +151,20 @@ begin
 
   for i := 0 to (Length(OPCODES_8080) - 1) do
     begin                               // Set opcode pointers into data array
-      if ((OPCODES_8080[i].T and ThisTypeMask) = 0) then
-        Continue;                       // Just skips Undefined entry at start
+      ThisOpcode := OPCODES_8080[i];
+      if ((ThisOpcode.T and ThisTypeMask) = 0) then
+        Continue;                       // Currently just skips Undefined entry at start
       Len := Length(fOpcodesData);
       SetLength(fOpcodesData, Len + 1);
-      fOpcodesData[Len] := OPCODES_8080[i];
+      fOpcodesData[Len] := ThisOpcode;
 
-      Opcode := OPCODES_8080[i].O;
+      Opcode := ThisOpcode.O;
       OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
     end;
+  fDataCount := Length(fOpcodesData);
 
-    InterruptEnabledPending := False;
-    Reset;
+  InterruptEnabledPending := False;
+  Reset;
 end;
 
 

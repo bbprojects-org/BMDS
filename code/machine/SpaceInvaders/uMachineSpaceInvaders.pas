@@ -30,16 +30,15 @@
         $4000-         RAM mirror (not reflected in this emulator)
 
     Based on information from around the internet, including:
-    1. Emulator101 tutorial <http://emulator101.com/welcome.html>
-    2. LemonBoy emulator <https://github.com/LemonBoy/Space-Invaders-Emulator>
-    3. Testing 8080 emulation:
-       <http://brainwagon.org/2011/09/08/more-on-my-8080-emulator/> and
-       <http://www.emulator101.com/full-8080-emulation.html>
-    4. Space Invaders original code
-       <http://computerarcheology.com/Arcade/SpaceInvaders/Code.html>
-    5. Intel 8080 Microcomputer Systems Users Manual (1975) by Intel
-    6. 8080/Z80 Assembly Language: Techniques For Improved Programming (1981)
-       by Alan R. Miller
+    - Emulator101 tutorial <http://emulator101.com/welcome.html>
+    - Testing 8080 emulation:
+      <http://brainwagon.org/2011/09/08/more-on-my-8080-emulator/> and
+      <http://www.emulator101.com/full-8080-emulation.html>
+    - Space Invaders original code
+      <http://computerarcheology.com/Arcade/SpaceInvaders/Code.html>
+    - Intel 8080 Microcomputer Systems Users Manual (1975) by Intel
+    - 8080/Z80 Assembly Language: Techniques For Improved Programming (1981)
+      by Alan R. Miller
 
 
   LICENSE:

@@ -3,3 +3,5 @@ _AppResourcesDirectory
 _bin
 _build
 _local only
+*.lst
+*.hex

@@ -2,7 +2,7 @@
 
   GRAPHICS MANAGER
 
-  Provides graphical interface to SDL2 framework
+    Provides interface to SDL2 graphics framework
 
 
   LICENSE:
@@ -21,6 +21,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   =============================================================================}
+
+{ TODO : uGfxMgr -> add 10px border around screen, use ViewPort?
+         https://www.freepascal-meets-sdl.net/tag/sdl-2-0-tutorial/ }
 
 unit uGfxMgr;
 
@@ -102,8 +105,7 @@ implementation
 
 { CREATE - Initialise SDL
          - Create initial window
-         - Create renderer
-         - Create pixel array for screen }
+         - Create renderer }
 
 constructor TGfxManager.Create(NumColours: integer);
 begin
@@ -127,7 +129,8 @@ begin
       Exit;
     end;
 
-  //SDL_SetWindowMinimumSize(fSdlWindow, WDW_WIDTH, WDW_HEIGHT);                { TODO : uGfxMgr -> add 'Set Min/Max' as separate methods }
+  { TODO : uGfxMgr -> add 'Set Min/Max' as separate methods }
+  //SDL_SetWindowMinimumSize(fSdlWindow, WDW_WIDTH, WDW_HEIGHT);
   //SDL_SetWindowGrab(fSdlWindow, longbool(SDL_TRUE));
 
   // Creates the renderer; it's what we do all our drawing on
@@ -157,7 +160,7 @@ begin
   SDL_DestroyRenderer(fSdlRenderer);
   SDL_DestroyWindow(fSdlWindow);
   SDL_Quit;
-  inherited Destroy;
+  inherited;
 end;
 
 
@@ -244,8 +247,7 @@ begin
       SDL_CreateTexture(fSdlRenderer,
                         SDL_PIXELFORMAT_RGBA8888,
                         SDL_TEXTUREACCESS_STREAMING,
-                        Width, Height
-                       );
+                        Width, Height );
   if (fSdlTextures[fSdlTextureCount].Texture = nil) then
     begin
       SetErrMsg('unable to create texture');
@@ -303,8 +305,7 @@ begin
   SDL_UpdateTexture(fSdlTextures[Index].Texture,
                     nil,
                     pointer(fSdlTextures[Index].Pixels),
-                    fSdlTextures[Index].Width * 4
-                   );
+                    fSdlTextures[Index].Width * 4 );
   SDL_RenderCopy(fSdlRenderer, fSdlTextures[Index].Texture, nil, nil);
   SDL_RenderPresent(fSdlRenderer);
 end;
@@ -316,8 +317,8 @@ procedure TGfxManager.Show;
 var
   w, h: integer;
 begin
-                                                                                { TODO : uGfxMgr -> move resize to a Resize event, so only do when necessary
-                                                                                  Need to figure better way of using [1] for screen texture? }
+  { TODO : uGfxMgr -> move resize to a Resize event, so only do when necessary
+           Need to figure better way of using [1] for screen texture? }
   SDL_GetWindowSize(fSdlWindow, @w, @h);
   SDL_RenderSetScale(fSdlRenderer, w / fSdlTextures[1].Width, h / fSdlTextures[1].Height);
   SDL_RenderPresent(fSdlRenderer);

@@ -466,9 +466,6 @@ var
   Value: word;
   sAddrMode: string;
   bDoneExpr: boolean;
-  (*
-  Reg1, Reg2, RegCount: integer;
-  *)
   ThisData: TOpcodeRawData;
 begin
   AddDebugLineInfo;
@@ -481,11 +478,6 @@ begin
   sAddrMode := '';
   bDoneExpr := False;
   Value := 0;
-  (*
-  Reg1 := -1;
-  Reg2 := -1;
-  RegCount := 0;
-  *)
 
   // Build address mode for checking
   while not (fParser.PeekNextToken.Typ in [tkComment, tkEOL]) do
@@ -497,22 +489,10 @@ begin
        tkPlus,
        tkMinus,
        tkGreater,
-       tkLower:   if (Pos(Uppercase(fParser.PeekNextToken.StringVal), 'A X Y'(*OpcodesData.Registers*)) > 0) then
+       tkLower:   if (Pos(Uppercase(fParser.PeekNextToken.StringVal), Machine.CPU.Info.Registers) > 0) then
                     begin
                       fParser.GetToken;
                       sAddrMode := sAddrMode + UpperCase(fParser.Token.StringVal);
-                      (*
-                      if (not Opt.ProcessRegisters) then
-                        sAddrMode := sAddrMode + UpperCase(fParser.Token.StringVal)
-                      else
-                        begin
-                          sAddrMode := sAddrMode + '!';  // Register wildcard character
-                          Reg2 := GetRegisterIndex(UpperCase(fParser.Token.StringVal), OpcodesData.Registers);
-                          if (Reg1 = -1) then
-                            Reg1 := Reg2;
-                          inc(RegCount); // max 2 registers
-                        end;
-                      *)
                     end
                   else
                     begin
@@ -835,7 +815,7 @@ end;
 
 { HASH DIRECTIVE }
 
-{ Process the current # directive; INCLUDE file, conditional IF/ELSE/ENDIF }
+{ Process the current # directive; INCLUDE/IF/ELSE/ENDIF/etc }
 
 procedure TAssembler.HashDirective;
 var
@@ -1282,68 +1262,6 @@ begin
     end;
   fListing.List(sLine);
 end;
-
-
-(*
-
-// Build HTML file in same format as Rockwell 6502 datasheet to check all
-// opcode parameters correct
-
-procedure TAssembler.BuildOpcodesFile;
-var
-  sExePath, sBox: string;
-  I, J, nOpcode: integer;
-  ListingLines: TListing;
-  eOpcode: TOpcodes;
-begin
-  sExePath := ExtractFilePath(Application.ExeName);
-  ListingLines := TListing.Create('6502', 'opcodes.htm', sExePath + 'style.css');
-  with (ListingLines) do
-  try
-    ListStart;
-    List('<table border=1 cellpadding=5>');
-    for J := 0 to 15 do
-      begin
-        List('<tr>');
-        for I := 0 to 15 do
-          begin
-            nOpcode := (J * 16) + I;
-            eOpcode := Mnemonics256[nOpcode];
-            if (eOpcode = _000) then
-              sBox := '&nbsp&nbsp&nbsp&nbsp&nbsp'
-            else
-              begin
-                sBox := Mnemonics[eOpcode] + '<br>';
-                case AddressMode256[nOpcode] of
-                  mINH:  sBox := sBox + 'Implied';
-                  mIMM:  sBox := sBox + 'IMM';
-                  mACC:  sBox := sBox + 'Accum';
-                  mZP:   sBox := sBox + 'ZP';
-                  mZPX:  sBox := sBox + 'ZP,X';
-                  mZPY:  sBox := sBox + 'ZP,Y';
-                  mABS:  sBox := sBox + 'ABS';
-                  mABSX: sBox := sBox + 'ABS,X';
-                  mABSY: sBox := sBox + 'ABS,Y';
-                  mIND:  sBox := sBox + 'Indirect';
-                  mINDX: sBox := sBox + '(IND,X)';
-                  mINDY: sBox := sBox + '(IND),Y';
-                  mREL:  sBox := sBox + 'Relative';
-                end;
-                sBox := sBox + '<br>' + IntToStr(NumBytes256[nOpcode]) + '&nbsp&nbsp'
-                             + IntToStr(Cycles256[nOpcode]);
-              end;
-            List('<td align=center>' + sBox + '</td>');
-          end;
-        List('</tr>');
-      end;
-    List('</table>');
-    ListEnd;
-  finally
-    ListingLines.Free;
-  end;
-end;
-
-*)
 
 
 end.
