@@ -141,6 +141,7 @@ const
               = ($000000FF, $FFFFFFFF, $FF0000FF, $00FF00FF);
   SI_PALETTE_BW: array[0..3] of TGfxColour // Black, white, white, white
               = ($000000FF, $FFFFFFFF, $FFFFFFFF, $FFFFFFFF);
+  NUM_COLOURS = 4;
 
 
 implementation
@@ -151,7 +152,6 @@ constructor TMachineSpaceInvaders.Create;
 begin
   // fConfigFrame referenced by PreferencesForm for config when SI selected
   fConfigFrame := TSIPrefsFrame.Create(nil);
-  (* fConfigFrame.OnChange := @DoConfigChange; *)
   fConfigFrame.Init;                    // Get INI settings required below
 
   SetMachineInfo;
@@ -220,7 +220,7 @@ end;
 
 procedure TMachineSpaceInvaders.CreateScreen;
 begin
-  Gfx := TGfxManager.Create(4);         // Create a display
+  Gfx := TGfxManager.Create(NUM_COLOURS); // Create a display
   Gfx.SetWindowSize(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
   TexIdxScreen := Gfx.GetTexture(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
   SetLength(VideoBuffer, fInfo.ScreenWidthPx * fInfo.ScreenHeightPx);

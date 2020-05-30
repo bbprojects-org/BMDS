@@ -175,6 +175,8 @@ end;
 
 destructor TCpu8080.Destroy;
 begin
+  fRegistersFrame.Parent := nil;        // Avoid pointer errors
+  fRegistersFrame.Free;
   SetLength(fOpcodesData, 0);
   fOpcodesData := nil;
   inherited;
