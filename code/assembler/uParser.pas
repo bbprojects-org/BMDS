@@ -29,7 +29,7 @@ unit uParser;
 
 {$mode objfpc}{$H+}
 {$R-}
-{$define parser_debug}
+{.$define parser_debug}
 
 interface
 

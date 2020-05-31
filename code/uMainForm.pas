@@ -148,13 +148,14 @@ type
     tbShowCompare: TToolButton;
     tbShowDebug: TToolButton;
     tbShowDisassembler: TToolButton;
-    Timer1: TTimer;
+    TimerUpdateState: TTimer;
     MainToolBar: TToolBar;
     tbSaveCode: TToolButton;
     tbSep1: TToolButton;
     tbReset: TToolButton;
     tbStop: TToolButton;
     tbLoadCode: TToolButton;
+    TimerDelayChange: TTimer;
     procedure actMachineConfigExecute(Sender: TObject);
     procedure actMaxSpeedExecute(Sender: TObject);
     procedure actShowAssemblerExecute(Sender: TObject);
@@ -185,7 +186,8 @@ type
     procedure menuMachineClick(Sender: TObject);
     procedure menuSizeClick(Sender: TObject);
     procedure menuTestCPUClick(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
+    procedure TimerDelayChangeTimer(Sender: TObject);
+    procedure TimerUpdateStateTimer(Sender: TObject);
   private     // Forms
     DebugForm: TDebugForm;
     DisassemblerForm: TDisassemblerForm;
@@ -197,8 +199,8 @@ type
     procedure MakeDisassemblerForm;
     procedure MakeCompareForm;
     procedure MakeAssemblerForm;
-    procedure ShowMachineInfoInMemo;
     procedure ShowPreferences(category: TCategoryIndex);
+    procedure ShowFormsState;
     procedure OnShowHideAsmForm(Sender: TObject);
   private     // Machine
     CurrentMachineID: string;
@@ -206,9 +208,12 @@ type
     CalculatedFPS: integer;
     tmpScreenSize: TPoint;
     tmpScreenPosition: TPoint;
+    NewID: string;
+    procedure DoMachineChange;
     procedure StopMachine;
     procedure MakeMachine;
     procedure MakeMachineMenu;
+    procedure ShowMachineInfoInMemo;
     procedure SetMachineScreenSize(aMultiplier: integer);
   private     // INI file
     procedure CreateAppIni;
@@ -220,7 +225,6 @@ type
     procedure MakeMachineAndForms;
     procedure FreeMachineAndForms;
     procedure SetButtonsState(IsRunning: boolean);
-    procedure ShowFormsState;
     procedure UpdateStatus;
     procedure UpdateEditorPrefs(Sender: TObject);
     procedure DoDebugButton(Sender: TObject; button: TDebugButton);
@@ -280,7 +284,7 @@ begin
   MakeMachineAndForms;
   ShowFormsState;
   CalculatedFPS := 0;
-  Timer1.Enabled := True;               // Maintains GUI in sync with windows etc
+  TimerUpdateState.Enabled := True;     // Maintains GUI in sync with windows etc
 end;
 
 
@@ -301,7 +305,8 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
-  Timer1.Enabled := False;
+  TimerUpdateState.Enabled := False;
+  StopMachine;
   WriteIniSettings;
   FreeMachineAndForms;
   AppIni.Free;
@@ -356,24 +361,29 @@ end;
 { If machine selected is not the current machine, close it and create new one }
 
 procedure TMainForm.menuMachineClick(Sender: TObject);
-var
-  ID: string;
 begin
-  ID := (Sender as TMenuItem).Caption;
-  if (ID <> CurrentMachineID) then
+  NewID := (Sender as TMenuItem).Caption;
+  if (NewID <> CurrentMachineID) then
     begin
-      Timer1.Enabled := False;
+      TimerUpdateState.Enabled := False;
       StopMachine;                      // Shutdown current machine
-      WriteIniSettings;                 // CurrentMachineIndex still old machine
-      FreeMachineAndForms;
-      AppIni.Free;
-
-      CreateAppIni;
-      WriteMachineID(ID);               // Set ID to new machine
-      ReadIniSettings;                  // and create it...
-      MakeMachineAndForms;
-      Timer1.Enabled := True;
+      TimerDelayChange.Enabled := True; // Wait for stop, then action below
     end;
+end;
+
+
+procedure TMainForm.DoMachineChange;
+begin
+  TimerDelayChange.Enabled := False;
+  WriteIniSettings;                 // CurrentMachineIndex still old machine
+  FreeMachineAndForms;
+  AppIni.Free;
+
+  CreateAppIni;
+  WriteMachineID(NewID);            // Set ID to new machine
+  ReadIniSettings;                  // and create it...
+  MakeMachineAndForms;
+  TimerUpdateState.Enabled := True;
   ShowFormsState;
 end;
 
@@ -553,8 +563,8 @@ end;
 procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
   if (Machine <> nil) then
-    Machine.State := msStopped;
-  Timer1.Enabled := False;
+    Machine.Stop;
+  TimerUpdateState.Enabled := False;
   CloseAction := caFree;
 end;
 
@@ -747,13 +757,13 @@ begin
 
   Machine.State := msRunning;
   UpdateStatus;
-  while (Machine.Info.State = msRunning) do // Run until state changes
+  while (Machine.State = msRunning) do  // Run until state changes
     begin
       Machine.RunForOneFrame;
       Inc(CalculatedFPS);               // Count each frame to report FPS
     end;
 
-  if (Machine.Info.State = msStoppedOnBrkpt) then
+  if (Machine.State = msStoppedOnBrkpt) then
     begin
       SetButtonsState(False);
       UpdateStatus;
@@ -785,7 +795,7 @@ end;
 procedure TMainForm.StopMachine;
 begin
   SetButtonsState(False);
-  Machine.State := msStopped;
+  Machine.Stop;
   UpdateStatus;
 end;
 
@@ -812,9 +822,7 @@ end;
 
 procedure TMainForm.actStepExecute(Sender: TObject);
 begin
-  Machine.State := msRunning;
   Machine.Step;
-  Machine.State := msStopped;
   UpdateStatus;                         // Includes set TraceCount
 end;
 
@@ -914,7 +922,7 @@ procedure TMainForm.UpdateStatus;
 var
   tmp: string;
 begin
-  case (Machine.Info.State) of
+  case (Machine.State) of
     msRunning:        tmp := 'Running';
     msStopped:        tmp := 'Stopped';
     msStoppedOnBrkpt: tmp := Format('Breakpoint $%.4x', [Machine.CPU.PC]);
@@ -985,13 +993,13 @@ begin
 end;
 
 
-{ TIMER EVENT }
+{ TIMER EVENTS }
 
 { Update window states every one second. Maintains track of whether a window
   is open/closed (visible) without using callbacks from each form itself.
   Since this is called every second, showing frame count each time gives FPS }
 
-procedure TMainForm.Timer1Timer(Sender: TObject);
+procedure TMainForm.TimerUpdateStateTimer(Sender: TObject);
 begin
   if (DeveloperMode) then
     begin
@@ -1002,6 +1010,16 @@ begin
     end;
   StatusBar.Panels[3].Text := Format('%d fps', [CalculatedFPS]);
   CalculatedFPS := 0;                   // Reset each second
+end;
+
+
+{ If user changes machine whilst it is running, need to give time for machine
+  to actually respond to the Stop command, so use this timer to delay the
+  machine change }
+
+procedure TMainForm.TimerDelayChangeTimer(Sender: TObject);
+begin
+  DoMachineChange;
 end;
 
 

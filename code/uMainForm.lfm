@@ -30,7 +30,7 @@ object MainForm: TMainForm
     EdgeInner = esNone
     EdgeOuter = esNone
     Images = ImageList1
-    TabOrder = 2
+    TabOrder = 1
     object tbLoadCode: TToolButton
       Left = 1
       Top = 0
@@ -52,19 +52,19 @@ object MainForm: TMainForm
       Style = tbsSeparator
     end
     object tbRun: TToolButton
-      Left = 67
+      Left = 53
       Top = 0
       Action = actRun
       ShowCaption = False
     end
     object tbStop: TToolButton
-      Left = 89
+      Left = 75
       Top = 0
       Action = actStop
       ShowCaption = False
     end
     object tbReset: TToolButton
-      Left = 111
+      Left = 97
       Top = 0
       Action = actReset
       ParentShowHint = False
@@ -1661,14 +1661,21 @@ object MainForm: TMainForm
       OnExecute = actMaxSpeedExecute
     end
   end
-  object Timer1: TTimer
+  object TimerUpdateState: TTimer
     Enabled = False
-    OnTimer = Timer1Timer
+    OnTimer = TimerUpdateStateTimer
     left = 48
     top = 120
   end
   object OpenDialog1: TOpenDialog
     left = 344
     top = 48
+  end
+  object TimerDelayChange: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = TimerDelayChangeTimer
+    left = 168
+    top = 120
   end
 end

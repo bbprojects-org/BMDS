@@ -88,6 +88,7 @@ type
     procedure Step;               virtual; abstract;
     procedure ScreenRefresh;      virtual; abstract;
     procedure SetFocus;
+    procedure Stop;               virtual;
 
     property Name: string read fName write fName;
     property ConfigFrame: TPrefsFrame read fConfigFrame write fConfigFrame;
@@ -149,6 +150,14 @@ var
 procedure TMachineBase.SetFocus;
 begin
   Gfx.Focus;
+end;
+
+
+{ STOP MACHINE }
+
+procedure TMachineBase.Stop;
+begin
+  fInfo.State := msStopped;
 end;
 
 
