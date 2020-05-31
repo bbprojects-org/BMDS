@@ -45,7 +45,6 @@ type
   TMachineInfo = record
     // Name is used to register Machine class, and saved in CurrentMachineID
     Year: integer;                      // Year introduced
-    CpuType: TCpuType;                  // Main CPU driving this machine
     CpuFreqKhz: integer;
     MemoryButtons: string;              // Optional: up to 3 buttons to put on Memory form
     MachineDefsFileName: string;        // Optional: file with standard machine defs

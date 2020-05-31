@@ -30,7 +30,12 @@ uses
   Classes, SysUtils;
 
 type
-  TCpuType = (ctNil, ct6502, ct65C02, ctCHIP8, ctSCHIP8, ct8080);
+  TCpuType = (ctNil,
+              ct6502, ct65C02,          // 6502 and 65C02
+              ctCHIP8, ctSCHIP8,        // CHIP-8 and Super CHIP-8
+              ct8080asmO,               // 8080 with asm Original format
+              ct8080asmZ                // 8080 with asm Z80 format
+              );
   TCpuState = (csStopped, csRunning, csHalted, csStoppedOnBrk);
 
   // Disassembler data

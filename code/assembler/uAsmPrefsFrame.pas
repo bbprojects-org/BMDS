@@ -50,13 +50,11 @@ type
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
     lblFormat: TLabel;
-    rg8080Asm: TRadioGroup;
     procedure btnResetDefaultsClick(Sender: TObject);
-    procedure cbChange(Sender: TObject);
+    procedure FlagChange(Sender: TObject);
     procedure cbGenerateListingChange(Sender: TObject);
     procedure cbWriteCodeToFileChange(Sender: TObject);
     procedure comboOutputFormatChange(Sender: TObject);
-    procedure Label1Click(Sender: TObject);
   private
     procedure ReadIniItems;
     procedure WriteIniItems;
@@ -225,13 +223,8 @@ begin
   fChanged := True;
 end;
 
-procedure TAsmPrefsFrame.Label1Click(Sender: TObject);
-begin
 
-end;
-
-
-procedure TAsmPrefsFrame.cbChange(Sender: TObject);
+procedure TAsmPrefsFrame.FlagChange(Sender: TObject);
 begin
   fChanged := True;
 end;

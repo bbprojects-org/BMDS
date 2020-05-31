@@ -60,6 +60,7 @@ type
     fOpcodesData: TOpcodeArray;
     OpcodePtrArray: array[0..255] of word;
     fCpuType: TCpuType;
+    fInfo: TCpuInfo;
     fDataCount: integer;
     fCpuState: TCpuState;
     fTraceIndex: integer;
@@ -71,10 +72,10 @@ type
     //
     function GetPC: word; virtual; abstract;
     function GetTraceColumns: TTraceColArray; virtual; abstract;
-    function GetInfo: TCpuInfo; virtual; abstract;
     function GetDataByIndex(Index: integer): TOpcodeRawData; virtual;
     function GetDataByOpcode(Opcode: integer): TOpcodeRawData; virtual;
     procedure BuildOpcodesData(const DataTable: TOpcodeArray; const TypeMask: byte);
+    procedure SetInfo(const Info: TCpuInfo); virtual;
   public
     constructor Create(ct: TCpuType); virtual; abstract;
     //
@@ -95,7 +96,7 @@ type
     property DataByOpcode[Opcode: integer]: TOpcodeRawData read GetDataByOpcode;
     property CpuState: TCpuState read fCpuState write fCpuState;
     property PC: word read GetPC;
-    property Info: TCpuInfo read GetInfo;
+    property Info: TCpuInfo read fInfo;
 
     property OnRead: TOnReadEvent read fOnRead write fOnRead;
     property OnWrite: TOnWriteEvent read fOnWrite write fOnWrite;
@@ -184,7 +185,7 @@ begin
     begin                               // Then set opcode pointers into data array
       ThisOpcode := DataTable[i];
       if ((ThisOpcode.T and TypeMask) = 0) then
-        Continue;                       // Skip if not selected 6502
+        Continue;                       // Skip if not selected CPU type
       Len := Length(fOpcodesData);
       SetLength(fOpcodesData, Len + 1);
       fOpcodesData[Len] := ThisOpcode;
@@ -193,6 +194,14 @@ begin
       OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
     end;
   fDataCount := Length(fOpcodesData);
+end;
+
+
+{ SET CPU DEFAULT INFO }
+
+procedure TCpuBase.SetInfo(const Info: TCpuInfo);
+begin
+  fInfo := Info;
 end;
 
 

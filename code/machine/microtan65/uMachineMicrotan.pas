@@ -102,6 +102,7 @@ type
     procedure WriteBFFx(Addr: word; Value: byte);
     procedure WriteVRAM(Addr: word; Value: byte);
   protected
+    M65Prefs: TM65PrefsFrame;
     function GetCPU: TCpuBase; override;
     function GetDescription: string; override;
     procedure SetScreenSize(aValue: TPoint); override;
@@ -130,6 +131,7 @@ begin
   fConfigFrame := TM65PrefsFrame.Create(nil);
   fConfigFrame.OnChange := @DoConfigChange;
   fConfigFrame.Init;                    // Get INI settings required below
+  M65Prefs := fConfigFrame as TM65PrefsFrame;
 
   SetMachineInfo;
   CreateMemoryManager;
@@ -150,8 +152,7 @@ end;
 procedure TMachineMicrotan.SetMachineInfo;
 begin
   fInfo.Year := 1979;
-  fInfo.CpuType := ct6502;
-  fInfo.CpuFreqKhz := (fConfigFrame as TM65PrefsFrame).Frequency;
+  fInfo.CpuFreqKhz := M65Prefs.Frequency;
   fInfo.ScreenWidthPx := 256;
   fInfo.ScreenHeightPx := 256;
   fInfo.ScaleModifier := 1;
@@ -171,7 +172,7 @@ begin
   fMemoryMgr := TMemoryMgr.Create(0, MEM_SIZE_64K);
   fFileMgr := TFileMgr.Create;
   try
-    case ((fConfigFrame as TM65PrefsFrame).RomIndex) of
+    case (M65Prefs.RomIndex) of
 
       // Basic machine, 1K RAM, 1K TANBUG
       0: begin
@@ -532,7 +533,7 @@ procedure TMachineMicrotan.DoConfigChange(Sender: TObject; ChangedItem: integer)
 begin
   { TODO : uMachineMicrotan -> implement ConfigChange where practical }
   case ChangedItem of
-    0: begin
+    0: begin                            // All
          BuildTextures;
        end;
     1: {nothing};                       // ROM
@@ -546,8 +547,8 @@ end;
 
 procedure TMachineMicrotan.BuildTextures;
 begin
-  Gfx.Palette[0] := (fConfigFrame as TM65PrefsFrame).ColourB;
-  Gfx.Palette[1] := (fConfigFrame as TM65PrefsFrame).ColourF;
+  Gfx.Palette[0] := M65Prefs.ColourB;
+  Gfx.Palette[1] := M65Prefs.ColourF;
   BuildChunkyCharacters;                // Build bitmaps for graphics chars
   BuildCharacterSet;                    // and normal font characters
   ScreenRefresh;

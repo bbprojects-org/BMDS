@@ -191,7 +191,7 @@ begin
         DefSpcStr :=  'RMB';
         DefByteStr := 'FCB';
       end;
-    ct8080:
+    ct8080asmO, ct8080asmZ:
       begin
         DefSpcStr :=  'DS';
         DefByteStr := 'DB';

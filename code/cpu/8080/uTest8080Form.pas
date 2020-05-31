@@ -65,7 +65,7 @@ begin
   Left := AppIni.ReadInteger(SECT_PREFS, INI_WDW_LEFT, 100);
   Top := AppIni.ReadInteger(SECT_PREFS, INI_WDW_TOP, 60);
   //
-  CPU := TCpu8080.Create(ct8080);
+  CPU := TCpu8080.Create(ct8080asmO);
   CPU.OnRead := @MemRead;
   CPU.OnWrite := @MemWrite;
   GetMem(Memory, 65536);                // 64K

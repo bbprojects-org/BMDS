@@ -56,7 +56,7 @@ type
     procedure btnResetDefaultClick(Sender: TObject);
     procedure panelBackClick(Sender: TObject);
     procedure panelForeClick(Sender: TObject);
-    procedure rgClick(Sender: TObject);
+    procedure FlagChange(Sender: TObject);
   private
     fColourF: TGfxColour;
     fColourB: TGfxColour;
@@ -130,7 +130,7 @@ end;
 
 { ON CLICK... notify change }
 
-procedure TM65PrefsFrame.rgClick(Sender: TObject);
+procedure TM65PrefsFrame.FlagChange(Sender: TObject);
 begin
   fChanged := True;
   if Assigned(fOnChange) then
@@ -152,7 +152,7 @@ begin
     begin
       panelFore.Color := (ColorDialog1.Color);
       fColourF := ConvertPasToSDL(panelFore.Color);
-      rgClick(panelFore);
+      FlagChange(panelFore);
     end;
 end;
 
@@ -164,7 +164,7 @@ begin
     begin
       panelBack.Color := (ColorDialog1.Color);
       fColourB := ConvertPasToSDL(panelBack.Color);
-      rgClick(panelBack);
+      FlagChange(panelBack);
     end;
 end;
 

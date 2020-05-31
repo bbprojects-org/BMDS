@@ -110,6 +110,7 @@ type
     Port5out: byte;
     //
     LastPC: word;
+    procedure DoConfigChange(Sender: TObject; ChangedItem: integer);
     procedure CheckInput;
     procedure WriteVRAM(Addr: word; Value: byte);
     procedure PortRead(Sender: TObject; Port: byte; var Value: byte);
@@ -120,6 +121,7 @@ type
     procedure CreateScreen;
     procedure CreateSoundManager;
   protected
+    SIPrefs: TSIPrefsFrame;
     function  GetCPU: TCpuBase; override;
     function  GetDescription: string; override;
   public
@@ -153,6 +155,8 @@ begin
   // fConfigFrame referenced by PreferencesForm for config when SI selected
   fConfigFrame := TSIPrefsFrame.Create(nil);
   fConfigFrame.Init;                    // Get INI settings required below
+  fConfigFrame.OnChange := @DoConfigChange;
+  SIPrefs := fConfigFrame as TSIPrefsFrame;
 
   SetMachineInfo;
   CreateMemoryManager;
@@ -168,7 +172,6 @@ end;
 procedure TMachineSpaceInvaders.SetMachineInfo;
 begin
   fInfo.Year := 1978;
-  fInfo.CpuType := ct8080;
   fInfo.CpuFreqKhz := 2000;
   fInfo.ScreenWidthPx := 224;
   fInfo.ScreenHeightPx := 256;
@@ -209,7 +212,10 @@ end;
 
 procedure TMachineSpaceInvaders.Create8080Cpu;
 begin
-  fCPU := TCpu8080.Create(ct8080);
+  case (SIPrefs.Asm8080Format) of
+    0: fCPU := TCpu8080.Create(ct8080asmO);
+    1: fCPU := TCpu8080.Create(ct8080asmZ);
+  end;
   fCPU.OnRead := @fMemoryMgr.MemReadHandler;
   fCPU.OnWrite := @fMemoryMgr.MemWriteHandler;
   fCpu.OnReadPort:= @PortRead;
@@ -377,7 +383,7 @@ begin
   if (fInfo.State <> msRunning) then    // Do nothing if stopping
     Exit;
 
-  if ((fConfigFrame as TSIPrefsFrame).ColourFilters) then
+  if (SIPrefs.ColourFilters) then
     // Set colour of scanlines as appropriate to the filters that were
     // applied over original Space Invaders white pixels on black screen
     Gfx.Palette := SI_PALETTE_COLOUR
@@ -503,8 +509,8 @@ begin
     2: begin
          Value := (Port2in and $04)
                   or (Port1in and $70)  // Player1 keys used for player2
-                  or ((fConfigFrame as TSIPrefsFrame).NumberBases)
-                  or ((fConfigFrame as TSIPrefsFrame).BonusPoints shl 3);
+                  or (SIPrefs.NumberBases)
+                  or (SIPrefs.BonusPoints shl 3);
        end;
     3: begin
          Value := ((((Port4hi << 8) or Port4lo) shl Port2out) shr 8) and $FF;
@@ -557,6 +563,30 @@ begin
          if ( ((Value and $10) > 0) and ((Port5out and $10) = 0) ) then
            SoundMgr.Play(1, SOUND_UfoHit);
          Port5out := Value;
+       end;
+  end;
+end;
+
+
+{ MICROTAN CONFIG CHANGE }
+
+procedure TMachineSpaceInvaders.DoConfigChange(Sender: TObject; ChangedItem: integer);
+begin
+  case ChangedItem of
+    0: begin                            // All
+         (*
+         fCpu.Free;
+         Create8080Cpu;
+         *)
+       end;
+    1: {nothing};                       // Colour
+    2: {nothing};                       // Bases
+    3: {nothing};                       // Bonuses
+    4: begin                            // Asm Format, free and rebuild CPU
+         (*
+         fCpu.Free;
+         Create8080Cpu;
+         *)
        end;
   end;
 end;

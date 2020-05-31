@@ -99,7 +99,6 @@ type
   protected
     function  GetPC: word; override;
     function  GetTraceColumns: TTraceColArray; override;
-    function  GetInfo: TCpuInfo; override;
     function  GetRegs: TRegs6502;
   public
     constructor Create(ct: TCpuType); override;
@@ -136,13 +135,15 @@ begin
 
   fCpuType  := ct;
   fCpuState := csStopped;
+  SetInfo(INFO_6502);
   case ct of
     ct6502:  ThisTypeMask := %01;
-    { TODO : uCpu6502 -> add support for 65C02 }
     ct65C02: begin
+               { TODO : uCpu6502 -> add support for 65C02 }
                MessageWarning('65C02 currently not supported, defaulting to 6502');
                //ThisTypeMask := %11;
                ThisTypeMask := %01;
+               fInfo.Name := '65C02';   // Replace default name
              end;
   end;
   BuildOpcodesData(OPCODES_6502, ThisTypeMask);
@@ -196,12 +197,6 @@ function TCpu6502.GetRegs: TRegs6502;
 begin
   GetPSW;                               // Ensure flags packed
   Result := fRegs;
-end;
-
-
-function TCpu6502.GetInfo: TCpuInfo;
-begin
-  Result := INFO_6502;
 end;
 
 

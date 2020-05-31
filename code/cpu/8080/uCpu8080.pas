@@ -100,7 +100,6 @@ type
     function GetPC: word; override;
     function GetTraceColumns: TTraceColArray; override;
     function GetRegs: TRegs8080;
-    function GetInfo: TCpuInfo; override;
   public
     constructor Create({%H-}ct: TCpuType); override;
     destructor  Destroy; override;
@@ -150,8 +149,17 @@ begin
   fRegs.F  := Random(256);
   fRegs.SP := Random($10000);
 
+  SetInfo(INFO_8080);
   case ct of
-    ct8080:  ThisTypeMask := %01;       // No variants
+    ct8080asmO: begin                   // 8080 with Original ASM format
+                  ThisTypeMask := %01;
+                  fInfo.Name := fInfo.Name + ' O';
+                  fInfo.Registers := REGISTERS_ORIG;
+                end;
+    ct8080asmZ: begin                   // 8080 with Z80 ASM format
+                  ThisTypeMask := %10;
+                  fInfo.Name := fInfo.Name + ' Z';
+                end;
   end;
   BuildOpcodesData(OPCODES_8080, ThisTypeMask);
 
@@ -221,12 +229,6 @@ end;
 function TCpu8080.GetPC: word;
 begin
   Result := fRegs.PC;
-end;
-
-
-function TCpu8080.GetInfo: TCpuInfo;
-begin
-  Result := INFO_8080;
 end;
 
 

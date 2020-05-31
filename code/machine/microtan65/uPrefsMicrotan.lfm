@@ -1,6 +1,6 @@
 inherited M65PrefsFrame: TM65PrefsFrame
-  DesignLeft = 1806
-  DesignTop = 419
+  DesignLeft = 2630
+  DesignTop = 597
   inherited btnResetDefault: TButton
     OnClick = btnResetDefaultClick
     TabOrder = 2
@@ -37,7 +37,7 @@ inherited M65PrefsFrame: TM65PrefsFrame
       'Basic (1K TANBUG)'
       'TANEX (16K XBUG and BASIC)'
     )
-    OnClick = rgClick
+    OnClick = FlagChange
     TabOrder = 0
     TabStop = True
   end
@@ -57,7 +57,7 @@ inherited M65PrefsFrame: TM65PrefsFrame
       Width = 64
       Caption = 'Frequency'
       ParentColor = False
-      OnClick = rgClick
+      OnClick = FlagChange
     end
     object comboFreq: TComboBox
       Tag = 3
@@ -73,7 +73,7 @@ inherited M65PrefsFrame: TM65PrefsFrame
         '2 MHz'
         '4 MHz'
       )
-      OnChange = rgClick
+      OnChange = FlagChange
       TabOrder = 0
       Text = '750 kHz'
     end

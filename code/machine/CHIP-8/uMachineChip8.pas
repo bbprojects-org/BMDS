@@ -85,7 +85,6 @@ begin
   fConfigFrame.Init;                    // Get INI settings required below
 
   fInfo.Year                := 1975;
-  fInfo.CpuType             := ctCHIP8;
   fInfo.ScreenWidthPx       := 64;
   fInfo.ScreenHeightPx      := 32;
   fInfo.ScaleModifier       := 5;       // Make 64x32 screen a bit bigger!

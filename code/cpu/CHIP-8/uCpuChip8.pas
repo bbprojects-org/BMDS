@@ -82,7 +82,6 @@ type
   protected
     function GetPC: word; override;
     function GetTraceColumns: TTraceColArray; override;
-    function GetInfo: TCpuInfo; override;
     function GetRegs: TRegsChip8;
   public
     constructor Create(ct: TCpuType); override;
@@ -118,16 +117,17 @@ begin
   fCpuType  := ct;
   fCpuState := csStopped;
 
+  SetInfo(INFO_CHIP8);
   case ct of
     ctCHIP8:  ThisTypeMask := %01;
-    { TODO : uCpuChip8 -> add support for SCHIP }
     ctSCHIP8: begin
+               { TODO : uCpuChip8 -> add support for SCHIP }
                MessageWarning('SCHIP currently not supported, defaulting to CHIP8');
                //ThisTypeMask := %11;
                ThisTypeMask := %01;
+               fInfo.Name := 'SCHIP-8'; // Replace default name
              end;
   end;
-
   BuildOpcodesData(OPCODES_CHIP8, ThisTypeMask);
   Reset;
 end;
@@ -189,12 +189,6 @@ begin
   SetLength(Result, length(TRACE_COLS_CHIP8));
   for idx := 0 to length(TRACE_COLS_CHIP8)-1 do
     Result[idx] := TRACE_COLS_CHIP8[idx];
-end;
-
-
-function TCpuChip8.GetInfo: TCpuInfo;
-begin
-  Result := INFO_CHIP8;
 end;
 
 

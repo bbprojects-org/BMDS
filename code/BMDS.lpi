@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="3"/>
       <MinorVersionNr Value="5"/>
-      <BuildNr Value="354"/>
+      <BuildNr Value="355"/>
       <Language Value="0809"/>
     </VersionInfo>
     <BuildModes Count="1">
@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="70">
+    <Units Count="71">
       <Unit0>
         <Filename Value="BMDS.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -426,6 +426,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit69>
+      <Unit70>
+        <Filename Value="cpu\8080\text.txt"/>
+        <IsPartOfProject Value="True"/>
+      </Unit70>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
