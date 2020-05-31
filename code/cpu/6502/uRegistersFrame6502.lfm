@@ -3,8 +3,8 @@ inherited RegistersFrame6502: TRegistersFrame6502
   Width = 336
   ClientHeight = 200
   ClientWidth = 336
-  DesignLeft = 1280
-  DesignTop = 297
+  DesignLeft = 2665
+  DesignTop = 123
   object edPC: TLabeledEdit[0]
     Tag = 5
     Left = 38

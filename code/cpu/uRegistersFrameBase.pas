@@ -34,14 +34,14 @@ uses
 type
   TRegistersFrame = class(TFrame)
   protected
-    //fCpuRef: TCpuBase;           // Circular ref if add uCpuBase in uses clause!!
     fMemoryRef: TMemory;
+    fStackAssigned: integer;
   public
     procedure Initialise; virtual; abstract;
     procedure Refresh;    virtual; abstract;
     //
-    //property  CpuRef: TCpuBase read fCpuRef write fCpuRef;
-    property  MemoryRef: TMemory read fMemoryRef write fMemoryRef;
+    property MemoryRef: TMemory read fMemoryRef write fMemoryRef;
+    property StackAssigned: integer read fStackAssigned write fStackAssigned;
   end;
 
 

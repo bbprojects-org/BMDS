@@ -33,6 +33,7 @@ interface
 
 uses
   Classes, SysUtils, Graphics, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
+  Math,
   //
   uRegistersFrameBase, uCpuBase, uCpu8080, uDefs8080, uCommon;
 
@@ -88,7 +89,7 @@ implementation
 
 procedure TRegistersFrame8080.Initialise;
 begin
-  //
+  fStackAssigned := -1;                 // Stack pointer not yet assigned
 end;
 
 
@@ -130,16 +131,24 @@ begin
 end;
 
 
-{ SHOW STACK - shows 10 bytes above stack pointer }
+{ SHOW STACK }
 
 procedure TRegistersFrame8080.ShowStack;
+const
+  MAX_BYTES = 8;
 var
-  nIndex: word;
+  nIndex, nCount: word;
   sText: string;
 begin
   sText := '';
-  for nIndex := 0 to 9 do
-    sText := sText + Format('%.2X ', [fMemoryRef[fCpuRef.Regs.SP + nIndex]]);
+  if (fStackAssigned <> -1) then                  // Has stack pointer been set?
+    begin
+      nCount := fStackAssigned - fCpuRef.Regs.SP; // How many bytes on stack?
+      for nIndex := 1 to Min(nCount, MAX_BYTES) do
+        sText := sText + Format('%.2X ', [fMemoryRef[fCpuRef.Regs.SP + nIndex - 1]]);
+      if (nCount > MAX_BYTES) then
+        sText := sText + '...';
+    end;
   edSP2.Text := sText;
 end;
 

@@ -145,6 +145,17 @@ begin
   fCpuType  := ct;
   fCpuState := csStopped;
 
+  Randomize;
+  fRegs.B  := Random(256);              // Randomize registers on start up
+  fRegs.C  := Random(256);
+  fRegs.D  := Random(256);
+  fRegs.E  := Random(256);
+  fRegs.H  := Random(256);
+  fRegs.L  := Random(256);
+  fRegs.A  := Random(256);
+  fRegs.F  := Random(256);
+  fRegs.SP := Random($10000);
+
   case ct of
     ct8080:  ThisTypeMask := %01;       // No variants
   end;
@@ -473,16 +484,7 @@ end;
 
 procedure TCpu8080.Reset;
 begin
-  fRegs.PC := 0;                        // Start address
-  fRegs.B  := 0;                        // Initialise registers
-  fRegs.C  := 0;
-  fRegs.D  := 0;
-  fRegs.E  := 0;
-  fRegs.H  := 0;
-  fRegs.L  := 0;
-  fRegs.A  := 0;
-  fRegs.F  := 0;
-  fRegs.SP := 0;                        // Stack pointer
+  fRegs.PC := 0;
   SetFlags(0);
   InterruptNumber := NO_INTERRUPT;
   InterruptFlag := True;
@@ -817,7 +819,12 @@ begin
            fInvalidFlag := True;
          end;
 
-    $31: fRegs.SP := ReadMemWord;       // LD   SP,nn
+    $31: begin
+           fRegs.SP := ReadMemWord;     // LD   SP,nn
+
+           { Allow debugform to show correct number of stack bytes }
+           fRegistersFrame.StackAssigned := fRegs.SP;
+         end;
 
     $32: begin                          // LD   (nn),A
            WriteMem(ReadMemWord, fRegs.A);

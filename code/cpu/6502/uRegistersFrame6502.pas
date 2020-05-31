@@ -31,6 +31,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
+  Math,
   //
   uRegistersFrameBase, uCpuBase, uCpu6502, uDefs6502, uCommon;
 
@@ -78,7 +79,7 @@ implementation
 
 procedure TRegistersFrame6502.Initialise;
 begin
-  //
+  fStackAssigned := -1;                 // Stack pointer not yet assigned
 end;
 
 
@@ -115,19 +116,24 @@ begin
 end;
 
 
-{ SHOW STACK - assumes started at $FF }
+{ SHOW STACK }
 
 procedure TRegistersFrame6502.ShowStack;
+const
+  MAX_BYTES = 9;
 var
   nIndex, nCount: word;
   sText: string;
 begin
   sText := '';
-  nCount := $FF - fCpuRef.Regs.SP;         // How many bytes on stack?
-  if (nCount > 15) then
-    nCount := 15;
-  for nIndex := 1 to nCount do
-    sText := sText + Format('%.2X ', [fMemoryRef[$200 - nIndex]]);
+  if (fStackAssigned <> -1) then                  // Has stack pointer been set?
+    begin
+      nCount := fStackAssigned - fCpuRef.Regs.SP; // How many bytes on stack?
+      for nIndex := 1 to Min(nCount, MAX_BYTES) do
+        sText := sText + Format('%.2X ', [fMemoryRef[$100 + fCpuRef.Regs.SP + nIndex]]);
+      if (nCount > MAX_BYTES) then
+        sText := sText + '...';
+    end;
   edSP2.Text := sText;
 end;
 

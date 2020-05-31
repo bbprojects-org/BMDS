@@ -152,6 +152,12 @@ begin
              end;
   end;
 
+  Randomize;
+  fRegs.A  := Random(256);              // Registers can be anything on power up
+  fRegs.X  := Random(256);
+  fRegs.Y  := Random(256);
+  fRegs.SP := Random(256);
+
   for i := 0 to 255 do
     OpcodePtrArray[i] := 0;             // Initialise array to point at Undefined opcode
 
@@ -323,10 +329,6 @@ end;
 procedure TCpu6502.Reset;
 begin
   fRegs.PC := MemRead(ADDR_RESET) + (MemRead(ADDR_RESET+1) shl 8);
-  fRegs.A  := 0;
-  fRegs.X  := 0;
-  fRegs.Y  := 0;
-  fRegs.SP := $FF;
   SetPSW(P_IRQ_DISABLED or P_BRK or P_RESERVED); // Ensure PSW unpacked
   IRQflag := False;
   NMIflag := False;
@@ -839,7 +841,12 @@ begin
            SetNZ(fRegs.A);
          end;
 
-    $9a: fRegs.SP := fRegs.X;                    // TXS, no affected PSW
+    $9a: begin
+           fRegs.SP := fRegs.X;                  // TXS, no affected PSW
+
+           { Allow debugform to show correct number of stack bytes }
+           fRegistersFrame.StackAssigned := fRegs.X;
+         end;
 
     $ba: begin                                   // TSX
            fRegs.X := fRegs.SP;
