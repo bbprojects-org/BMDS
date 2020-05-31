@@ -1,24 +1,11 @@
 inherited AsmPrefsFrame: TAsmPrefsFrame
-  DesignLeft = 1350
-  DesignTop = 23
+  DesignLeft = 2757
+  DesignTop = 301
   inherited btnResetDefault: TButton
     OnClick = btnResetDefaultsClick
     TabOrder = 2
   end
-  object Label1: TLabel[1]
-    Left = 16
-    Height = 32
-    Top = 216
-    Width = 400
-    Alignment = taCenter
-    AutoSize = False
-    Caption = 'Note that settings above can be overridden by option settings in assembler source'
-    ParentColor = False
-    Visible = False
-    WordWrap = True
-    OnClick = Label1Click
-  end
-  object GroupBox1: TGroupBox[2]
+  object GroupBox1: TGroupBox[1]
     Left = 16
     Height = 192
     Top = 8
@@ -84,7 +71,7 @@ inherited AsmPrefsFrame: TAsmPrefsFrame
       TabOrder = 5
     end
   end
-  object GroupBox2: TGroupBox[3]
+  object GroupBox2: TGroupBox[2]
     Left = 224
     Height = 192
     Top = 8
@@ -135,5 +122,29 @@ inherited AsmPrefsFrame: TAsmPrefsFrame
       Caption = 'Format:'
       ParentColor = False
     end
+  end
+  object rg8080Asm: TRadioGroup[3]
+    Left = 16
+    Height = 49
+    Top = 208
+    Width = 200
+    AutoFill = True
+    Caption = '8080 Asm Format'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 2
+    ClientHeight = 31
+    ClientWidth = 192
+    Columns = 2
+    ItemIndex = 1
+    Items.Strings = (
+      'Original'
+      'Z80'
+    )
+    TabOrder = 3
   end
 end

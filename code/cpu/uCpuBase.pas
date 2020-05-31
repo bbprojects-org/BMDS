@@ -2,8 +2,7 @@
 
   CPU BASE CLASS
 
-    This unit provides the base class TCpuBase, and type definitions for CPU
-    opcode tables used by the assembler
+    This unit provides the base class for each CPU
 
 
   LICENSE:
@@ -52,12 +51,14 @@ type
   TOnReadPortEvent = procedure(Sender: TObject; Port: byte; var Value: byte) of object;
   TOnWritePortEvent = procedure(Sender: TObject; Port: byte; Value: byte) of object;
 
-  { CPU Base Class }
+  { TCpuBase }
 
   TCpuBase = class(TObject)
   private
   protected
     fRegistersFrame: TRegistersFrame;
+    fOpcodesData: TOpcodeArray;
+    OpcodePtrArray: array[0..255] of word;
     fCpuType: TCpuType;
     fDataCount: integer;
     fCpuState: TCpuState;
@@ -70,9 +71,10 @@ type
     //
     function GetPC: word; virtual; abstract;
     function GetTraceColumns: TTraceColArray; virtual; abstract;
-    function GetDataByIndex(Index: integer): TOpcodeRawData; virtual; abstract;
-    function GetDataByOpcode(Opcode: integer): TOpcodeRawData; virtual; abstract;
     function GetInfo: TCpuInfo; virtual; abstract;
+    function GetDataByIndex(Index: integer): TOpcodeRawData; virtual;
+    function GetDataByOpcode(Opcode: integer): TOpcodeRawData; virtual;
+    procedure BuildOpcodesData(const DataTable: TOpcodeArray; const TypeMask: byte);
   public
     constructor Create(ct: TCpuType); virtual; abstract;
     //
@@ -167,6 +169,45 @@ end;
 
 { TCpuBase }
 
+{ GET OPCODES DATA }
+
+procedure TCpuBase.BuildOpcodesData(const DataTable: TOpcodeArray; const TypeMask: byte);
+var
+  i, Len: integer;
+  Opcode: byte;
+  ThisOpcode: TOpcodeRawData;
+begin
+  for i := 0 to 255 do
+    OpcodePtrArray[i] := 0;             // Initialise array to point at Undefined opcode
+
+  for i := 0 to (Length(DataTable) - 1) do
+    begin                               // Then set opcode pointers into data array
+      ThisOpcode := DataTable[i];
+      if ((ThisOpcode.T and TypeMask) = 0) then
+        Continue;                       // Skip if not selected 6502
+      Len := Length(fOpcodesData);
+      SetLength(fOpcodesData, Len + 1);
+      fOpcodesData[Len] := ThisOpcode;
+
+      Opcode := ThisOpcode.O;
+      OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
+    end;
+  fDataCount := Length(fOpcodesData);
+end;
+
+
+function TCpuBase.GetDataByIndex(Index: integer): TOpcodeRawData;
+begin
+  Result := fOpcodesData[Index];
+end;
+
+
+function TCpuBase.GetDataByOpcode(Opcode: integer): TOpcodeRawData;
+begin
+  Result := fOpcodesData[OpcodePtrArray[Opcode]];
+end;
+
+
 { RESET TRACE }
 
 procedure TCpuBase.ResetTrace;
@@ -188,6 +229,8 @@ begin
     Result := fTraceIndex;
 end;
 
+
+{ TEST CPU - nothing here, but descendants do not need to define anything }
 
 procedure TCpuBase.TestCpu;
 begin

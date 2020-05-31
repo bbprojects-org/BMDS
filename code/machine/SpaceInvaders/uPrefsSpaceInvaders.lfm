@@ -1,6 +1,6 @@
 inherited SIPrefsFrame: TSIPrefsFrame
-  DesignLeft = 1349
-  DesignTop = 23
+  DesignLeft = 2759
+  DesignTop = 677
   inherited btnResetDefault: TButton
     OnClick = btnResetDefaultClick
     TabOrder = 3

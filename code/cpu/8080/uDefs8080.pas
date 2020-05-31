@@ -88,10 +88,6 @@ const
       RegistersHeight:      332;
       Template:             '' );
 
-  { CPU Names }
-
-  CPU_8080  = '8080';
-
   { Values for Interrupt Number }
 
   NO_INTERRUPT = -1;

@@ -32,7 +32,7 @@ uses
   Classes, SysUtils, Forms, Controls, StdCtrls;
 
 type         
-  TConfigChange = procedure(Sender: TObject) of object;
+  TConfigChange = procedure(Sender: TObject; ChangedItem: integer) of object;
   TDebugLogEvent = procedure(Sender: TObject; Msg: string) of object;
 
   { TPrefsFrame }
@@ -41,7 +41,6 @@ type
     btnResetDefault: TButton;
   protected
     fFrame: TPrefsFrame;
-    fChangedItem: integer;
     fChanged: boolean;
     fOnChange: TConfigChange;
     fOnDebug: TDebugLogEvent;

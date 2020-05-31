@@ -226,7 +226,7 @@ type
     procedure FreeMachineAndForms;
     procedure SetButtonsState(IsRunning: boolean);
     procedure UpdateStatus;
-    procedure UpdateEditorPrefs(Sender: TObject);
+    procedure UpdateEditorPrefs(Sender: TObject; {%H-}ChangedItem: integer);
     procedure DoDebugButton(Sender: TObject; button: TDebugButton);
   public
   end;
@@ -497,7 +497,7 @@ begin
 end;
 
 
-procedure TMainForm.UpdateEditorPrefs(Sender: TObject);
+procedure TMainForm.UpdateEditorPrefs(Sender: TObject; ChangedItem: integer);
 begin
   if (Sender is TEdPrefsFrame) then
     AssemblerForm.SetEditorPreferences((Sender as TEdPrefsFrame).Prefs);

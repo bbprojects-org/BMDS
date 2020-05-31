@@ -70,8 +70,6 @@ type
     Zflag: boolean;
     Cflag: boolean;
     //
-    fOpcodesData: TOpcodeArray;
-    OpcodePtrArray: array[0..255] of word;
     Cycles: integer;
     EA: word;                           // Effective Address
     IRQflag: boolean;                   // Interrupt flags
@@ -101,8 +99,6 @@ type
   protected
     function  GetPC: word; override;
     function  GetTraceColumns: TTraceColArray; override;
-    function  GetDataByIndex(Index: integer): TOpcodeRawData; override;
-    function  GetDataByOpcode(Opcode: integer): TOpcodeRawData; override;
     function  GetInfo: TCpuInfo; override;
     function  GetRegs: TRegs6502;
   public
@@ -133,9 +129,7 @@ uses
 
 constructor TCpu6502.Create(ct: TCpuType);
 var
-  i, Len: integer;
-  Opcode, ThisTypeMask: byte;
-  ThisOpcode: TOpcodeRawData;
+  ThisTypeMask: byte;
 begin
   fRegistersFrame := TRegistersFrame6502.Create(nil);
   (fRegistersFrame as TRegistersFrame6502).CpuRef := self;
@@ -151,29 +145,13 @@ begin
                ThisTypeMask := %01;
              end;
   end;
+  BuildOpcodesData(OPCODES_6502, ThisTypeMask);
 
   Randomize;
   fRegs.A  := Random(256);              // Registers can be anything on power up
   fRegs.X  := Random(256);
   fRegs.Y  := Random(256);
   fRegs.SP := Random(256);
-
-  for i := 0 to 255 do
-    OpcodePtrArray[i] := 0;             // Initialise array to point at Undefined opcode
-
-  for i := 0 to (Length(OPCODES_6502) - 1) do
-    begin                               // Then set opcode pointers into data array
-      ThisOpcode := OPCODES_6502[i];
-      if ((ThisOpcode.T and ThisTypeMask) = 0) then
-        Continue;                       // Skip if not selected 6502
-      Len := Length(fOpcodesData);
-      SetLength(fOpcodesData, Len + 1);
-      fOpcodesData[Len] := ThisOpcode;
-
-      Opcode := ThisOpcode.O;
-      OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
-    end;
-  fDataCount := Length(fOpcodesData);
 
   Reset;
 end;
@@ -207,18 +185,6 @@ end;
 
 
 { PROPERTY GET / SET ROUTINES }
-
-function TCpu6502.GetDataByIndex(Index: integer): TOpcodeRawData;
-begin
-  Result := fOpcodesData[Index];
-end;
-
-
-function TCpu6502.GetDataByOpcode(Opcode: integer): TOpcodeRawData;
-begin
-  Result := fOpcodesData[OpcodePtrArray[Opcode]];
-end;
-
 
 function TCpu6502.GetPC: word;
 begin

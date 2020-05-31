@@ -75,7 +75,6 @@ type
     property ColourF: TGfxColour read fColourF;
     property ColourB: TGfxColour read fColourB;
     property Frequency: integer read GetFrequency;
-    property ChangedItem: integer read fChangedItem;
   end;
 
 
@@ -134,14 +133,15 @@ end;
 procedure TM65PrefsFrame.rgClick(Sender: TObject);
 begin
   fChanged := True;
-  if (Sender.ClassType = TRadioGroup) then
-    fChangedItem := 1                   // 1=ROM
-  else if (Sender.ClassType = TPanel) then
-    fChangedItem := 2                   // 2=Colour
-  else
-    fChangedItem := 3;                  // 3=Frequency
   if Assigned(fOnChange) then
-    fOnChange(self);
+    begin
+      if (Sender.ClassType = TRadioGroup) then
+        fOnChange(self, 1)              // 1=ROM
+      else if (Sender.ClassType = TPanel) then
+        fOnChange(self, 2)              // 2=Colour
+      else
+        fOnChange(self, 3);             // 3=Frequency
+    end;
 end;
 
 
@@ -209,7 +209,11 @@ end;
 procedure TM65PrefsFrame.CancelChanges;
 begin
   if (fChanged) then
-    ReadIniItems;
+    begin
+      ReadIniItems;
+      if Assigned(fOnChange) then
+        fOnChange(self, 0);             // 0=All
+    end;
 end;
 
 
@@ -219,9 +223,8 @@ begin
     begin
       AppIni.DeleteSection(SECT_M65PREFS);
       ReadIniItems;
-      fChangedItem := 0;                // 0=All
       if Assigned(fOnChange) then
-        fOnChange(self);
+        fOnChange(self, 0);             // 0=All
     end;
 end;
 

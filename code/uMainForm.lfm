@@ -1,13 +1,13 @@
 object MainForm: TMainForm
   Left = 2586
-  Height = 217
+  Height = 220
   Top = 908
   Width = 512
   AllowDropFiles = True
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'BMDS'
-  ClientHeight = 217
+  ClientHeight = 220
   ClientWidth = 512
   Font.Height = -10
   KeyPreview = True
@@ -109,7 +109,7 @@ object MainForm: TMainForm
   object StatusBar: TStatusBar
     Left = 0
     Height = 18
-    Top = 199
+    Top = 202
     Width = 512
     Panels = <    
       item
@@ -128,7 +128,7 @@ object MainForm: TMainForm
   end
   object memoInfo: TMemo
     Left = 2
-    Height = 171
+    Height = 174
     Top = 26
     Width = 508
     Align = alClient
@@ -1664,7 +1664,7 @@ object MainForm: TMainForm
   object TimerUpdateState: TTimer
     Enabled = False
     OnTimer = TimerUpdateStateTimer
-    left = 48
+    left = 56
     top = 120
   end
   object OpenDialog1: TOpenDialog
@@ -1675,7 +1675,7 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 100
     OnTimer = TimerDelayChangeTimer
-    left = 168
+    left = 224
     top = 120
   end
 end

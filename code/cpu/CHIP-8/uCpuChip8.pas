@@ -72,9 +72,7 @@ type
     fRegs: TRegsChip8;
     fPixelsArray: TPixels;
 
-    fOpcodesData: TOpcodeArray;
-    OpcodePtrArray: array[0..255] of word;
-    Stack: array[0..15] of word;    
+    Stack: array[0..15] of word;
     TraceList: array[0..TRACE_MAX] of TRegsChip8;
 
     procedure ProcessOpcode;
@@ -85,8 +83,6 @@ type
     function GetPC: word; override;
     function GetTraceColumns: TTraceColArray; override;
     function GetInfo: TCpuInfo; override;
-    function GetDataByIndex(Index: integer): TOpcodeRawData; override;
-    function GetDataByOpcode(Opcode: integer): TOpcodeRawData; override;
     function GetRegs: TRegsChip8;
   public
     constructor Create(ct: TCpuType); override;
@@ -117,8 +113,7 @@ uses
 
 constructor TCpuChip8.Create(ct: TCpuType);
 var
-  i, Len: integer;
-  Opcode, ThisTypeMask: byte;
+  ThisTypeMask: byte;
 begin
   fCpuType  := ct;
   fCpuState := csStopped;
@@ -133,21 +128,7 @@ begin
              end;
   end;
 
-  for i := 0 to 255 do
-    OpcodePtrArray[i] := 0;             // Initialise array to point at Undefined opcode
-
-  for i := 0 to (Length(OPCODES_CHIP8) - 1) do
-    begin                               // Then set opcode pointers into data array
-      if ((OPCODES_CHIP8[i].T and ThisTypeMask) = 0) then
-        Continue;                       // Skip if not selected processor
-      Len := Length(fOpcodesData);
-      SetLength(fOpcodesData, Len + 1);
-      fOpcodesData[Len] := OPCODES_CHIP8[i];
-
-      Opcode := OPCODES_CHIP8[i].O;
-      OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
-    end;
-
+  BuildOpcodesData(OPCODES_CHIP8, ThisTypeMask);
   Reset;
 end;
 
@@ -214,18 +195,6 @@ end;
 function TCpuChip8.GetInfo: TCpuInfo;
 begin
   Result := INFO_CHIP8;
-end;
-
-
-function TCpuChip8.GetDataByIndex(Index: integer): TOpcodeRawData;
-begin
-  Result := fOpcodesData[Index];
-end;
-
-
-function TCpuChip8.GetDataByOpcode(Opcode: integer): TOpcodeRawData;
-begin
-  Result := fOpcodesData[OpcodePtrArray[Opcode]];
 end;
 
 

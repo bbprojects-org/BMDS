@@ -29,7 +29,7 @@ unit uAsmPrefsFrame;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls,
+  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, StdCtrls, ExtCtrls,
   //
   uPrefsFrameBase, uIniFile, uCommon;
 
@@ -49,8 +49,8 @@ type
     comboOutputFormat: TComboBox;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
-    Label1: TLabel;
     lblFormat: TLabel;
+    rg8080Asm: TRadioGroup;
     procedure btnResetDefaultsClick(Sender: TObject);
     procedure cbChange(Sender: TObject);
     procedure cbGenerateListingChange(Sender: TObject);

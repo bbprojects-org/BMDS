@@ -99,12 +99,13 @@ end;
 procedure TSIPrefsFrame.ItemClick(Sender: TObject);
 begin
   fChanged := True;
-  if (Sender.ClassType = TCheckBox) then
-    fChangedItem := 1                            // 1=Colour
-  else
-    fChangedItem := (Sender as TRadioGroup).Tag; // 2=Bases or 3=Bonus
   if Assigned(fOnChange) then
-    fOnChange(self);
+    begin
+      if (Sender.ClassType = TCheckBox) then
+        fOnChange(self, 1)                            // 1=Colour
+      else
+        fOnChange(self, (Sender as TRadioGroup).Tag); // 2=Bases or 3=Bonus
+    end;
 end;
 
 

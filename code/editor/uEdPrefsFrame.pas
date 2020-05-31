@@ -193,7 +193,7 @@ begin
     begin
       WriteIniItems;
       if Assigned(fOnChange) then
-        fOnChange(self);
+        fOnChange(self, 0);
     end;
 end;
 

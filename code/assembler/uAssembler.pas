@@ -170,9 +170,6 @@ implementation
 constructor TAssembler.Create;
 begin
   AsmPrefs := PreferencesForm.Frames[ciAsm] as TAsmPrefsFrame;
-  fListing := TListing.Create;
-  fSymbolTable := TSymbols.Create;
-  AddDirectives;                        // Add directives to Symbol table
 end;
 
 
@@ -180,8 +177,6 @@ end;
 
 destructor TAssembler.Destroy;
 begin
-  fSymbolTable.Free;
-  fListing.Free;
   SetLength(fErrors, 0);
   fErrors := nil;
   SetLength(IfStackArray, 0);
@@ -203,7 +198,10 @@ procedure TAssembler.Execute(SourceFileName: string);
 var
   errorStr: string;
 begin
-  AddOpcodes;                           // Here as need Machine/CPU created
+  fListing := TListing.Create;
+  fSymbolTable := TSymbols.Create;
+  AddDirectives;
+  AddOpcodes;
   fFiles := TFiles.Create(self, SourceFileName);
   fParser := TParser.Create(@fFiles.GetSourceLine);
 
@@ -230,7 +228,7 @@ begin
     else
       begin
         errorStr := 'error' + BoolToStr(fErrorCount = 1, '', 's');
-        fListing.Summary := Format(PASS_2_ABORTED, [ErrorCount, errorStr]);
+        fListing.Summary := Format(PASS_2_ABORTED, [fErrorCount, errorStr]);
       end;
     DoLog(ErrorList);
     ListSymbolTable;
@@ -240,6 +238,8 @@ begin
   finally
     fParser.Free;
     fFiles.Free;
+    fSymbolTable.Free;
+    fListing.Free;
     SetLength(fErrors, 0);
   end;
 end;
@@ -855,7 +855,7 @@ begin
     begin
       Len := Length(IfStackArray);
       SetLength(IfStackArray, Len + 1);  // Make room for new item on stack
-      IfStackArray[Len] := IsAssembling; // ... and 'push' it on
+      IfStackArray[Len] := fIsAssembling; // ... and 'push' it on
       // If expression FALSE, stop assembling until ELSE/ENDIF
       SetAssemblingFlag(fIsAssembling and (ParseExpr <> 0));
       fListing.OperandStr := fParser.GetLineText(OperandStart, fParser.Token.EndPos);
@@ -915,7 +915,7 @@ begin
       if (fPassNumber = 1) then         // Only add macro to list on first pass
         begin
           MacroNumber := fFiles.AddMacro(fParser.Token.StringVal);
-          fSymbolTable.AddInstruction(Parser.Token.StringVal, itMacro, MacroNumber);
+          fSymbolTable.AddInstruction(fParser.Token.StringVal, itMacro, MacroNumber);
         end;
 
       while (fParser.PeekNextToken.Typ <> tkEOL) do
@@ -1225,31 +1225,31 @@ var
   Counter: integer;
   sLine, sSymbol: string;
 begin
-  if ( (not AsmPrefs.ListSymbols) or (SymbolTable.SymbolCount = 0) ) then
+  if ( (not AsmPrefs.ListSymbols) or (fSymbolTable.SymbolCount = 0) ) then
     Exit;                               // If not in options, or no symbols to list, then exit
 
   fListing.List('');
-  fListing.List(Format('Symbols table (%d):', [SymbolTable.SymbolCount]));
+  fListing.List(Format('Symbols table (%d):', [fSymbolTable.SymbolCount]));
   Counter := 1;
   sLine := '';                          // Start new symbol table line
 
-  SymbolTable.FirstSymbol;
-  while (not SymbolTable.DoneSymbols) do
+  fSymbolTable.FirstSymbol;
+  while (not fSymbolTable.DoneSymbols) do
     begin
 
       cSymType := #32;
-      if (symDefine in SymbolTable.Symbol.Use) then
+      if (symDefine in fSymbolTable.Symbol.Use) then
         cSymType := char('D');
-      if (symLabel in SymbolTable.Symbol.Use) then
+      if (symLabel in fSymbolTable.Symbol.Use) then
         cSymType := char('L');
 
-      sSymbol := SymbolTable.Symbol.Name;
+      sSymbol := fSymbolTable.Symbol.Name;
       if (Length(sSymbol) > 18) then
         sSymbol := LeftStr(sSymbol, 16) + '..';
       sLine := sLine + Format('[%.4d]%s %.4x %-20s',
-                              [SymbolTable.Symbol.Line,
+                              [fSymbolTable.Symbol.Line,
                                cSymType,
-                               SymbolTable.Symbol.Value,
+                               fSymbolTable.Symbol.Value,
                                sSymbol]);
 
       if ((Counter mod 3) = 0) then     // Every three columns, restart for next line
@@ -1257,7 +1257,7 @@ begin
           fListing.List(sLine);
           sLine := '';
         end;
-      SymbolTable.NextSymbol;
+      fSymbolTable.NextSymbol;
       Inc(Counter);
     end;
   fListing.List(sLine);

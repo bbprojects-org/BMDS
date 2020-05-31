@@ -33,7 +33,7 @@ unit uParser;
 
 interface
 
-uses Classes, SysUtils, StrUtils, uCommon;
+uses Classes, SysUtils, StrUtils;
 
 type
   // EParserError  - defined in Classes

@@ -71,8 +71,6 @@ type
     InterruptEnabledPending: boolean;
     InterruptNumber: integer;
     //
-    fOpcodesData: TOpcodeArray;
-    OpcodePtrArray: array[0..255] of word;
     TraceList: array[0..TRACE_MAX-1] of TRegs8080;
     fInvalidFlag: boolean;
 
@@ -101,8 +99,6 @@ type
   protected
     function GetPC: word; override;
     function GetTraceColumns: TTraceColArray; override;
-    function GetDataByIndex(Index: integer): TOpcodeRawData; override;
-    function GetDataByOpcode(Opcode: integer): TOpcodeRawData; override;
     function GetRegs: TRegs8080;
     function GetInfo: TCpuInfo; override;
   public
@@ -135,9 +131,7 @@ uses
 
 constructor TCpu8080.Create(ct: TCpuType);
 var
-  i, Len: integer;
-  Opcode, ThisTypeMask: byte;
-  ThisOpcode: TOpcodeRawData;
+  ThisTypeMask: byte;
 begin
   fRegistersFrame := TRegistersFrame8080.Create(nil);
   (fRegistersFrame as TRegistersFrame8080).CpuRef := self;
@@ -159,23 +153,7 @@ begin
   case ct of
     ct8080:  ThisTypeMask := %01;       // No variants
   end;
-
-  for i := 0 to 255 do
-    OpcodePtrArray[i] := 0;             // Initialise array to point at Undefined opcode
-
-  for i := 0 to (Length(OPCODES_8080) - 1) do
-    begin                               // Set opcode pointers into data array
-      ThisOpcode := OPCODES_8080[i];
-      if ((ThisOpcode.T and ThisTypeMask) = 0) then
-        Continue;                       // Currently just skips Undefined entry at start
-      Len := Length(fOpcodesData);
-      SetLength(fOpcodesData, Len + 1);
-      fOpcodesData[Len] := ThisOpcode;
-
-      Opcode := ThisOpcode.O;
-      OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
-    end;
-  fDataCount := Length(fOpcodesData);
+  BuildOpcodesData(OPCODES_8080, ThisTypeMask);
 
   InterruptEnabledPending := False;
   Reset;
@@ -237,18 +215,6 @@ begin
   SetLength(Result, length(TRACE_COLS_8080));
   for idx := 0 to length(TRACE_COLS_8080)-1 do
     Result[idx] := TRACE_COLS_8080[idx];
-end;
-
-
-function TCpu8080.GetDataByIndex(Index: integer): TOpcodeRawData;
-begin
-  Result := fOpcodesData[Index];
-end;
-
-
-function TCpu8080.GetDataByOpcode(Opcode: integer): TOpcodeRawData;
-begin
-  Result := fOpcodesData[OpcodePtrArray[Opcode]];
 end;
 
 

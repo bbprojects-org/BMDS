@@ -98,7 +98,6 @@ end;
 procedure TRegistersFrame8080.Refresh;
 var
   ThisRegs: TRegs8080;
-  StatusFlags: byte;
 begin
   if Assigned(fCpuRef) then
     begin

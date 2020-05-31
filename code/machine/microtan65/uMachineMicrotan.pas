@@ -89,7 +89,7 @@ type
     DelayedNmiCounter: integer;         // Used to support M65 delayed NMI processing
     LastPC: word;
                             
-    procedure DoConfigChange(Sender: TObject);
+    procedure DoConfigChange(Sender: TObject; ChangedItem: integer);
     procedure BuildTextures;
     procedure CheckInput;
     procedure SetMachineInfo;
@@ -528,10 +528,10 @@ end;
 
 { MICROTAN CONFIG CHANGE }
 
-procedure TMachineMicrotan.DoConfigChange(Sender: TObject);
+procedure TMachineMicrotan.DoConfigChange(Sender: TObject; ChangedItem: integer);
 begin
   { TODO : uMachineMicrotan -> implement ConfigChange where practical }
-  case (Sender as TM65PrefsFrame).ChangedItem of
+  case ChangedItem of
     0: begin
          BuildTextures;
        end;
