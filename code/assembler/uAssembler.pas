@@ -716,14 +716,14 @@ begin
   if Expecting([tkString], 'string') then
     begin
       fParser.GetToken;
-        sText := fParser.Token.StringVal;
-        if (Length(sText) > 0) then
-          begin
-            for idx := 1 to Length(sText) do
-              BytesArray[idx] := ord(sText[idx]);
-            NumBytes := Length(sText);
-            fListing.HexData := AddrPlus(NumBytes);
-          end;
+      sText := fParser.Token.StringVal;
+      if (Length(sText) > 0) then
+        begin
+          for idx := 1 to Length(sText) do
+            BytesArray[idx] := ord(sText[idx]);
+          NumBytes := Length(sText);
+          fListing.HexData := AddrPlus(NumBytes);
+        end;
     end;
 end;
 

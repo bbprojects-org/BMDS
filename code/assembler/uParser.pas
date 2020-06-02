@@ -419,8 +419,10 @@ begin
     GetNumber(10)
 
   else
-    { TODO : uParser -> sort out error handling }
-    raise EParserError.Create('Illegal number format');
+    begin
+      CharPtr := tmpCP;                 // Skip over error text
+      raise EParserError.Create('Illegal number format');
+    end;
 end;
 
 
