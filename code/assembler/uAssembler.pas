@@ -1008,7 +1008,8 @@ var
   Op2: integer;
 begin
   Result := ParseOperand;		// Get first operand
-  while fParser.PeekNextToken.Typ in [tkPlus,tkMinus,tkStar,tkSlash] do
+  while fParser.PeekNextToken.Typ in [tkPlus, tkMinus, tkStar, tkSlash,
+                                      tkLogicalAnd, tkLogicalOr] do
     begin
       fParser.GetToken;
       tkOperator := fParser.Token.Typ;
@@ -1018,6 +1019,8 @@ begin
         tkMinus: Result := Result - Op2;
         tkStar:  Result := Result * Op2;
         tkSlash: Result := Trunc(Result / Op2);
+        tkLogicalAnd: Result := Result and Op2;
+        tkLogicalOr:  Result := Result or Op2;
       end;
     end;
 end;
@@ -1063,7 +1066,8 @@ begin
                     AddError(Format(SYMBOL_NOT_DEFINED, [sSymbol]))
               end;
 
-    tkDollar: Result := PC;             // $ or * can represent the location counter
+    tkDollar,
+    tkStar:   Result := PC;             // $ or * can represent the location counter
 
   else
     AddError(OPERAND_NOT_FOUND);

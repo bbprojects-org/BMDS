@@ -52,6 +52,10 @@ type
 
                 tkHash,                 // #
                 tkDollar,               // $
+                tkAmpersand,            // &
+                tkLogicalAnd,           // &&
+                tkVertBar,              // |
+                tkLogicalOr,            // ||
                 tkLeftParen,            // (
                 tkRightParen,           // )
                 tkStar,                 // *
@@ -108,6 +112,8 @@ type
     procedure HashProc;
     procedure DollarProc;
     procedure BinaryProc;
+    procedure AmpersandProc;
+    procedure VertBarProc;
     procedure RoundCloseProc;
     procedure RoundOpenProc;
     procedure StarProc;
@@ -273,6 +279,8 @@ begin
       '#': ProcTable[c] := @HashProc;
       '$': ProcTable[c] := @DollarProc;
       '%': ProcTable[c] := @BinaryProc;
+      '&': ProcTable[c] := @AmpersandProc;
+      '|': ProcTable[c] := @VertBarProc;
       '(': ProcTable[c] := @RoundOpenProc;
       ')': ProcTable[c] := @RoundCloseProc;
       '*': ProcTable[c] := @StarProc;
@@ -457,10 +465,10 @@ end;
 procedure TParser.DollarProc;
 begin
   Inc(CharPtr);
-  if (fLine[CharPtr] in [#1..#32]) then
-    NextToken.Typ := tkDollar           // Used as location counter
+  if (fLine[CharPtr] in ['0'..'9', 'A'..'F', 'a'..'f']) then
+    GetNumber(16)                       // Hexadecimal value
   else
-    GetNumber(16);                      // else hexadecimal value
+    NextToken.Typ := tkDollar;          // $ used as location counter
 end;
 
 
@@ -491,10 +499,33 @@ end;
 procedure TParser.StarProc;
 begin
   Inc(CharPtr);
-  if (fLine[CharPtr] in [#1..#32]) then
-    NextToken.Typ := tkDollar           // Treat '*' as location counter
+  NextToken.Typ := tkStar;
+end;
+
+
+procedure TParser.AmpersandProc;
+begin
+  Inc(CharPtr);
+  if (fLine[CharPtr] = '&') then
+    begin
+      Inc(CharPtr);
+      NextToken.Typ := tkLogicalAnd;
+    end
   else
-    NextToken.Typ := tkStar;
+    NextToken.Typ := tkAmpersand;
+end;
+
+
+procedure TParser.VertBarProc;
+begin
+  Inc(CharPtr);
+  if (fLine[CharPtr] = '|') then
+    begin
+      Inc(CharPtr);
+      NextToken.Typ := tkLogicalOr;
+    end
+  else
+  NextToken.Typ := tkVertBar;
 end;
 
 
