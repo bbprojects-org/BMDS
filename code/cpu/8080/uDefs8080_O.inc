@@ -187,7 +187,7 @@
   ( M: 'DCX';  A: 'SP';    S: 02{mReg}; O: $3B; N: 1; C:  5; R: rNIL; T: %01 ),
 
   // Add
-  ( M: 'ADD';  A: 'B';     S: 02{mReg}; O: $80; N: 1; C: 4;  R: rNIL; T: %01 ), //Y...
+  ( M: 'ADD';  A: 'B';     S: 02{mReg}; O: $80; N: 1; C: 4;  R: rNIL; T: %01 ),
   ( M: 'ADD';  A: 'C';     S: 02{mReg}; O: $81; N: 1; C: 4;  R: rNIL; T: %01 ),
   ( M: 'ADD';  A: 'D';     S: 02{mReg}; O: $82; N: 1; C: 4;  R: rNIL; T: %01 ),
   ( M: 'ADD';  A: 'E';     S: 02{mReg}; O: $83; N: 1; C: 4;  R: rNIL; T: %01 ),
@@ -215,7 +215,7 @@
   ( M: 'ACI';  A: '*';     S: 03{mIMM}; O: $CE; N: 2; C: 7;  R: rNIL; T: %01 ),
 
   // Sub
-  ( M: 'SUB';  A: 'B';     S: 02{mReg}; O: $90; N: 1; C: 4;  R: rNIL; T: %01 ), //Y...
+  ( M: 'SUB';  A: 'B';     S: 02{mReg}; O: $90; N: 1; C: 4;  R: rNIL; T: %01 ),
   ( M: 'SUB';  A: 'C';     S: 02{mReg}; O: $91; N: 1; C: 4;  R: rNIL; T: %01 ),
   ( M: 'SUB';  A: 'D';     S: 02{mReg}; O: $92; N: 1; C: 4;  R: rNIL; T: %01 ),
   ( M: 'SUB';  A: 'E';     S: 02{mReg}; O: $93; N: 1; C: 4;  R: rNIL; T: %01 ),

@@ -36,7 +36,7 @@ interface
 uses Classes, SysUtils, StrUtils;
 
 type
-  // EParserError  - defined in Classes
+  // EParserError  - defined in classesh.inc
 
   TTokenType = (tkNil,                  // non token identifier
 
@@ -125,7 +125,7 @@ type
     procedure InvalidProc;
 
     procedure GetLine;
-    procedure GetNumber(Radix: integer);
+    procedure GetNumber(Radix: integer; Skip2Char: boolean = False; SkipLastChar: boolean = False);
     procedure GetId(tok: TTokenType);
     {$ifdef parser_debug}
     function  ListToken: string;
@@ -270,29 +270,25 @@ begin
       'A'..'Z', 'a'..'z', '_': ProcTable[c] := @IdentProc;
       '0'..'9': ProcTable[c] := @NumberProc;
       '''', '"': ProcTable[c] := @StringProc;
-      '#'..'%', '('..'/', ':'..'>', '@':
-        begin
-          case c of
-            '#': ProcTable[c] := @HashProc;
-            '$': ProcTable[c] := @DollarProc;
-            '%': ProcTable[c] := @BinaryProc;
-            '(': ProcTable[c] := @RoundOpenProc;
-            ')': ProcTable[c] := @RoundCloseProc;
-            '*': ProcTable[c] := @StarProc;
-            '+': ProcTable[c] := @PlusProc;
-            ',': ProcTable[c] := @CommaProc;
-            '-': ProcTable[c] := @MinusProc;
-            '.': ProcTable[c] := @PointProc;
-            '/': ProcTable[c] := @SlashProc;
-            ':': ProcTable[c] := @ColonProc;
-            ';': ProcTable[c] := @SemiColonProc;
-            '<': ProcTable[c] := @LowerProc;
-            '=': ProcTable[c] := @EqualProc;
-            '>': ProcTable[c] := @GreaterProc;
-            '@': ProcTable[c] := @OctalProc;
-          end;
-        end;
-      else ProcTable[c] := @InvalidProc;
+      '#': ProcTable[c] := @HashProc;
+      '$': ProcTable[c] := @DollarProc;
+      '%': ProcTable[c] := @BinaryProc;
+      '(': ProcTable[c] := @RoundOpenProc;
+      ')': ProcTable[c] := @RoundCloseProc;
+      '*': ProcTable[c] := @StarProc;
+      '+': ProcTable[c] := @PlusProc;
+      ',': ProcTable[c] := @CommaProc;
+      '-': ProcTable[c] := @MinusProc;
+      '.': ProcTable[c] := @PointProc;
+      '/': ProcTable[c] := @SlashProc;
+      ':': ProcTable[c] := @ColonProc;
+      ';': ProcTable[c] := @SemiColonProc;
+      '<': ProcTable[c] := @LowerProc;
+      '=': ProcTable[c] := @EqualProc;
+      '>': ProcTable[c] := @GreaterProc;
+      '@': ProcTable[c] := @OctalProc;
+    else
+      ProcTable[c] := @InvalidProc;
     end;
 end;
 
@@ -308,9 +304,123 @@ begin
 end;
 
 
+{ Look for all possible combinations of numbers using Intel / C-Style or
+  straight decimal formats. Motorola style numbers with prefix character are
+  handled by own procedures below.
+  This code based on principle in SBASM (https://www.sbprojects.net/sbasm/) }
+
 procedure TParser.NumberProc;
+var
+  tmpLine, NumStr: string;
+  Start, tmpCP: integer;
+
+  function TestHex: boolean;
+  var i: integer;
+  begin
+    Result := False;
+    for i := 1 to Length(NumStr) do
+      if not(NumStr[i] in ['0'..'9', 'A'..'F'])
+        then Exit;
+    Result := True;
+  end;
+
+  function TestOct: boolean;
+  var i: integer;
+  begin
+    Result := False;
+    for i := 1 to Length(NumStr) do
+      if not(NumStr[i] in ['0'..'7'])
+        then Exit;
+    Result := True;
+  end;
+
+  function TestBin: boolean;
+  var i: integer;
+  begin
+    Result := False;
+    for i := 1 to Length(NumStr) do
+      if not(NumStr[i] in ['0', '1'])
+        then Exit;
+    Result := True;
+  end;
+
+  function TestDec: boolean;
+  var i: integer;
+  begin
+    Result := False;
+    for i := 1 to Length(NumStr) do
+      if not(NumStr[i] in ['0'..'9'])
+        then Exit;
+    Result := True;
+  end;
+
 begin
-  GetNumber(10);                        // If first char = 0, check for 0xNNN (hex), or ends in H, O, D, B ?
+  Start := CharPtr;
+  tmpCP := CharPtr;                     // Temporary CharPtr and line
+  tmpLine := UpperCase(fLine);
+  repeat
+    Inc(tmpCP);                         // Get all possible dec/bin/hex/oct characters
+  until ((tmpCP > LineLen) or not(tmpLine[tmpCP] in ['0'..'9', 'A'..'F', 'H', 'Q', 'X']));
+  NumStr := MidStr(tmpLine, Start, tmpCP-Start);
+
+  if (Length(NumStr) = 1) then          // Must be decimal, just get it
+    GetNumber(10)
+
+  // Check for Intel 0nnnnH format, hexadecimal
+  else if (tmpLine[tmpCP-1] = 'H') then
+    begin
+      NumStr := LeftStr(NumStr, Length(NumStr)-1);
+      if (TestHex) then
+        GetNumber(16, False, True);
+    end
+
+  // Check for Intel 0nnnnQ format, octal
+  else if (tmpLine[tmpCP-1] = 'Q') then
+    begin
+      NumStr := LeftStr(NumStr, Length(NumStr)-1);
+      if (TestOct) then
+        GetNumber(8, False, True);
+    end
+
+  // Check for C-style 0xnnnn format, hexadecimal
+  else if ((NumStr[1] = '0') and (NumStr[2] = 'X')) then
+    begin
+      NumStr := RightStr(NumStr, Length(NumStr)-2);
+      if (TestHex) then
+        GetNumber(16, True, False);
+    end
+
+  // Check for C-style 0bnnnn format, binary
+  else if ((NumStr[1] = '0') and (NumStr[2] = 'B')) then
+    begin
+      NumStr := RightStr(NumStr, Length(NumStr)-2);
+      if (TestBin) then
+        GetNumber(2, True, False);
+    end
+
+  // Check for Intel 0nnnnB format, binary
+  else if (tmpLine[tmpCP-1] = 'B') then
+    begin
+      NumStr := LeftStr(NumStr, Length(NumStr)-1);
+      if (TestBin) then
+        GetNumber(2, False, True);
+    end
+
+  // Check for Intel 0nnnnD format, decimal
+  else if (tmpLine[tmpCP-1] = 'D') then
+    begin
+      NumStr := LeftStr(NumStr, Length(NumStr)-1);
+      if (TestDec) then
+        GetNumber(10, False, True);
+    end
+
+  // Can only be decimal now
+  else if (TestDec) then
+    GetNumber(10)
+
+  else
+    { TODO : uParser -> sort out error handling }
+    raise EParserError.Create('Illegal number format');
 end;
 
 
@@ -509,18 +619,27 @@ end;
 
 { SUPPORT ELEMENTS }
 
-{ TODO : uParser -> if first char = 0, check for 0xNNN (hex), or ends in H, O, D, B ? }
 
-procedure TParser.GetNumber(Radix: integer);
+{ GET NUMBER - optional params used to skip C-style characters at start, or
+               Intel style character at end }
+
+procedure TParser.GetNumber(Radix: integer; Skip2Char: boolean = False; SkipLastChar: boolean = False);
 var
   nDigit, nValue: integer;
   bDone: boolean;
   ch: char;
 begin
+  if (Skip2Char) then
+    Inc(CharPtr, 2);                    // Skip over 0x,0b,etc of Intel format
   nValue := 0;
   bDone := False;
   repeat
     ch := fLine[CharPtr];
+    if ((Radix = 2) and (ch = '.')) then
+      begin
+        Inc(CharPtr);                   // Skip optional 'dots' in binary
+        ch := fLine[CharPtr];
+      end;
     if (ch in ['0'..'9']) then
       nDigit := ord(ch) - ord('0')
     else if (ch in ['A'..'Z']) then
@@ -528,6 +647,7 @@ begin
     else if (ch in ['a'..'z']) then
       nDigit := ord(ch)-ord('a')+10
     else nDigit := Radix;               // Force exit
+
     if (nDigit < Radix) then
       begin
         nValue := nValue * Radix + nDigit;
@@ -536,6 +656,8 @@ begin
     else
       bDone := True;
   until bDone or (CharPtr > LineLen);
+  if (SkipLastChar) then
+    Inc(CharPtr);                       // Skip over B,D,H,Q of Intel format
   NextToken.NumberVal := nValue;        // Assign value to token
   NextToken.Typ := tkNumber;
 end;

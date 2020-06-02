@@ -341,9 +341,7 @@ end;
 
 { PROCESS AN INSTRUCTION }
 
-{ Either a mnemonic, assembler directive, or a macro call.
-  If a processor has not yet been defined it will issue a warning and assume
-  the CPU for the currently selected machine and try to continue assembly }
+{ Either a mnemonic, assembler directive, or a macro call }
 
 procedure TAssembler.ProcessInstruction;
 var
@@ -457,8 +455,7 @@ end;
 
 { PROCESS A MNEMONIC }
 
-{ TODO : uAssembler -> have this call CPU specific code, eg uAsm6502 dependent
-         on current machine [remove #CPU command, since know what CPU is] }
+{ TODO : uAssembler -> have DoMenomic call CPU specific code }
 
 procedure TAssembler.DoMnemonic(Instruction: TInstruction);
 var
@@ -1167,6 +1164,7 @@ begin
   fSymbolTable.AddInstruction('END',      itEnd,      0); // Source control
 
   fSymbolTable.AddInstruction('ORG',      itOrg,      0); // Location control
+
   fSymbolTable.AddInstruction('RMB',      itReserve,  0);
   fSymbolTable.AddInstruction('DS',       itReserve,  0);
   fSymbolTable.AddInstruction('DEFS',     itReserve,  0);
@@ -1175,10 +1173,12 @@ begin
   fSymbolTable.AddInstruction('FCB',      itByte,     0);
   fSymbolTable.AddInstruction('DB',       itByte,     0);
   fSymbolTable.AddInstruction('DEFB',     itByte,     0);
+
   fSymbolTable.AddInstruction('WORD',     itWord,     0);
   fSymbolTable.AddInstruction('FDB',      itWord,     0);
   fSymbolTable.AddInstruction('DW',       itWord,     0);
   fSymbolTable.AddInstruction('DEFW',     itWord,     0);
+
   fSymbolTable.AddInstruction('TEXT',     itText,     0);
   fSymbolTable.AddInstruction('FCC',      itText,     0);
 

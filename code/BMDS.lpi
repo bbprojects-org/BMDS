@@ -399,6 +399,7 @@
         <Filename Value="editor\uEditorFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="EditorFrame"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
       </Unit65>
       <Unit66>

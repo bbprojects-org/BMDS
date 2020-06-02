@@ -22,6 +22,9 @@
 
   =============================================================================}
 
+{ TODO : uAssemblerForm -> BUG: Edit|SelectAll not working }
+{ TODO : uAssemblerForm -> BUG: Cmd-V does not work, Ctrl-V does? }
+
 unit uAssemblerForm;
 
 {$mode objfpc}{$H+}

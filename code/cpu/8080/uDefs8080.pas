@@ -88,7 +88,7 @@ const
       RegistersHeight:      332;
       Template:             '' );
 
-  REGISTERS_ORIG = 'A B C D E H L BC DE HL SP PSW';
+  REGISTERS_ORIG = 'A B C D E H L M BC DE HL SP PSW';
 
   { Values for Interrupt Number }
 

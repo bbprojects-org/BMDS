@@ -574,10 +574,6 @@ procedure TMachineSpaceInvaders.DoConfigChange(Sender: TObject; ChangedItem: int
 begin
   case ChangedItem of
     0: begin                            // All
-         (*
-         fCpu.Free;
-         Create8080Cpu;
-         *)
        end;
     1: {nothing};                       // Colour
     2: {nothing};                       // Bases
