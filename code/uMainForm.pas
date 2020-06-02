@@ -198,6 +198,7 @@ type
     procedure MakeDisassemblerForm;
     procedure MakeCompareForm;
     procedure MakeAssemblerForm;
+    procedure ShowMachineStatus;
     procedure ShowPreferences(category: TCategoryIndex);
     procedure ShowFormsState;
     procedure OnShowHideAsmForm(Sender: TObject);
@@ -214,6 +215,7 @@ type
     procedure MakeMachineMenu;
     procedure ShowMachineInfoInMemo;
     procedure SetMachineScreenSize(aMultiplier: integer);
+    procedure DoMachineConfigChange(Sender: TObject; {%H-}ChangedItem: TMachineChangedItem);
   private     // INI file
     procedure CreateAppIni;
     procedure ReadIniSettings;
@@ -434,11 +436,12 @@ end;
 
 procedure TMainForm.MakeMachine;
 var
-  ThisFreq, Idx: integer;
+  Idx: integer;
 begin
   MachineDataFolder := GetAppResourcesDirectory + CurrentMachineID + DIRECTORY_SEPARATOR;
   Machine := MachineFactory.CreateMachineFromID(CurrentMachineID);
   Machine.Name := CurrentMachineID;
+  Machine.OnConfigChange := @DoMachineConfigChange;
 
   // If ScreenSize is defined in INI file, then set machine screen size, else
   // leave default size
@@ -469,7 +472,15 @@ begin
   menuSelect.Items[Idx].Checked := True;
   actRun.Enabled := Machine.Info.HasCodeToExecute; // Enabled if ROMS loaded
 
-  // These items only change with Machine, update once only here
+  ShowMachineStatus;
+  ShowMachineInfoInMemo;
+end;
+
+
+procedure TMainForm.ShowMachineStatus;
+var
+  ThisFreq: integer;
+begin
   StatusBar.Panels[1].Text := Machine.CPU.Info.Name;
   ThisFreq := Machine.Info.CpuFreqKhz;
   if (ThisFreq > 0) then
@@ -479,7 +490,6 @@ begin
       StatusBar.Panels[2].Text := Format('%.1f MHz', [ThisFreq / 1000])
   else
     StatusBar.Panels[2].Text := '';
-  ShowMachineInfoInMemo;
 end;
 
 
@@ -650,6 +660,17 @@ begin
   if (category <> ciGeneral) then       // Machine config call?
     PreferencesForm.Category := category;
   PreferencesForm.ShowModal;
+end;
+
+
+procedure TMainForm.DoMachineConfigChange(Sender: TObject; ChangedItem: TMachineChangedItem);
+begin
+  (*
+  case ChangedItem of
+    mcFreq: ShowMachineStatus;
+  end;
+  *)
+  ShowMachineStatus;
 end;
 
 

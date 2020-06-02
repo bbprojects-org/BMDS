@@ -71,12 +71,12 @@ type
   private              
     fEnabled: boolean;
     WatchValue: word;
-    procedure SetEnabled(aFlag: boolean);
+    procedure SetFrameEnabled(aFlag: boolean);
   public         
     procedure Initialise;
     destructor Destroy; override;
     //
-    property Enabled: boolean read fEnabled write SetEnabled;
+    property Enabled: boolean read fEnabled write SetFrameEnabled;
   end;
 
 
@@ -109,7 +109,7 @@ end;
 
 {SET ENABLED STATE }
 
-procedure TWatchesFrame.SetEnabled(aFlag: boolean);
+procedure TWatchesFrame.SetFrameEnabled(aFlag: boolean);
 var
   i: integer;
 begin

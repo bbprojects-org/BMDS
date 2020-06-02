@@ -32,13 +32,15 @@ interface
 uses
   ExtCtrls, Graphics, LCLIntf, LCLType, Classes, Forms, SysUtils, Dialogs,
   //
-  uCpuBase, uBreakpointsFrame, uMemoryMgr, uGfxMgr, uCpuTypes, uPrefsFrameBase;
+  uCpuBase, uBreakpointsFrame, uMemoryMgr, uGfxMgr, uPrefsFrameBase;
 
 type
   TMachineState = (msStopped, msRunning, msStoppedOnBrkpt, msStoppedOnRead,
                    msStoppedOnWrite);
+  TMachineChangedItem = (mcFreq);
 
   TBrkptHandler = procedure(Addr: word; out IsBrkpt: boolean) of object;
+  TConfigChange = procedure(Sender: TObject; ChangedItem: TMachineChangedItem) of object;
 
   TMachineInfo = record
     // Name is used to register Machine class, and saved in CurrentMachineID
@@ -68,6 +70,7 @@ type
     fMaxSpeed: boolean;
     CyclesToGo: integer;
     fBkptHandler: TBrkptHandler;
+    fOnConfigChange: TConfigChange;
     BreakpointType: TBkptType;                  
     procedure DoBreakpoint(Sender: TObject; Value: TBkptType);
     procedure SetFPS(Value: integer); virtual;
@@ -101,6 +104,7 @@ type
     property MaxSpeed: boolean read fMaxSpeed write fMaxSpeed;
     property Description: string read GetDescription;
     property BreakpointHandler: TBrkptHandler read fBkptHandler write fBkptHandler;
+    property OnConfigChange: TConfigChange read fOnConfigChange write fOnConfigChange;
   end;
 
 

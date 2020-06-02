@@ -45,7 +45,7 @@ type
     fChanged: boolean;
     fOnChange: TConfigChange;
     fOnDebug: TDebugLogEvent;
-    procedure SetEnabled(Flag: boolean);
+    procedure SetFrameEnabled(Flag: boolean);
   public
     procedure Init; virtual;
     destructor Destroy; override;
@@ -53,7 +53,7 @@ type
     procedure CancelChanges; virtual; abstract;
     //
     property Frame: TPrefsFrame read fFrame write fFrame;
-    property Enabled: boolean read fEnabled write SetEnabled;
+    property Enabled: boolean read fEnabled write SetFrameEnabled;
     property OnChange: TConfigChange read fOnChange write fOnChange;
     property OnDebug: TDebugLogEvent read fOnDebug write fOnDebug;
   end;
@@ -78,7 +78,7 @@ begin
 end;
 
 
-procedure TPrefsFrame.SetEnabled(Flag: boolean);
+procedure TPrefsFrame.SetFrameEnabled(Flag: boolean);
 var
   i: integer;
 begin

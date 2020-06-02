@@ -538,7 +538,13 @@ begin
        end;
     1: {nothing};                       // ROM
     2: BuildTextures;                   // Colour
-    3: {nothing};                       // Frequency
+    3: begin                            // Frequency
+         fInfo.CpuFreqKhz := M65Prefs.Frequency;
+         // RunForOneFrame uses this dynamically so nothing else to update,
+         // just notify mainform if it wants to know
+         if Assigned(fOnConfigChange) then
+           fOnConfigChange(self, mcFreq);
+       end;
   end;
 end;
 
