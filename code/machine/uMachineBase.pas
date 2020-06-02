@@ -23,8 +23,6 @@
 
   =============================================================================}
 
-{ TODO : uMachineBase -> add back fConfigFrame as per current GitHub }
-
 unit uMachineBase;
 
 {$mode objfpc}{$H+}

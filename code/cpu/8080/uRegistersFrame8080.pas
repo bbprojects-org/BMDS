@@ -23,8 +23,6 @@
 
   =============================================================================}
 
-{ TODO : uRegistersFrame8080 -> rework as inherited from TRegistersFrame }
-
 unit uRegistersFrame8080;
 
 {$mode objfpc}{$H+}

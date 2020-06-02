@@ -175,7 +175,7 @@ end;
 procedure TCpuBase.BuildOpcodesData(const DataTable: TOpcodeArray; const TypeMask: byte);
 var
   i, Len: integer;
-  Opcode: byte;
+  Opcode: Longword;
   ThisOpcode: TOpcodeRawData;
 begin
   for i := 0 to 255 do
@@ -191,7 +191,7 @@ begin
       fOpcodesData[Len] := ThisOpcode;
 
       Opcode := ThisOpcode.O;
-      OpcodePtrArray[Opcode] := Len;    // Set pointers into Opcode data
+      OpcodePtrArray[Opcode and $FF] := Len; // Set pointers into Opcode data, 8-bit CPU only
     end;
   fDataCount := Length(fOpcodesData);
 end;

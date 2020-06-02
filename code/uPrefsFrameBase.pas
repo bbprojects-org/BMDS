@@ -41,9 +41,11 @@ type
     btnResetDefault: TButton;
   protected
     fFrame: TPrefsFrame;
+    fEnabled: boolean;
     fChanged: boolean;
     fOnChange: TConfigChange;
     fOnDebug: TDebugLogEvent;
+    procedure SetEnabled(Flag: boolean);
   public
     procedure Init; virtual;
     destructor Destroy; override;
@@ -51,6 +53,7 @@ type
     procedure CancelChanges; virtual; abstract;
     //
     property Frame: TPrefsFrame read fFrame write fFrame;
+    property Enabled: boolean read fEnabled write SetEnabled;
     property OnChange: TConfigChange read fOnChange write fOnChange;
     property OnDebug: TDebugLogEvent read fOnDebug write fOnDebug;
   end;
@@ -72,6 +75,16 @@ destructor TPrefsFrame.Destroy;
 begin
   //
   inherited Destroy;
+end;
+
+
+procedure TPrefsFrame.SetEnabled(Flag: boolean);
+var
+  i: integer;
+begin
+  fEnabled := Flag;
+  for i := 0 to self.ControlCount-1 do
+    self.Controls[i].Enabled := fEnabled;
 end;
 
 

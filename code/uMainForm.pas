@@ -32,7 +32,6 @@
 { TODO : uMainForm -> recheck Cross-Platform guidance for Free Pascal, adjust
                       as necessary (http://wiki.lazarus.freepascal.org/Multiplatform_Programming_Guide) }
 { TODO : uMainForm -> do 'Step Over' code }
-{ TODO : uMainForm -> when drop BIN file on form, need to acknowledge action }
 
 unit uMainForm;
 
@@ -639,8 +638,6 @@ end;
 
 
 { MENU - MACHINE CONFIG }
-
-{ TODO : uMainForm -> build config itself dynamically? See 'Tickle' source }
 
 procedure TMainForm.actMachineConfigExecute(Sender: TObject);
 begin

@@ -23,8 +23,6 @@
 
   =============================================================================}
 
-{ TODO : uConfigSI -> fix reset defaults button }
-
 unit uPrefsSpaceInvaders;
 
 {$mode objfpc}{$H+}

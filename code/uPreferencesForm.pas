@@ -35,7 +35,7 @@ uses
   StdCtrls, ComCtrls,
   //
   uPrefsFrameBase, uGenPrefsFrame, uAsmPrefsFrame, uEdPrefsFrame,
-  uEdColourPrefsFrame, uIniFile;
+  uEdColourPrefsFrame, uIniFile, uMachineBase;
 
 type
   // These must match up with TreeView items
@@ -138,12 +138,12 @@ var
   i: TCategoryIndex;
   ThisFrame: TPrefsFrame;
 begin
-  fPrefsFrames[ciGeneral]  := TGenPrefsFrame.Create(self);
+  fPrefsFrames[ciGeneral] := TGenPrefsFrame.Create(self);
   // MachineFrame is assigned separately, see SetMachineConfigFrame below
-  { TODO : uPreferencesForm -> gray frame if CPU has no assembler support }
-  fPrefsFrames[ciAsm]      := TAsmPrefsFrame.Create(self);
-  fPrefsFrames[ciDisplay]  := TEdPrefsFrame.Create(self);
-  fPrefsFrames[ciColours]  := TEdColourPrefsFrame.Create(self);
+  fPrefsFrames[ciAsm] := TAsmPrefsFrame.Create(self);
+  fPrefsFrames[ciAsm].Enabled := Machine.CPU.Info.SupportsAssembler;
+  fPrefsFrames[ciDisplay] := TEdPrefsFrame.Create(self);
+  fPrefsFrames[ciColours] := TEdColourPrefsFrame.Create(self);
   for i := Low(TCategoryIndex) to High(TCategoryIndex) do
     begin
       ThisFrame := fPrefsFrames[i];

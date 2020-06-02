@@ -22,8 +22,6 @@
 
   =============================================================================}
            
-{ TODO : uDefs6502 -> Opcode value OK for low-endian system, but need to cater for other way around }
-
 unit uDefs6502;
 
 {$mode objfpc}
@@ -46,6 +44,7 @@ const
       Registers:            'A X Y';    // Must be uppercase, for assembler
       WildChar:             '*';
       LittleEndian:         True;
+      SupportsAssembler:    True;
       SupportsDisassembler: True;
       SupportsCpuTest:      True;
       TraceWidth:           440;

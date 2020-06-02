@@ -46,6 +46,7 @@ const
                             // + ' I DT ST F B';
       WildChar:             '*';
       LittleEndian:         False;
+      SupportsAssembler:    False;
       SupportsDisassembler: True;
       SupportsCpuTest:      False;
       TraceWidth:           702;

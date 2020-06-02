@@ -49,12 +49,11 @@ var
   AddrMode: TAddrMode6502;
 begin
   Result.Opcode := CPU.MemRead(Addr);
-  { TODO : uDis6502 -> have this as CPU.Opcodes[i].M where gets data from DataMgr ref }
-  Result.MnemStr := CPU.DataByOpcode[Result.Opcode].M;             // CPU.OpcodeData[Result.Opcode].M;
+  Result.MnemStr := CPU.DataByOpcode[Result.Opcode].M;
   Result.Operand := 0;
   Result.HasOperand := False;
-  AddrMode := TAddrMode6502(CPU.DataByOpcode[Result.Opcode].S);    // CPU.OpcodeData[Result.Opcode].S);
-  Result.NumBytes := CPU.DataByOpcode[Result.Opcode].N;            // CPU.OpcodeData[Result.Opcode].N;
+  AddrMode := TAddrMode6502(CPU.DataByOpcode[Result.Opcode].S);
+  Result.NumBytes := CPU.DataByOpcode[Result.Opcode].N;
   case (Result.NumBytes) of
 
     0: begin

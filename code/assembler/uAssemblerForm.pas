@@ -366,8 +366,6 @@ begin
 end;
 
 
-{ TODO : uAssemblerForm -> cmd-V does not work, but ctrl-V does ? }
-
 procedure TAssemblerForm.actEditPasteExecute(Sender: TObject);
 var
   ed: TSynEdit;

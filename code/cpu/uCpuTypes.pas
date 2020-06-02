@@ -101,6 +101,7 @@ type
     Registers: string;
     WildChar: char;
     LittleEndian: boolean;
+    SupportsAssembler: boolean;
     SupportsDisassembler: boolean;
     SupportsCpuTest: boolean;
     TraceWidth: integer;

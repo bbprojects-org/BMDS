@@ -82,6 +82,7 @@ const
                             'NZ Z NC C PO PE P M';
       WildChar:             '*';
       LittleEndian:         True;
+      SupportsAssembler:    True;
       SupportsDisassembler: True;
       SupportsCpuTest:      True;
       TraceWidth:           540;
