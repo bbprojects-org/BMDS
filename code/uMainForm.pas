@@ -1068,8 +1068,6 @@ end;
 { GENERAL CONFIG CHANGE }
 
 procedure TMainForm.DoConfigChange(Sender: TObject; ChangedItem: integer);
-var
-  i: integer;
 begin
   case ChangedItem of
     0: begin                            // All

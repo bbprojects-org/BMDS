@@ -370,7 +370,7 @@ begin
     tkEqual: fSymbolTable.FindInstruction('EQU'); // Translate '=' -> 'equ'
 
   else
-    AddError(Format('Instruction expected, got [%s]', [fParser.Token.StringVal]));
+    AddError(Format(INSTR_EXPECTED, [fParser.Token.StringVal]));
     Exit;
   end;
 
@@ -494,7 +494,10 @@ begin
                   else
                     begin
                       if (bDoneExpr = True) then
-                        raise EAnalyseError.Create(OPERAND_NOT_FOUND)
+                        begin
+                          AddError(OPERAND_NOT_FOUND);
+                          Exit;
+                        end
                       else
                         begin
                           Value := ParseExpr;

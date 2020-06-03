@@ -33,7 +33,9 @@ unit uIniFile;
 interface
 
 uses
-  Forms, Dialogs, SysUtils, IniFiles;
+  Forms, Dialogs, SysUtils, IniFiles,
+  //
+  uErrorDefs;
 
 type
   TOnCustomSectionEvent = procedure(var Value: string) of object;
@@ -71,6 +73,8 @@ const
   INI_WDW_VIS    = 'Vis';
   SECT_CUSTOM    = '*custom*';
 
+  ERROR_WITH_FILE = 'Error with INI file "%s"; %s';
+
 
 implementation
 
@@ -82,7 +86,7 @@ begin
     IniFile := TMemIniFile.Create(aFileName);
   except
     on E: Exception do
-      MessageDlg('Error', Format('Error with INI file "%s"; %s', [aFileName, E.Message]), mtError, [mbOK], 0);
+      MessageDlg('Error', Format(ERROR_WITH_FILE, [aFileName, E.Message]), mtError, [mbOK], 0);
   end;                       
   IniFile.CacheUpdates := True;         // Keep updates in memory, write once
   fOnCustomSection := CustomSectHandler;

@@ -46,6 +46,9 @@ type
     function GetAddrDefs(FileName: string): TAddrDefsArray;
   end;
 
+const
+  ERROR_FILE_NOT_FOUND = 'File [%s] not found';
+
 
 implementation
 
@@ -78,7 +81,7 @@ begin
   Parser := TParser.Create(@GetSourceLine);
   AddrDefsLines := TStringList.Create;
   if (not FileExists(FileName)) then
-    raise Exception.CreateFmt('File [%s] not found', [FileName]);
+    raise Exception.CreateFmt(ERROR_FILE_NOT_FOUND, [FileName]);
 
   AddrDefsLines.LoadFromFile(FileName); // FileName from current machine
 

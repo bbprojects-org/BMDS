@@ -53,6 +53,11 @@ function GetFullFileName(FileName: string): string;
 function CalcCRC32(strm: TMemoryStream): LongWord;
 
 const
+  FILE_NOT_FOUND      = 'File [%s] not found in machine subfolder';
+  FILE_ERROR_LOAD_ROM = 'Error loading ROM file';
+  FILE_INCORRECT_SIZE = 'File [%s] has incorrect size';
+  FILE_CRC_ERROR      = 'File [%s] has CRC error';
+
   CRC_32_TABLE : array[0..255] of LongWord = (
     $00000000, $77073096, $ee0e612c, $990951ba, $076dc419, $706af48f, $e963a535, $9e6495a3,
     $0edb8832, $79dcb8a4, $e0d5e91e, $97d2d988, $09b64c2b, $7eb17cbd, $e7b82d07, $90bf1d91,
@@ -161,7 +166,7 @@ begin
       Result := True;
     except
       on E: Exception do
-        MessageDlg('Error loading ROM file', E.Message, mtError, [mbOK], 0);
+        MessageDlg(FILE_ERROR_LOAD_ROM, E.Message, mtError, [mbOK], 0);
     end;
 
   finally
@@ -178,16 +183,16 @@ var
 begin
   FullFileName := GetFullFileName(FileName);
   if (not FileExists(FullFileName)) then
-    raise Exception.CreateFmt('File [%s] not found in machine subfolder', [FileName]);
+    raise Exception.CreateFmt(FILE_NOT_FOUND, [FileName]);
   strm.LoadFromFile(FullFileName);
 
   if (strm.Size <> Length) then
-    raise Exception.CreateFmt('File [%s] has incorrect size', [FileName]);
+    raise Exception.CreateFmt(FILE_INCORRECT_SIZE, [FileName]);
 
   // If CRC=0 then no need to check, else check the CRC is correct
   if (CRC <> 0) then
     if (CalcCRC32(strm) <> CRC) then
-      raise Exception.CreateFmt('File [%s] has CRC error', [FileName]);
+      raise Exception.CreateFmt(FILE_CRC_ERROR, [FileName]);
 end;
 
 

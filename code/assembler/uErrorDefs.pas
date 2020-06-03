@@ -30,6 +30,7 @@ uses
   Classes, SysUtils;
 
 const
+  // uAssembler
   ADDR_MODE_NOT_RECOGNISED = 'Address mode [%s] not recognised';
   BRANCH_TOO_FAR           = 'Branch too far';
   CANNOT_FIND_INCLUDE_FILE = 'Cannot find include file [%s]';
@@ -37,16 +38,26 @@ const
   ENDIF_WITHOUT_IF         = 'ENDIF without starting IF';
   EXPECTED_NOT_FOUND       = '[%s] expected but [%s] found';
   INSTR_NOT_RECOGNISED     = 'Instruction [%s] not recognised';
+  INSTR_EXPECTED           = 'Instruction expected, got [%s]';
   LABEL_MISSING            = 'Label is required for this instruction';
   MEM_MODE_NOT_RECOGNISED  = 'Memory mode [%s] not recognised';
   OPERAND_NOT_FOUND        = 'Operand expected, not found';
   PHASING_ERROR            = 'Symbol values differ between passes ($%.4x,$%.4x), check addressing mode';
   SYMBOL_NOT_DEFINED       = 'Symbol [%s] not defined';
-  MISSING_CPU_NAME         = 'Missing CPU name';
   MACRO_NAME_MISSING       = 'Macro name missing';
   MACRO_BAD_INSTRUCTION    = 'This instruction not permitted in a macro definition';
 
   PASS_2_ABORTED           = 'Second pass aborted due to %d %s in first pass';
+
+  // uParser
+  PAR_UNTERMINATED_STRING  = 'Unterminated String';
+  PAR_ILLEGAL_NUMBER       = 'Illegal number format';
+
+  // uReadWriteHex
+  RWH_NOT_SUPPORTED        = 'Record type %d not yet supported';
+  RWH_NOT_VALID            = 'Record type %d not valid';
+  RWH_INVALID_HEX          = '[%s] is not a valid hex number';
+  RWH_MISSING_COLON        = 'Missing colon at start of line';
 
 
 implementation
