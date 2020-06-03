@@ -64,6 +64,8 @@ uses Forms, Classes, SysUtils, FileUtil, SynEdit, SynPluginSyncroEdit, Controls,
 type
   EAnalyseError = class(Exception);
 
+  TMemSect = (msRAM, msCode);
+
   TOnLogEvent = procedure(Msg: string) of object;
 
   TBytes256 = array [0..255] of Byte;
@@ -101,7 +103,7 @@ type
     fOnLog: TOnLogEvent;                // Callback with status/log info
     //
     PC: integer;                        // Program / location counter
-    MemorySection: byte;                // Memory type assembling to: 0=RAM, 1=CODE
+    MemorySection: TMemSect;            // Memory type assembling to
     BytesArray: TBytes256;              // Byte buffer for program code (max 256 bytes)
     NumBytes: integer;                  // Number of bytes being generated (DB/DW)
     LastGlobalLabel: string;            // Last global label defined, supports local labels
@@ -416,15 +418,15 @@ procedure TAssembler.DoOutputs(StartAddr: integer);
 var
   i, nOffset, nNumOf3, nRem: integer;
 begin
-  // If pass 2 and option selected, then write code to memory
-  if (fPassNumber = 2) and (AsmPrefs.WriteToMemory) then
+  // If pass 2 and option selected, then write code to memory / file
+  if ((fPassNumber = 2) and (fIsAssembling)) then
     for i := 1 to NumBytes do
-      Machine.Memory[StartAddr + i - 1] := BytesArray[i];
-  { DEBUG }
-  { Adding offset of $8000 to Program Counter }
-  //for i := 1 to NumBytes do
-  //  Machine.Memory[$8000 + StartAddr + i - 1] := BytesArray[i];
-  { END_DEBUG }
+      begin
+        if (AsmPrefs.WriteToMemory) then
+          Machine.Memory[StartAddr + i - 1] := BytesArray[i];
+        if (AsmPrefs.WriteToFile) then
+          fFiles.WriteDataByte(BytesArray[i]);
+      end;
 
   if (fIsAssembling and (NumBytes > 3)) then // Multibytes?
     begin
@@ -595,7 +597,7 @@ var
 begin
   PC := ParseExpr;                      // Set PC this value
   fListing.HexData := AddrOnly(PC);
-  MemorySection := 1;                   // Default mode is CODE
+  MemorySection := msCode;              // Default mode is CODE
   // Check if memory type is specified
   if (fParser.PeekNextToken.Typ = tkComma) then
     begin
@@ -605,7 +607,7 @@ begin
           fParser.GetToken;             // Get memory type
           sText := UpperCase(fParser.Token.StringVal);
           if (sText = 'RAM') then
-            MemorySection := 0
+            MemorySection := msRAM
           else if (sText <> 'CODE') then
             begin
               AddError(Format(MEM_MODE_NOT_RECOGNISED, [fParser.Token.StringVal]));
@@ -615,7 +617,7 @@ begin
       else
         Exit;                           // Exit on missing identifier error
     end;
-  if (MemorySection = 1) then
+  if (MemorySection = msCode) then
     fFiles.SetDataStart(PC);            // Set object code addr
 end;
 
@@ -642,7 +644,7 @@ begin
       fParser.GetToken;                 // Skip comma
       FillByte := ParseExpr;            // Get user fill value
     end;
-  if (MemorySection = 1) then           // If CODE section then
+  if (MemorySection = msCode) then      // If CODE section then
     for idx := 1 to Operand do
       fFiles.WriteDataByte(FillByte);   // ... write to output file
 end;
@@ -731,7 +733,7 @@ begin
 end;
 
 
-{ ADDRESS ONLY }
+{ GENERATE FORMATTED CODE LISTING - either address only, or address plus data }
 
 function TAssembler.AddrOnly(Value: integer): string;
 begin
@@ -751,12 +753,8 @@ begin
       Result := Format('%.4x ', [PC]);
       Bytes := Min(Bytes, 3);           // Max 3 bytes output here
       for i := 1 to Bytes do
-        begin
-          // Offset defaults to 0 unless set otherwise (i.e. multibytes)
-          Result := Result + Format(' %.2x', [BytesArray[Offset + i]]);
-          if (AsmPrefs.WriteToFile and (fIsAssembling)) then
-            fFiles.WriteDataByte(BytesArray[Offset + i]);
-        end;
+        // Offset defaults to 0 unless set otherwise (i.e. multibytes)
+        Result := Result + Format(' %.2x', [BytesArray[Offset + i]]);
     end
   else
     Result := '';

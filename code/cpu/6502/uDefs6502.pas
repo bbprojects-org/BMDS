@@ -49,8 +49,7 @@ const
       SupportsCpuTest:      True;
       TraceWidth:           440;
       RegistersHeight:      205;
-      Template: '#CPU ''6502''' + #13 +
-                '//' + #13 +
+      Template: '//' + #13 +
                 '// Template for Microtan 65' + #13 +
                 '//' + #13 + #13 +
                 '#include ''MicrotanDefs''' + #13 + #13 +

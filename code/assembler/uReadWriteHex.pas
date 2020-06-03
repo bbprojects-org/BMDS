@@ -153,7 +153,7 @@ begin
         if (not LineWasData) then
           break;
       end;
-  except
+  finally
     HexFileLines.Free;
   end;
   if (fErrorMessage <> '') then
