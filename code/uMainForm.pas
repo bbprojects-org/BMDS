@@ -48,7 +48,8 @@ uses
   {$endif}
   //
   uCommon, uIniFile, uAboutForm, uPreferencesForm, uDisassembler, uCompareForm,
-  uMachineBase, uDebugForm, uAssemblerForm, uEdPrefsFrame, uDefs8080;
+  uMachineBase, uDebugForm, uAssemblerForm, uGenPrefsFrame, uEdPrefsFrame,
+  uDefs8080;
 
 type
   
@@ -222,7 +223,15 @@ type
     procedure WriteIniSettings;
     procedure DoCustomSection(var aSect: string);
     procedure WriteMachineID(aID: string);
+  private     // LEDs
+    LEDs: array[0..7] of TImage;
+    LedsSetValue: integer;
+    procedure CreateLEDs;
+    procedure SetLEDs(Value: integer);
+    procedure ShowLEDs(State: boolean);
+    procedure DoCheckLEDsWrite(Sender: TObject; Addr, Value: integer);
   private
+    procedure DoConfigChange(Sender: TObject; ChangedItem: integer);
     procedure MakeMachineAndForms;
     procedure FreeMachineAndForms;
     procedure SetButtonsState(IsRunning: boolean);
@@ -230,6 +239,7 @@ type
     procedure UpdateEditorPrefs(Sender: TObject; {%H-}ChangedItem: integer);
     procedure DoDebugButton(Sender: TObject; button: TDebugButton);
   public
+    //
   end;
 
 var
@@ -285,6 +295,7 @@ begin
   MakeMachineAndForms;
   ShowFormsState;
   CalculatedFPS := 0;
+  CreateLEDs;
   TimerUpdateState.Enabled := True;     // Maintains GUI in sync with windows etc
 end;
 
@@ -441,6 +452,7 @@ begin
   MachineDataFolder := GetAppResourcesDirectory + CurrentMachineID + DIRECTORY_SEPARATOR;
   Machine := MachineFactory.CreateMachineFromID(CurrentMachineID);
   Machine.Name := CurrentMachineID;
+  Machine.MemoryMgr.OnMemoryWrite := @DoCheckLedsWrite;
   Machine.OnConfigChange := @DoMachineConfigChange;
 
   // If ScreenSize is defined in INI file, then set machine screen size, else
@@ -503,6 +515,8 @@ begin
   PreferencesForm.Frames[ciDisplay].OnChange := @UpdateEditorPrefs;
   PreferencesForm.Frames[ciColours].OnChange := @UpdateEditorPrefs;
   PreferencesForm.SetMachineConfigFrame(Machine.Name, Machine.ConfigFrame);
+  GenPrefs := PreferencesForm.Frames[ciGeneral] as TGenPrefsFrame;
+  GenPrefs.OnChange := @DoConfigChange;
 end;
 
 
@@ -1019,6 +1033,7 @@ end;
 
 procedure TMainForm.TimerUpdateStateTimer(Sender: TObject);
 begin
+  ShowLEDs(GenPrefs.LedsEnabled);
   if (DeveloperMode) then
     begin
       actShowDebug.Checked := DebugForm.Visible;      
@@ -1047,6 +1062,75 @@ procedure TMainForm.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftSta
 begin
   if (Machine.State = msRunning) then // Only get key presses when running
     ShowMessage('Ensure machine window in focus to accept key presses');
+end;
+
+
+{ GENERAL CONFIG CHANGE }
+
+procedure TMainForm.DoConfigChange(Sender: TObject; ChangedItem: integer);
+var
+  i: integer;
+begin
+  case ChangedItem of
+    0: begin                            // All
+        SetLEDs(LedsSetValue);
+       end;
+    1: {nothing};                       // DataPath
+    2: {nothing};                       // LedsEnabled
+    3: SetLEDs(LedsSetValue);           // LedsColour
+    4: {nothing};                       // LedsAddress
+  end;
+end;
+
+
+{ LED BAR }
+
+procedure TMainForm.CreateLEDs;
+var
+  i: integer;
+begin
+  for i := 0 to 7 do
+    begin
+      LEDs[i] := TImage.Create(self);
+      LEDs[i].Parent := self;
+      LEDs[i].Left := 480 - i*24;
+      LEDs[i].Top := 3;
+      LEDs[i].Height := 21;
+      LEDs[i].Width := 22;
+    end;
+  SetLEDs(0);
+end;
+
+
+procedure TMainForm.SetLEDs(Value: integer);
+var
+  i: integer;
+begin
+  LedsSetValue := Value;
+  for i := 0 to 7 do
+    begin
+      if (Value and (1 shl i) > 0 ) then
+        GenPrefs.LedImages.GetBitmap(GenPrefs.LedsColourIndex, LEDs[i].Picture.Bitmap) // On
+      else
+        GenPrefs.LedImages.GetBitmap(0, LEDs[i].Picture.Bitmap); // Off
+    end;
+end;
+
+
+procedure TMainForm.ShowLEDs(State: boolean);
+var
+  i: integer;
+begin
+  for i := 0 to 7 do
+    LEDs[i].Visible := State;
+end;
+
+
+procedure TMainForm.DoCheckLEDsWrite(Sender: TObject; Addr, Value: integer);
+begin
+  if (GenPrefs.LedsEnabled) then
+    if (Addr = GenPrefs.LedAddress) then
+      SetLEDs(Value);
 end;
 
 

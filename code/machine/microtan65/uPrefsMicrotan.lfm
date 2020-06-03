@@ -65,7 +65,7 @@ inherited M65PrefsFrame: TM65PrefsFrame
       Height = 20
       Top = 10
       Width = 100
-      ItemHeight = 19
+      ItemHeight = 26
       ItemIndex = 0
       Items.Strings = (
         '750 kHz'
@@ -74,6 +74,7 @@ inherited M65PrefsFrame: TM65PrefsFrame
         '4 MHz'
       )
       OnChange = FlagChange
+      Style = csDropDownList
       TabOrder = 0
       Text = '750 kHz'
     end

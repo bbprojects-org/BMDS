@@ -13,7 +13,8 @@ object WatchesFrame: TWatchesFrame
     Height = 20
     Top = 8
     Width = 90
-    ItemHeight = 19
+    ItemHeight = 26
+    Style = csDropDownList
     TabOrder = 0
     Text = 'ComboBox1'
   end

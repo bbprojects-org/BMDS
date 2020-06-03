@@ -208,12 +208,13 @@ object DisassemblerForm: TDisassemblerForm
       Height = 20
       Top = 114
       Width = 136
-      ItemHeight = 16
+      ItemHeight = 26
       ItemIndex = 1
       Items.Strings = (
         'Narrow Spacing'
         'Wide Spacing'
       )
+      Style = csDropDownList
       TabOrder = 4
       Text = 'Wide Spacing'
     end

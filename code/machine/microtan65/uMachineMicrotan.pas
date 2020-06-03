@@ -169,7 +169,7 @@ var
   fFileMgr: TFileMgr;
 begin
   // Allocate full 64K but access limited to allocations below
-  fMemoryMgr := TMemoryMgr.Create(0, MEM_SIZE_64K);
+  fMemoryMgr := TMemoryMgr.Create(MEM_SIZE_64K);
   fFileMgr := TFileMgr.Create;
   try
     case (M65Prefs.RomIndex) of
@@ -186,7 +186,7 @@ begin
              end;
            // Set memory read/write accesses, 1K RAM, 1K ROM. No write to ROM area
            fMemoryMgr.AddRead($0000, $03FF, nil, '1K RAM');
-           // 512B work RAM + stack, 512B video RAM
+           // 512B work RAM inc stack, 512B video RAM
            fMemoryMgr.AddRead($FC00, $FFFF, nil, '1K Tanbug ROM');
            fMemoryMgr.AddWrite($0000, $01FF, nil, 'RAM');
            fInfo.MemoryButtons := 'Stack=01FF,ROM=F800';

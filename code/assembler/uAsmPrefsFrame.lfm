@@ -94,7 +94,7 @@ inherited AsmPrefsFrame: TAsmPrefsFrame
       Height = 20
       Top = 38
       Width = 108
-      ItemHeight = 19
+      ItemHeight = 26
       ItemIndex = 0
       Items.Strings = (
         'Intel hex'
@@ -102,6 +102,7 @@ inherited AsmPrefsFrame: TAsmPrefsFrame
         'etc'
       )
       OnChange = comboOutputFormatChange
+      Style = csDropDownList
       TabOrder = 1
       Text = 'Intel hex'
     end

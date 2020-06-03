@@ -95,8 +95,9 @@ type
     property CPU: TCpuBase read GetCPU;
     property Info: TMachineInfo read fInfo;    
     property State: TMachineState read fInfo.State write fInfo.State;
+    property MemoryMgr: TMemoryMgr read fMemoryMgr write fMemoryMgr;
     property Memory: TMemory read GetMemory;
-    property FPS: integer read fFPS write SetFPS;                                    
+    property FPS: integer read fFPS write SetFPS;
     property Gfx: TGfxManager read fGfx write fGfx;
     property ScreenPosition: TPoint read GetScreenPosition write SetScreenPosition;
     property ScreenSize: TPoint read GetScreenSize write SetScreenSize;

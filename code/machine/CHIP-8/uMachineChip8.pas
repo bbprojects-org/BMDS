@@ -92,7 +92,7 @@ begin
   fInfo.MachineDefsFileName := '';
   fInfo.HasCodeToExecute    := False;   // Needs a program to execute
 
-  fMemoryMgr := TMemoryMgr.Create(0, MEM_SIZE_4K);
+  fMemoryMgr := TMemoryMgr.Create(MEM_SIZE_4K);
 
   Gfx := TGfxManager.Create(2);         // Create screen, uses default B&W palette
   Gfx.SetWindowSize(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);

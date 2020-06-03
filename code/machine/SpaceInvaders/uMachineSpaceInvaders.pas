@@ -188,7 +188,7 @@ var
   fFileMgr: TFileMgr;
   AllOK: boolean;
 begin
-  fMemoryMgr := TMemoryMgr.Create(0, MEM_SIZE_16K);
+  fMemoryMgr := TMemoryMgr.Create(MEM_SIZE_16K);
   fMemoryMgr.AddRead($0000, $1fff, nil, '8K ROM');
   fMemoryMgr.AddRead($2000, $23ff, nil, '1K Work RAM');
   fMemoryMgr.AddRead($2400, $3fff, nil, '7K Video RAM');

@@ -79,7 +79,7 @@ type
     fOnMemoryWrite: TOnMemoryReadWrite;
   protected
   public
-    constructor Create(Area, Size: integer; ClearMemory: boolean = False);
+    constructor Create(Size: integer);
     destructor  Destroy; override;
 
     procedure AddRead(nStart, nEnd: integer; Handler: TRamRead=nil; Desc: string ='');
@@ -98,24 +98,15 @@ implementation
 
 { CREATE }
 
-{ Initialise memory manager, by default memory will appear as random bytes }
+{ Initialise memory manager }
 
-constructor TMemoryMgr.Create(Area, Size: integer; ClearMemory: boolean = False);
+constructor TMemoryMgr.Create(Size: integer);
 var
-  idx: integer;
+  i: integer;
 begin
   SetLength(fMemory, Size);             // Set size of memory area
-  if (ClearMemory) then
-    begin
-      for idx := 0 to (Size - 1) do     // Either, clear memory to all zero
-        fMemory[idx] := 0;
-    end
-  else
-    begin
-      Randomize;
-      for idx := 0 to (Size - 1) do     // or, randomize memory
-        fMemory[idx] := Random(256);
-    end;
+  for i := 0 to (Size - 1) do
+    fMemory[i] := $FF;                  // Default read from non-RAM
 end;
 
 
@@ -137,7 +128,7 @@ end;
   memory segment, and an optional handler routine to process any special
   requirements associated with that section's read or write. If it is just a
   'normal' read/write, the handler can be left blank, and default memory
-  read/writes will take place }
+  read/writes will take place. Each section can have a description too }
 
 procedure TMemoryMgr.AddRead(nStart, nEnd: integer; Handler: TRamRead = nil; Desc: string ='');
 var
@@ -156,7 +147,7 @@ end;
 
 procedure TMemoryMgr.AddWrite(nStart, nEnd: integer; Handler: TRamWrite = nil; Desc: string ='');
 var
-  n: integer;
+  n, i: integer;
 begin
   n := Length(aMemoryWriteSections);
   SetLength(aMemoryWriteSections, n + 1);
@@ -164,6 +155,10 @@ begin
   aMemoryWriteSections[n].EndMem := nEnd;
   aMemoryWriteSections[n].Handler := Handler;
   aMemoryWriteSections[n].Desc := Desc;
+
+  Randomize;
+  for i := nStart to nEnd do            // Randomize RAM
+    fMemory[i] := Random(256);
 end;
 
 
@@ -215,7 +210,7 @@ begin
         end;
     end;
 
-  if Assigned(fOnMemoryWrite) then      // Allow check for breakpoints
+  if Assigned(fOnMemoryWrite) then
     fOnMemoryWrite(self, Addr, Value);
 end;
 
