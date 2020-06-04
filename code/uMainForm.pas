@@ -49,7 +49,7 @@ uses
   //
   uCommon, uIniFile, uAboutForm, uPreferencesForm, uDisassembler, uCompareForm,
   uMachineBase, uDebugForm, uAssemblerForm, uGenPrefsFrame, uEdPrefsFrame,
-  uDefs8080;
+  uDefs8080, uMachineInfoForm;
 
 type
   
@@ -74,7 +74,6 @@ type
     actLoadCode: TFileOpen;
     actSaveCode: TFileSaveAs;
     DebugToolBar: TToolBar;
-    memoInfo: TMemo;
     memoDebug: TMemo;
     menuAsm: TMenuItem;
     menuAsmNew: TMenuItem;
@@ -214,7 +213,6 @@ type
     procedure StopMachine;
     procedure MakeMachine;
     procedure MakeMachineMenu;
-    procedure ShowMachineInfoInMemo;
     procedure SetMachineScreenSize(aMultiplier: integer);
     procedure DoMachineConfigChange(Sender: TObject; {%H-}ChangedItem: TMachineChangedItem);
   private     // INI file
@@ -259,7 +257,6 @@ const
   INI_SCREEN    = 'Scr';
   INI_SHOW_INFO = 'ShowInfo';
 
-  FORM_MIN_HEIGHT = 44;
   {$ifdef darwin}
     FORM_EXTRA_HEIGHT = 44;
   {$else}
@@ -287,6 +284,7 @@ begin
   {$else}
     menuHelpWindows.Visible := True;    // Default for these is not visible
   {$endif}
+  Height := 44;
 
   MachineDataFolder := '';
   CreateAppIni;
@@ -485,7 +483,6 @@ begin
   actRun.Enabled := Machine.Info.HasCodeToExecute; // Enabled if ROMS loaded
 
   ShowMachineStatus;
-  ShowMachineInfoInMemo;
 end;
 
 
@@ -691,22 +688,16 @@ end;
 { MENU - MACHINE INFO }
 
 procedure TMainForm.menuMachineInfoClick(Sender: TObject);
+var
+  mif: TMachineInfoForm;
 begin
-  menuInfo.Checked := not menuInfo.Checked;
-  ShowMachineInfoInMemo;
-end;
-
-
-procedure TMainForm.ShowMachineInfoInMemo;
-begin
-  memoInfo.Visible := menuInfo.Checked;
-  if (menuInfo.Checked) then
-    begin
-      memoInfo.Text := Machine.Description;
-      Height := FORM_MIN_HEIGHT + 320;
-    end
-  else
-    Height := FORM_MIN_HEIGHT;
+  mif := TMachineInfoForm.Create(nil);
+  try
+    mif.SetPosition(Left + Width, Top);
+    mif.ShowModal;
+  finally
+    mif.Free;
+  end;
 end;
 
 
@@ -731,8 +722,8 @@ end;
 procedure TMainForm.actLoadCodeBeforeExecute(Sender: TObject);
 begin
   { TODO : uMainForm -> put these in each Machine's defs }
-  actLoadCode.Dialog.DefaultExt := '.c8';
-  actLoadCode.Dialog.Filter := 'CHIP-8 Files|*.c8';
+  //actLoadCode.Dialog.DefaultExt := '.bin';
+  //actLoadCode.Dialog.Filter := 'Binary Files|*.bin';
 end;
 
 
@@ -741,25 +732,35 @@ var
   InStream: TMemoryStream;
   MemPtr: ^Byte;
   idx: integer;
+  FileName: string;
 begin
-  OpenDialog1.Filter := 'Binary Files|*.bin';
-  if (OpenDialog1.Execute) then
+  StopMachine;                      // Stop machine if running
+  FileName := actLoadCode.Dialog.FileName;
+  if (ExtractFileExt(FileName) = '.m65') then
     begin
-      StopMachine;                      // Stop machine if running
+      Machine.LoadFromFile(FileName);
+      if (DeveloperMode) then
+        DebugForm.Refresh;
+    end
+  else
+    begin
+      ShowMessage('Not a standard M65 file?');
+      Exit;
+      // DEBUG
       InStream := TMemoryStream.Create;
       try
-        InStream.LoadFromFile(OpenDialog1.FileName);
+        InStream.LoadFromFile(actLoadCode.Dialog.FileName);
         MemPtr := InStream.Memory;
         for idx := 0 to (InStream.Size - 1) do
           begin
-            Machine.Memory[$E800 + idx] := MemPtr^;   (* Loading to $E800, rather than $200 here *)
+            Machine.Memory[$400 + idx] := MemPtr^; { TODO : uMainForm -> need address to load to }
             Inc(MemPtr);
           end;
       finally
         InStream.Free;
       end;
-      Machine.Reset;                    // In case machine was running before
     end;
+  //Machine.Reset;                    // In case machine was running before
 end;
 
 
@@ -991,7 +992,6 @@ begin
   Left := AppIni.ReadInteger(SECT_CUSTOM, INI_WDW_LEFT, 20);
   Top := AppIni.ReadInteger(SECT_CUSTOM, INI_WDW_TOP, 20);
   DeveloperMode := AppIni.ReadBool(SECT_CUSTOM, INI_DEV_MODE, False);
-  menuInfo.Checked := AppIni.ReadBool(SECT_CUSTOM, INI_SHOW_INFO, True);
 
   tmpScreenPosition.X := AppIni.ReadInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_LEFT, -1);
   tmpScreenPosition.Y := AppIni.ReadInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_TOP, -1);
@@ -1006,7 +1006,6 @@ begin
   AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_LEFT, Left);
   AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_TOP, Top);
   AppIni.WriteBool(SECT_CUSTOM, INI_DEV_MODE, DeveloperMode);
-  AppIni.WriteBool(SECT_CUSTOM, INI_SHOW_INFO, menuInfo.Checked);
   AppIni.WriteInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_LEFT, Machine.ScreenPosition.X);
   AppIni.WriteInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_TOP, Machine.ScreenPosition.Y);
   AppIni.WriteInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_WIDTH, Machine.ScreenSize.X);

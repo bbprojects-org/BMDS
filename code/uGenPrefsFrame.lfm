@@ -12,7 +12,7 @@ inherited GenPrefsFrame: TGenPrefsFrame
     Width = 424
     Align = alTop
     BorderSpacing.Around = 8
-    Caption = 'Data Path:'
+    Caption = 'Data Path'
     ClientHeight = 38
     ClientWidth = 416
     TabOrder = 0

@@ -89,6 +89,7 @@ type
     procedure ScreenRefresh;      virtual; abstract;
     procedure SetFocus;
     procedure Stop;               virtual;
+    procedure LoadFromFile(FileName: string); virtual; abstract;
 
     property Name: string read fName write fName;
     property ConfigFrame: TPrefsFrame read fConfigFrame write fConfigFrame;

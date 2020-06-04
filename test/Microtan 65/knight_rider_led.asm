@@ -1,14 +1,14 @@
 //
-// Testing LED with a Knight Rider like sequence
+// Testing LEDs with a Knight Rider like sequence
 //
 // Assemble with 'Write code to memory' set
 // Then in TANBUG use G102 to run
 // Stop with Reset button
 //
 
-leds        equ   $100
+leds        equ   $BC00
 
-            org   $102,CODE            // Start of program code
+            org   $400,CODE            // Start of program code
 
 start       ldx   #0
             lda   #0

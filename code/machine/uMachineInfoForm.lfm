@@ -1,0 +1,41 @@
+object MachineInfoForm: TMachineInfoForm
+  Left = 2583
+  Height = 360
+  Top = 831
+  Width = 480
+  Caption = 'Machine Information'
+  ClientHeight = 360
+  ClientWidth = 480
+  Constraints.MinHeight = 360
+  Constraints.MinWidth = 480
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '2.1.0.0'
+  object memoInfo: TMemo
+    Left = 8
+    Height = 312
+    Top = 8
+    Width = 464
+    Align = alClient
+    BorderSpacing.Bottom = 32
+    BorderSpacing.Around = 8
+    Lines.Strings = (
+      'memoInfo'
+    )
+    ReadOnly = True
+    ScrollBars = ssAutoVertical
+    TabOrder = 0
+  end
+  object btnOK: TButton
+    Left = 384
+    Height = 21
+    Top = 328
+    Width = 75
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    OnClick = btnOKClick
+    TabOrder = 1
+  end
+end

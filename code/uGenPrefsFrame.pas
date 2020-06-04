@@ -4,6 +4,8 @@
 
     Provides facility to amend general options
 
+    The LED settings are saved per machine
+
 
   LICENSE:
 
@@ -89,8 +91,8 @@ const
   SECT_GENPREFS = 'GenPrefs';
   INI_DATAPATH  = 'DataPath';
   INI_ENABLED   = 'LedsEnabled';
-  INI_COLOURIDX = 'ColourIndex';
-  INI_ADDRESS   = 'Address';
+  INI_COLOURIDX = 'LedsColourIndex';
+  INI_ADDRESS   = 'LedsAddress';
 
 
 { INITIALISE CONFIG FRAME... read settings }
@@ -190,9 +192,9 @@ end;
 procedure TGenPrefsFrame.ReadIniItems;
 begin
   edDataPath.Text := AppIni.ReadString(SECT_GENPREFS, INI_DATAPATH, GetAppDataDirectory);
-  cbLEDsEnabled.Checked := AppIni.ReadBool(SECT_GENPREFS, INI_ENABLED, True);
-  comboColour.ItemIndex := AppIni.ReadInteger(SECT_GENPREFS, INI_COLOURIDX, 1);
-  edAddress.Text := Format('%.4x', [AppIni.ReadInteger(SECT_GENPREFS, INI_ADDRESS, $100)]);
+  cbLEDsEnabled.Checked := AppIni.ReadBool(SECT_CUSTOM, INI_ENABLED, True);
+  comboColour.ItemIndex := AppIni.ReadInteger(SECT_CUSTOM, INI_COLOURIDX, 1);
+  edAddress.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_ADDRESS, $BC00)]);
   ShowSettings;
 end;
 
@@ -200,9 +202,9 @@ end;
 procedure TGenPrefsFrame.WriteIniItems;
 begin
   AppIni.WriteString(SECT_GENPREFS, INI_DATAPATH, edDataPath.Text);
-  AppIni.WriteBool(SECT_GENPREFS, INI_ENABLED, cbLEDsEnabled.Checked);
-  AppIni.WriteInteger(SECT_GENPREFS, INI_COLOURIDX, comboColour.ItemIndex);
-  AppIni.WriteInteger(SECT_GENPREFS, INI_ADDRESS, GetHex(edAddress.Text));
+  AppIni.WriteBool(SECT_CUSTOM, INI_ENABLED, cbLEDsEnabled.Checked);
+  AppIni.WriteInteger(SECT_CUSTOM, INI_COLOURIDX, comboColour.ItemIndex);
+  AppIni.WriteInteger(SECT_CUSTOM, INI_ADDRESS, GetHex(edAddress.Text));
 end;
 
 

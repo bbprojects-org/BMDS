@@ -10,7 +10,7 @@ inherited AsmPrefsFrame: TAsmPrefsFrame
     Height = 192
     Top = 8
     Width = 200
-    Caption = 'Listing:'
+    Caption = 'Listing'
     ClientHeight = 174
     ClientWidth = 192
     TabOrder = 0
@@ -76,7 +76,7 @@ inherited AsmPrefsFrame: TAsmPrefsFrame
     Height = 192
     Top = 8
     Width = 200
-    Caption = 'Output Code:'
+    Caption = 'Output Code'
     ClientHeight = 174
     ClientWidth = 192
     TabOrder = 1

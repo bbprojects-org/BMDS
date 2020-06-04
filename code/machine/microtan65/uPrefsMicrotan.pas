@@ -2,9 +2,7 @@
 
   PREFERENCES FRAME FOR MICROTAN 65
 
-    Permits choice of monitor version (TANBUG/XBUG), screen colour and
-    frequency.
-
+    Permits choice of screen colour and frequency
     Saves settings in the application's INI file
 
 
@@ -46,13 +44,11 @@ type
     comboFreq: TComboBox;
     gbFrequency: TGroupBox;
     gbColour: TGroupBox;
-    Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     lblFreq: TLabel;
     panelFore: TPanel;
     panelBack: TPanel;
-    rgRom: TRadioGroup;
     procedure btnResetDefaultClick(Sender: TObject);
     procedure panelBackClick(Sender: TObject);
     procedure panelForeClick(Sender: TObject);
@@ -64,14 +60,12 @@ type
     function GetFrequency: integer;
     procedure ReadIniItems;
     procedure WriteIniItems;
-    function GetRomIndex: integer;
   public
     procedure Init; override;
     destructor Destroy; override;
     procedure SaveChanges; override;
     procedure CancelChanges; override;
     //
-    property RomIndex: integer read GetRomIndex;
     property ColourF: TGfxColour read fColourF;
     property ColourB: TGfxColour read fColourB;
     property Frequency: integer read GetFrequency;
@@ -84,7 +78,6 @@ implementation
 
 const
   SECT_M65PREFS = 'M65Prefs';
-  INI_ROM       = 'ROM';
   INI_COLOURF   = 'ColourF';
   INI_COLOURB   = 'ColourB';
   INI_FREQ      = 'Freq';
@@ -109,14 +102,6 @@ end;
 
 { GET OPTION STATES }
 
-function TM65PrefsFrame.GetRomIndex: integer;
-begin
-  { TODO : uPrefsMicrotan -> currently cannot change ROM dynamically, need to
-           rerun the program (or change machine and back) }
-  Result := rgRom.ItemIndex;
-end;
-
-
 function TM65PrefsFrame.GetFrequency: integer;
 begin
   case comboFreq.ItemIndex of
@@ -135,12 +120,10 @@ begin
   fChanged := True;
   if Assigned(fOnChange) then
     begin
-      if (Sender.ClassType = TRadioGroup) then
-        fOnChange(self, 1)              // 1=ROM
-      else if (Sender.ClassType = TPanel) then
-        fOnChange(self, 2)              // 2=Colour
+      if (Sender.ClassType = TPanel) then
+        fOnChange(self, 1)              // 1=Colour
       else
-        fOnChange(self, 3);             // 3=Frequency
+        fOnChange(self, 2);             // 2=Frequency
     end;
 end;
 
@@ -179,7 +162,6 @@ end;
 
 procedure TM65PrefsFrame.ReadIniItems;
 begin
-  rgROM.ItemIndex := AppIni.ReadInteger(SECT_M65PREFS, INI_ROM, 0);
   panelFore.Color := TColor(AppIni.ReadInteger(SECT_M65PREFS, INI_COLOURF, $00BFFF)); // Amber
   fColourF := ConvertPasToSDL(panelFore.Color);
   panelBack.Color := TColor(AppIni.ReadInteger(SECT_M65PREFS, INI_COLOURB, $000000)); // Black
@@ -190,7 +172,6 @@ end;
 
 procedure TM65PrefsFrame.WriteIniItems;
 begin
-  AppIni.WriteInteger(SECT_M65PREFS, INI_ROM, rgRom.ItemIndex);
   AppIni.WriteInteger(SECT_M65PREFS, INI_COLOURF, Integer(panelFore.Color));
   AppIni.WriteInteger(SECT_M65PREFS, INI_COLOURB, Integer(panelBack.Color));
   AppIni.WriteInteger(SECT_M65PREFS, INI_FREQ, comboFreq.ItemIndex);

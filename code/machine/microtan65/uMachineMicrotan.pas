@@ -2,30 +2,31 @@
 
   MICROTAN 65 BOARD
 
-    This class provides an emulation of the Microtan 65 basic board, produced
+    This class provides an emulation of an expanded Microtan 65, produced
     by Tangerine Systems from 1979.
 
     CPU:        6502 running at 750kHz
     Video:      16 rows of 32 characters, or 64 x 64 chunky graphics
     Memory map: As below
 
-      RAM (1K):
-      $0000-$00ff    256B Zero Page
-      $0100-$01ff    256B Stack
-      $0200-$03ff    512B Screen RAM
+      RAM:
+      $0000-$00FF    256B Zero Page
+      $0100-$01FF    256B Processor Stack
+      $0200-$03FF    512B Screen RAM
+      $0400-$BBFF    47K User RAM
 
-      ROM (1K):
-      $fc00-$ffff    1K Tanbug monitor program (mirrored at lower addresses)
+      I/O via memory accesses ($BC00 to $BFFF reserved):
+      $BFF0 read     Turn graphics on
+      $BFF0 write    Reset keyboard interrupt flag
+      $BFF1 write    Set delayed NMI 8-cycle countdown
+      $BFF2 write    Strobe keypad (not used here since have ASCII keyboard)
+      $BFF3 read     Read keypad / keyboard input
+      $BFF3 write    Turn graphics off
 
-      Special I/O via memory accesses:
-      $bff0 read     Turn graphics on
-      $bff0 write    Reset keyboard interrupt flag
-      $bff1 write    Set delayed NMI 8-cycle countdown
-      $bff2 write    Strobe keypad (not used here since have ASCII keyboard)
-      $bff3 read     Read keypad / keyboard input
-      $bff3 write    Turn graphics off
+      ROM:
+      $C000-$FFFF    Tanbug + XBug + Basic
 
-    The frequency, memory and ROM can be changed in the preferences pane.
+    The frequency and screen colours can be changed in the preferences pane
 
     Much of the code here is based on a mixture of ideas / code reworked
     into Pascal from the following:
@@ -54,9 +55,8 @@
   ============================================================================= }
 
 { TODO : uMachineMicrotan -> SaveToFile routine }
-{ TODO : uMachineMicrotan -> have fully expanded machine with 64K }
 
-{ TODO : uMachineMicrotan -> BUG: 1K Tanbug resetting on invalid command? }
+{ TODO : uMachineMicrotan -> BUG: Tanbug resetting on invalid command? }
 { TODO : uMachineMicrotan -> BUG: single step/proceed not working as per M65 manual }
 
 unit uMachineMicrotan;
@@ -115,7 +115,7 @@ type
     procedure Step; override;   
     procedure ScreenRefresh; override;
     procedure SaveToFile(strm: TStream);
-    procedure LoadFromFile(FileName: string);
+    procedure LoadFromFile(FileName: string); override;
     //
     property CPU: TCpuBase read GetCPU;
 end;
@@ -165,51 +165,26 @@ end;
 
 procedure TMachineMicrotan.CreateMemoryManager;
 var
-  idx: integer; 
   fFileMgr: TFileMgr;
 begin
-  // Allocate full 64K but access limited to allocations below
+  // Allocate full 64K, specific allocations below
   fMemoryMgr := TMemoryMgr.Create(MEM_SIZE_64K);
   fFileMgr := TFileMgr.Create;
   try
-    case (M65Prefs.RomIndex) of
-
-      // Basic machine, 1K RAM, 1K TANBUG
-      0: begin
-           fInfo.HasCodeToExecute := fFileMgr.LoadROM('tanbug.rom', @fMemoryMgr.Memory[$FC00], $400, $C1E45F1A);
-           for idx := 0 to $3FF do
-             begin
-               // Microtan had limited address decoding, so Tanbug repeated at 1K intervals
-               fMemoryMgr.Memory[$F000 + idx] := fMemoryMgr.Memory[$FC00 + idx];
-               fMemoryMgr.Memory[$F400 + idx] := fMemoryMgr.Memory[$FC00 + idx];
-               fMemoryMgr.Memory[$F800 + idx] := fMemoryMgr.Memory[$FC00 + idx];
-             end;
-           // Set memory read/write accesses, 1K RAM, 1K ROM. No write to ROM area
-           fMemoryMgr.AddRead($0000, $03FF, nil, '1K RAM');
-           // 512B work RAM inc stack, 512B video RAM
-           fMemoryMgr.AddRead($FC00, $FFFF, nil, '1K Tanbug ROM');
-           fMemoryMgr.AddWrite($0000, $01FF, nil, 'RAM');
-           fInfo.MemoryButtons := 'Stack=01FF,ROM=F800';
-         end;
-
-      // Expanded machine, 8K RAM, 16K ROM
-      1: begin                                                        
-           fInfo.HasCodeToExecute := fFileMgr.LoadROM('microtan.rom', @fMemoryMgr.Memory[$C000], $4000, $0E4CD26E);
-           // Set memory read/write accesses, 8K RAM, 16K ROM. No write to ROM area
-           fMemoryMgr.AddRead($0000, $1FFF, nil, '8K RAM');
-           fMemoryMgr.AddRead($C000, $FFFF, nil, '16K ROM, XBUG + BASIC');
-           fMemoryMgr.AddWrite($0000, $01FF, nil, 'Standard RAM write, lo');
-           fMemoryMgr.AddWrite($0400, $1FFF, nil, 'Standard RAM write, hi'); 
-           fInfo.MemoryButtons := 'Stack=01FF,ROM=C000';
-         end;
-    end;
-  finally          
+    fInfo.HasCodeToExecute := fFileMgr.LoadROM('microtan.rom', @fMemoryMgr.Memory[$C000], $4000, $0E4CD26E);
+  finally
     fFileMgr.Free;
   end;
-  // Common accesses for I/O addresses, and video RAM
-  fMemoryMgr.AddRead($BFF0, $BFF3, @ReadBFFx, 'Graphics on / Read keyboard');                
-  fMemoryMgr.AddWrite($BFF0, $BFF3, @WriteBFFx, 'Reset keyboard, Delayed NMI, Graphics off');
+  fInfo.MemoryButtons := 'Stack=01FF,ROM=C000';
+  // Read
+  fMemoryMgr.AddRead($0000, $BBFF, nil, '47K RAM');
+  fMemoryMgr.AddRead($BFF0, $BFF3, @ReadBFFx, 'Graphics on / Read keyboard');
+  fMemoryMgr.AddRead($C000, $FFFF, nil, '16K ROM, XBUG + BASIC');
+  // Write
+  fMemoryMgr.AddWrite($0000, $01FF, nil, 'Standard RAM write, lo');
   fMemoryMgr.AddWrite($0200, $03FF, @WriteVRAM, 'Write to Video RAM');
+  fMemoryMgr.AddWrite($0400, $AFFF, nil, 'Standard RAM write, hi');
+  fMemoryMgr.AddWrite($BFF0, $BFF3, @WriteBFFx, 'Reset keyboard, Delayed NMI, Graphics off');
 end;
 
 
@@ -536,9 +511,8 @@ begin
     0: begin                            // All
          BuildTextures;
        end;
-    1: {nothing};                       // ROM
-    2: BuildTextures;                   // Colour
-    3: begin                            // Frequency
+    1: BuildTextures;                   // Colour
+    2: begin                            // Frequency
          fInfo.CpuFreqKhz := M65Prefs.Frequency;
          // RunForOneFrame uses this dynamically so nothing else to update,
          // just notify mainform if it wants to know

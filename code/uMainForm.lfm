@@ -1,13 +1,13 @@
 object MainForm: TMainForm
   Left = 2586
-  Height = 220
+  Height = 214
   Top = 908
   Width = 512
   AllowDropFiles = True
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsDialog
   Caption = 'BMDS'
-  ClientHeight = 220
+  ClientHeight = 214
   ClientWidth = 512
   Font.Height = -10
   KeyPreview = True
@@ -30,7 +30,7 @@ object MainForm: TMainForm
     EdgeInner = esNone
     EdgeOuter = esNone
     Images = ImageList1
-    TabOrder = 1
+    TabOrder = 0
     object tbLoadCode: TToolButton
       Left = 1
       Top = 0
@@ -84,7 +84,7 @@ object MainForm: TMainForm
     EdgeInner = esNone
     EdgeOuter = esNone
     Images = ImageList1
-    TabOrder = 3
+    TabOrder = 2
     object tbShowDebug: TToolButton
       Left = 1
       Top = 0
@@ -109,7 +109,7 @@ object MainForm: TMainForm
   object StatusBar: TStatusBar
     Left = 0
     Height = 18
-    Top = 202
+    Top = 196
     Width = 512
     Panels = <    
       item
@@ -125,21 +125,6 @@ object MainForm: TMainForm
         Width = 50
       end>
     SimplePanel = False
-  end
-  object memoInfo: TMemo
-    Left = 2
-    Height = 174
-    Top = 26
-    Width = 508
-    Align = alClient
-    BorderSpacing.Top = 24
-    BorderSpacing.Around = 2
-    Lines.Strings = (
-      'memoInfo'
-    )
-    ScrollBars = ssAutoVertical
-    TabOrder = 0
-    TabStop = False
   end
   object MainMenu: TMainMenu
     Images = ImageList1
@@ -168,8 +153,7 @@ object MainForm: TMainForm
         Action = actMachineConfig
       end
       object menuInfo: TMenuItem
-        Caption = 'Show Info'
-        Checked = True
+        Caption = 'Show Info...'
         OnClick = menuMachineInfoClick
       end
       object N6: TMenuItem
