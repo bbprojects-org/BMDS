@@ -35,10 +35,6 @@
   { TODO : uAssembler -> add DEFINE to create pseudonym for given text,
                          e.g. CHIP8 register. Replaced by parser? }
 
-  { TODO : uAssembler -> BUG: output to hex including ZP variables in error }
-  { TODO : uAssembler -> BUG: cpudiag.asm for 8080 has final EQU that causes
-                         phasing error. Seems to be an assembler bug }
-
 //
 // Have spcific CPU functionality in CPU units, supporting following Public:
 //   INIT      - setup opcode tables (if not already done), bigendian, etc
@@ -51,6 +47,8 @@ unit uAssembler;
 
 {$mode objfpc}{$H+}
 {$R-}
+
+{.$define assembler_debug}
 
 interface
 
@@ -112,6 +110,7 @@ type
     LineHasLabel: boolean;              // Does current line have a label?
     DefiningMacro: boolean;             // Is a macro currently being defined?
     MacroLevel: integer;                // Need to set 0 during initialisation
+    WriteToMemoryError: boolean;
     procedure AddDebugLineInfo;
     procedure AddDirectives;
     procedure AddError(msg: string; SkipRest: boolean = True);
@@ -119,6 +118,7 @@ type
     procedure AddOpcodes;
     procedure AddToMacro;
     procedure DefineMacro;
+    procedure DoEqu;
     procedure DoMacro;
     procedure DoPass(PassNo: Integer; FileName: string);
     procedure DefineLabel;
@@ -213,6 +213,7 @@ begin
   MacroLevel := 0;
   fErrorCount := 0;
   fWarningCount := 0;
+  WriteToMemoryError := False;
 
   PC := 0;
   SetAssemblingFlag(True);              // Conditional assembly flag
@@ -254,6 +255,10 @@ var
   StartPC: integer;
   ExpectingInstruction: boolean;
 begin
+  {$ifdef assembler_debug}
+  AppLog.Debug('');
+  AppLog.Debug(Format('TAssembler.DoPass, PASS=%d', [PassNo]));
+  {$endif}
   fPassNumber := PassNo;
   fListing.PassNumber := PassNo;
   fFiles.Init;                          // Initialise file stack, etc
@@ -351,6 +356,12 @@ var
   OperandStart: integer;
   Instruction: TInstruction;
 begin
+  if (not IsAssembling) then
+    begin
+      fParser.SkipRestOfLine;
+      Exit;
+    end;
+
   OperandStart := fParser.PeekNextToken.StartPos;
   case (fParser.Token.Typ) of
     tkId, tkDotId:
@@ -384,18 +395,7 @@ begin
     itWord:    DoWord;                  // Define word values
     itText:    DoText;                  // Define text string
     itMacro:   DoMacro;                 // Expand a macro
-    itEqu:     begin
-                 // Define a constant value. A label is assigned the value of
-                 // the expression that follows it
-                 if (LineHasLabel) then
-                   begin
-                     fSymbolTable.Symbol.Value := ParseExpr;
-                     fSymbolTable.Symbol.Use := [symDefine, symSet];
-                     fListing.HexData := AddrOnly(fSymbolTable.Symbol.Value);
-                   end
-                 else
-                   AddError(LABEL_MISSING);
-               end;
+    itEqu:     DoEqu;                   // Assign value to a label
     itEnd:     begin
                  // If END encountered, flag it here. At next GetSourceLine
                  // this flag will cause the current file to close, ignoring
@@ -422,8 +422,13 @@ begin
   if ((fPassNumber = 2) and (fIsAssembling)) then
     for i := 1 to NumBytes do
       begin
-        if (AsmPrefs.WriteToMemory) then
-          Machine.Memory[StartAddr + i - 1] := BytesArray[i];
+        if (AsmPrefs.WriteToMemory and (not WriteToMemoryError)) then
+          begin
+            if (Machine.IsRAM(StartAddr + i - 1)) then
+              Machine.Memory[StartAddr + i - 1] := BytesArray[i]
+            else
+              WriteToMemoryError := True;
+          end;
         if (AsmPrefs.WriteToFile) then
           fFiles.WriteDataByte(BytesArray[i]);
       end;
@@ -485,10 +490,11 @@ begin
        tkId,                            // part of an expression including
        tkDotId,                         // unary operators
        tkNumber,
+       tkString,                        // Single character only
        tkPlus,
        tkMinus,
        tkGreater,
-       tkLower:   if (Pos(Uppercase(fParser.PeekNextToken.StringVal), Machine.CPU.Info.Registers) > 0) then
+       tkLower:   if ((fParser.PeekNextToken.Typ = tkId) and (Pos(Uppercase(fParser.PeekNextToken.StringVal), Machine.CPU.Info.Registers) > 0)) then
                     begin
                       fParser.GetToken;
                       sAddrMode := sAddrMode + UpperCase(fParser.Token.StringVal);
@@ -519,6 +525,11 @@ begin
         end;
       end;
     end;
+
+  {$ifdef assembler_debug}
+  AppLog.Debug(Format('TAssembler.DoMnemonic, %.4d, %s, AM=[%s]', [fFiles.CurrentLineNo + 1, Instruction.Name, sAddrMode]));
+  {$endif}
+
 
   // Now check address mode against those in OpcodesList. Note that the
   // opcode data has all the address modes for a specific mnemonic grouped
@@ -629,6 +640,8 @@ end;
   These bytes default to zero, but can be set as an optional value following the
   space declaration }
 
+{ TODO : uAssembler -> if Reserve in CODE area, warn in case forgot MM=RAM }
+
 procedure TAssembler.DoReserve;
 var
   idx, Operand: integer;
@@ -644,7 +657,7 @@ begin
       fParser.GetToken;                 // Skip comma
       FillByte := ParseExpr;            // Get user fill value
     end;
-  if (MemorySection = msCode) then      // If CODE section then
+  if ((MemorySection = msCode) and fIsAssembling) then // If CODE section then
     for idx := 1 to Operand do
       fFiles.WriteDataByte(FillByte);   // ... write to output file
 end;
@@ -730,6 +743,35 @@ begin
           fListing.HexData := AddrPlus(NumBytes);
         end;
     end;
+end;
+
+
+{ DO EQUATE INSTRUCTION }
+
+procedure TAssembler.DoEqu;
+var
+  ThisSymbol: TSymbol;
+begin
+  if (not fIsAssembling) then
+    begin
+      ParseExpr;                        // Just get expression, and leave
+      Exit;
+    end;
+
+  // Define a constant value. A label is assigned the value of
+  // the expression that follows it
+  if (LineHasLabel) then
+    begin
+      ThisSymbol := fSymbolTable.Symbol;
+      ThisSymbol.Value := ParseExpr;
+      ThisSymbol.Use := [symDefine, symSet];
+      fListing.HexData := AddrOnly(ThisSymbol.Value);
+      {$ifdef assembler_debug}
+      AppLog.Debug(Format('TAssembler.DoEqu [%s = %.4x]', [ThisSymbol.Name, ThisSymbol.Value]));
+      {$endif}
+    end
+  else
+    AddError(LABEL_MISSING);
 end;
 
 
@@ -1051,6 +1093,13 @@ begin
                  end;
 
     tkNumber: Result := fParser.Token.NumberVal;
+
+    tkString: begin
+                if Length(fParser.Token.StringVal) > 1 then
+                  AddError(Format('String ''%s'' too long, single character expected', [fParser.Token.StringVal]))
+                else
+                  Result := Ord(fParser.Token.StringVal[1]);
+              end;
 
     tkId,
     tkDotId:  begin

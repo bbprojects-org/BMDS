@@ -46,7 +46,7 @@ There is also a data compare window allowing byte-by-byte comparison of binary i
 
 ## Build Notes
 
-More details of the elements that go into BMDS can be found on my website at [bbprojects.org](https://bbprojects.org/computer/bmds-beyond-the-microtan-development-system/).
+More details of the elements that go into BMDS can be found at [bbprojects.org](https://bbprojects.org/computer/bmds-beyond-the-microtan-development-system/).
 
 When compiling, Lazarus/FPC will put all build files in a "*_build*" folder, and the executable in a "*_bin*" folder. I put the underscore in front of these (and some other folders) to remind me which folders do not need to be pushed to GitHub.
 

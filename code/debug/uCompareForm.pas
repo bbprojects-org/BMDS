@@ -32,6 +32,8 @@ unit uCompareForm;
 {$mode objfpc}{$H+}
 {$R-}
 
+{$define compare_debug}
+
 interface
 
 uses
@@ -88,8 +90,8 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure Memo1Click(Sender: TObject);
-    procedure sbHexFromClick(Sender: TObject);
-    procedure sbRomFromClick(Sender: TObject);
+    procedure sbHexClick(Sender: TObject);
+    procedure sbRomClick(Sender: TObject);
   private
     BufFrom: TByteBuffer;
     BufTo: TByteBuffer;
@@ -107,6 +109,8 @@ type
     OffsetTo: integer;
     TempStartAddr: integer;
     procedure ErrorMsg(Msg: string);
+    procedure ErrorTooLong(Len: integer);
+    function NoFileName(FN, Txt: string): boolean;
     function ReadRomFile(FileName: string; var Buffer: TByteBuffer): integer;
     function ReadHexFile(FileName: string; var Buffer: TByteBuffer): integer;
     function ReadMem(Ed1, Ed2: TEdit; var Buffer: TByteBuffer): integer;
@@ -122,6 +126,14 @@ implementation
 
 const
   INI_PREFIX = 'Compare';
+  INI_F1     = 'MemF1';
+  INI_F2     = 'MemF2';
+  INI_T1     = 'MemT1';
+  INI_T2     = 'MemT2';
+  INI_FNROMF = 'FnRomF';
+  INI_FNHEXF = 'FnHexF';
+  INI_FNROMT = 'FnRomT';
+  INI_FNHEXT = 'FnHexT';
 
 
 { CREATE }
@@ -132,15 +144,15 @@ begin
   Left := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, 170);
   Visible := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WDW_VIS, True); // Written out in uMainForm
 
-  edMemFrom1.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + 'MemF1', 0)]);
-  edMemFrom2.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + 'MemF2', $FFFF)]);
-  edMemTo1.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + 'MemT1', 0)]);
-  edMemTo2.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + 'MemT2', $FFFF)]);
+  edMemFrom1.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_F1, 0)]);
+  edMemFrom2.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_F2, $FFFF)]);
+  edMemTo1.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_T1, 0)]);
+  edMemTo2.Text := Format('%.4x', [AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_T2, $FFFF)]);
 
-  FileNameRomFrom := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnRomF', '');
-  FileNameHexFrom := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnHexF', '');
-  FileNameRomTo := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnRomT', '');
-  FileNameHexTo := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + 'FnHexT', '');
+  FileNameRomFrom := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + INI_FNROMF, '');
+  FileNameHexFrom := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + INI_FNHEXF, '');
+  FileNameRomTo := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + INI_FNROMT, '');
+  FileNameHexTo := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + INI_FNHEXT, '');
 
   edRomFrom.Text := ExtractFileName(FileNameRomFrom);
   edHexFrom.Text := ExtractFileName(FileNameHexFrom);
@@ -158,15 +170,15 @@ begin
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, Top);
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, Left);
 
-  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + 'MemF1', GetHex(edMemFrom1.Text));
-  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + 'MemF2', GetHex(edMemFrom2.Text));
-  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + 'MemT1', GetHex(edMemTo1.Text));
-  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + 'MemT2', GetHex(edMemTo2.Text));
+  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_F1, GetHex(edMemFrom1.Text));
+  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_F2, GetHex(edMemFrom2.Text));
+  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_T1, GetHex(edMemTo1.Text));
+  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_T2, GetHex(edMemTo2.Text));
 
-  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnRomF', FileNameRomFrom);
-  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnHexF', FileNameHexFrom);
-  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnRomT', FileNameRomTo);
-  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + 'FnHexT', FileNameHexTo);
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + INI_FNROMF, FileNameRomFrom);
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + INI_FNHEXF, FileNameHexFrom);
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + INI_FNROMT, FileNameRomTo);
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + INI_FNHEXT, FileNameHexTo);
 end;
 
 
@@ -178,7 +190,7 @@ begin
 end;
 
 
-{ DO COMPARE }
+{ COMPARE BUTTON }
 
 procedure TCompareForm.btnCompareClick(Sender: TObject);
 var
@@ -188,38 +200,38 @@ begin
   Memo1.Lines.Clear;
   ErrMsg := '';
 
-  if rbRomFrom.Checked then
+  if (rbRomFrom.Checked) then
     begin
       LengthFrom := ReadRomFile(FileNameRomFrom, BufFrom);
       FromStr := Format('ROM image "%s"', [edRomFrom.Text]);
       OffsetFrom := 0;
     end;
-  if rbHexFrom.Checked then
+  if (rbHexFrom.Checked) then
     begin
       LengthFrom := ReadHexFile(FileNameHexFrom, BufFrom);
       FromStr := Format('hex file "%s"', [edHexFrom.Text]);
-      OffsetFrom := TempStartAddr;
+      OffsetFrom := TempStartAddr;      // Set by ReadHexFile
     end;
-  if rbMemFrom.Checked then
+  if (rbMemFrom.Checked) then
     begin
       LengthFrom := ReadMem(edMemFrom1, edMemFrom2, BufFrom);
       FromStr := Format('memory $%.4x - $%.4x', [GetHex(edMemFrom1.Text), GetHex(edMemFrom2.Text)]);
       OffsetFrom := GetHex(edMemFrom1.Text);
     end;
 
-  if rbRomTo.Checked then
+  if (rbRomTo.Checked) then
     begin
       LengthTo := ReadRomFile(FileNameRomTo, BufTo);
       ToStr := Format('ROM image "%s"', [edRomTo.Text]);
       OffsetTo := 0;
     end;
-  if rbHexTo.Checked then
+  if (rbHexTo.Checked) then
     begin
       LengthTo := ReadHexFile(FileNameHexTo, BufTo);
       ToStr := Format('hex file "%s"', [edHexTo.Text]);
       OffsetTo := TempStartAddr;
     end;
-  if rbMemTo.Checked then
+  if (rbMemTo.Checked) then
     begin
       LengthTo := ReadMem(edMemTo1, edMemTo2, BufTo);
       ToStr := Format('memory $%.4x - $%.4x', [GetHex(edMemTo1.Text), GetHex(edMemTo2.Text)]);
@@ -229,7 +241,7 @@ begin
   if (LengthFrom <> LengthTo) then
     ErrorMsg(Format('Lengths should be same; %d and %d', [LengthFrom, LengthTo]));
 
-  if ErrMsg <> '' then
+  if (ErrMsg <> '') then
     begin
       MessageDlg('Error:' + LineEnding + ErrMsg, mtWarning, [mbOK], 0);
       Exit;
@@ -239,6 +251,10 @@ begin
   Memo1.Lines.Add('against ' + ToStr);
   Memo1.Lines.Add('');
 
+  {$ifdef compare_debug}
+  AppLog.Debug(Format('TCompareForm.btnCompareClick, %s against %s, len %d', [FromStr, ToStr, LengthFrom]));
+  {$endif}
+
   DrawGrid1.RowCount := LengthFrom;
   for i := 0 to (LengthFrom - 1) do
     begin
@@ -246,7 +262,7 @@ begin
         begin
           ErrorLine := i;
           CurrentErrorLine := i;
-          DrawGrid1.Row := ErrorLine;     // Show first error line
+          DrawGrid1.Row := ErrorLine;   // Show first error line
           break;
         end;
     end;
@@ -350,7 +366,7 @@ end;
 
 { COMPARE WITH ROM IMAGE FILE }
 
-procedure TCompareForm.sbRomFromClick(Sender: TObject);
+procedure TCompareForm.sbRomClick(Sender: TObject);
 var
   ThisFileName: string;
 begin
@@ -380,11 +396,8 @@ var
   idx: integer;
 begin
   Result := 0;
-  if (FileName = '') then
-    begin
-      ErrorMsg('No ROM image file specified');
-      Exit;
-    end;
+  if (NoFileName(FileName, 'ROM image')) then
+    Exit;
 
   RomStream := TMemoryStream.Create;
   try
@@ -392,19 +405,23 @@ begin
     RomPtr := RomStream.Memory;
     Result := RomStream.Size;
     if (Result > $FFFF) then
-      ErrorMsg(Format('Max length is %d ($.5x) bytes, this is %d ($%.5x) bytes', [$10000, $10000, Result, Result]))
+      ErrorTooLong(Result)
     else
       for idx := 0 to RomStream.Size do
         Buffer[idx] := Byte(RomPtr[idx]);
   finally
     RomStream.Free;
   end;
+
+  {$ifdef compare_debug}
+  AppLog.Debug(Format('TCompareForm.ReadRomFile, File %s, length %d', [FileName, Result]));
+  {$endif}
 end;
 
 
 { COMPARE WITH HEX FILE }
 
-procedure TCompareForm.sbHexFromClick(Sender: TObject);
+procedure TCompareForm.sbHexClick(Sender: TObject);
 var
   ThisFileName: string;
 begin
@@ -434,24 +451,44 @@ var
   idx: integer;
 begin
   Result := 0;
-  if (FileName = '') then
-    begin
-      ErrorMsg('No hex file specified');
-      Exit;
-    end;
+  if (NoFileName(FileName, 'hexfile')) then
+    Exit;
 
   ReadHex := TReadHex.Create(FileName);
   try
     TempStartAddr := ReadHex.StartAddress;
     Result := ReadHex.BytesRead;
     if (Result > $FFFF) then
-      ErrorMsg(Format('Max length is %d ($.5x) bytes, this is %d ($%.5x) bytes', [$10000, $10000, Result, Result]))
+      ErrorTooLong(Result)
     else
       for idx := 0 to ReadHex.BytesRead do
         Buffer[idx] := ReadHex.BytesArray[idx];
   finally
     ReadHex.Free;
   end;
+
+  {$ifdef compare_debug}
+  AppLog.Debug(Format('TCompareForm.ReadHexFile, File %s, length %d', [FileName, Result]));
+  {$endif}
+end;
+
+
+{ Helpers }
+
+function TCompareForm.NoFileName(FN, Txt: string): boolean;
+begin
+  Result := False;
+  if (FN = '') then
+    begin
+      ErrorMsg(Format('No %s specified', [Txt]));
+      Result := True;
+    end;
+end;
+
+
+procedure TCompareForm.ErrorTooLong(Len: integer);
+begin
+  ErrorMsg(Format('Max length is %d ($.5x) bytes, this is %d ($%.5x) bytes', [$10000, $10000, Len, Len]));
 end;
 
 
@@ -491,6 +528,10 @@ begin
   for i := FromAddr to ToAddr do
     Buffer[i - FromAddr] := Machine.Memory[i];
   Result := ToAddr - FromAddr + 1;
+
+  {$ifdef compare_debug}
+  AppLog.Debug(Format('TCompareForm.ReadMem, From %.4x, To %.4x, length %d', [FromAddr, ToAddr, Result]));
+  {$endif}
 end;
 
 

@@ -70,6 +70,8 @@ type
 
   { TMemory }
 
+  { TMemoryMgr }
+
   TMemoryMgr = class(TObject)
   private
     fMemory: TMemory;                   // Memory space
@@ -84,9 +86,10 @@ type
 
     procedure AddRead(nStart, nEnd: integer; Handler: TRamRead=nil; Desc: string ='');
     procedure AddWrite(nStart, nEnd: integer; Handler: TRamWrite=nil; Desc: string ='');
-    function  Description: string;
     procedure MemReadHandler(Sender: TObject; Addr: word; var Value: byte);
     procedure MemWriteHandler(Sender: TObject; Addr: word; Value: byte);
+    function  Description: string;
+    function  IsRAM(Addr: word): boolean;
 
     property Memory: TMemory read fMemory write fMemory;
     property OnMemoryRead: TOnMemoryReadWrite read fOnMemoryRead write fOnMemoryRead;
@@ -230,6 +233,26 @@ begin
   for i := 0 to (Length(aMemoryWriteSections) - 1) do
     begin
       Result := Result + Format(CRLF + '  %.4x-%.4x %s', [aMemoryWriteSections[i].StartMem, aMemoryWriteSections[i].EndMem, aMemoryWriteSections[i].Desc]);
+    end;
+end;
+
+
+{ IS RAM - check if address provided is actually writeable }
+
+function TMemoryMgr.IsRAM(Addr: word): boolean;
+var
+  i: integer;
+begin
+  Result := True;
+  for i := 0 to (Length(aMemoryWriteSections) - 1) do
+    begin
+      if ((Addr >= aMemoryWriteSections[i].StartMem) and (Addr <= aMemoryWriteSections[i].EndMem)) then
+        Continue
+      else
+        begin
+          Result := False;
+          Break;
+        end;
     end;
 end;
 

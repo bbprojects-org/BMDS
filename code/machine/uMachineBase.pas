@@ -32,7 +32,7 @@ interface
 uses
   ExtCtrls, Graphics, LCLIntf, LCLType, Classes, Forms, SysUtils, Dialogs,
   //
-  uCpuBase, uBreakpointsFrame, uMemoryMgr, uGfxMgr, uPrefsFrameBase;
+  uCpuBase, uBreakpointsFrame, uMemoryMgr, uGfxMgr, uPrefsFrameBase, uCommon;
 
 type
   TMachineState = (msStopped, msRunning, msStoppedOnBrkpt, msStoppedOnRead,
@@ -87,9 +87,10 @@ type
     procedure RunForOneFrame;     virtual; abstract;
     procedure Step;               virtual; abstract;
     procedure ScreenRefresh;      virtual; abstract;
-    procedure SetFocus;
     procedure Stop;               virtual;
     procedure LoadFromFile(FileName: string); virtual; abstract;
+    procedure SetFocus;
+    function  IsRAM(Addr: word): boolean;
 
     property Name: string read fName write fName;
     property ConfigFrame: TPrefsFrame read fConfigFrame write fConfigFrame;
@@ -233,6 +234,17 @@ procedure TMachineBase.SetScreenCaption(Value: string);
 begin
   Gfx.SetCaption(Value);
 end;
+
+
+{ CHECK IF ADDRESS GIVEN IS IN RAM, i.e. writeable }
+
+function TMachineBase.IsRAM(Addr: word): boolean;
+begin
+  Result := fMemoryMgr.IsRAM(Addr);
+  if (Result = False) then
+    MessageWarning(Format('Address $%.4x is not writeable, might be ROM', [Addr]));
+end;
+
 
 
 { TMachineFactory }

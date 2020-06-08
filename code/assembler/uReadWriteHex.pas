@@ -101,7 +101,7 @@ type
   private
     BytesArray: array[1..MAX_BYTES_PER_LINE] of byte;
     ByteCount: integer;
-    fAddress: word;
+    fAddress: integer;
     HexFile: TextFile;
     fRecType: TRecordType;
     fErrorMessage: string;
@@ -111,9 +111,9 @@ type
   public
     constructor Create(FileName: string; RecType: TRecordType = rtIntelHex);
     destructor Destroy; override;
-    procedure SetStart(AAddress: integer);
-    procedure WriteByte(AByte: byte);
-    procedure WriteBytes(ABytesArray: TBytesArray; Pos1, Pos2: integer);
+    procedure SetStart(aAddress: integer);
+    procedure WriteByte(aByte: byte);
+    procedure WriteBytes(aBytesArray: TBytesArray; Pos1, Pos2: integer);
     property ErrorMessage: string read fErrorMessage;
   end;
 
@@ -267,28 +267,28 @@ begin
 end;
 
 
-procedure TWriteHex.SetStart(AAddress: integer);
+procedure TWriteHex.SetStart(aAddress: integer);
 begin
   FlushBytes;
-  fAddress := AAddress;
+  fAddress := aAddress;
 end;
 
 
-procedure TWriteHex.WriteBytes(ABytesArray: TBytesArray; Pos1, Pos2: integer);
+procedure TWriteHex.WriteBytes(aBytesArray: TBytesArray; Pos1, Pos2: integer);
 var
   i: integer;
 begin
   for i := Pos1 to Pos2 do
-    WriteByte(ABytesArray[i]);
+    WriteByte(aBytesArray[i]);
 end;
 
 
-procedure TWriteHex.WriteByte(AByte: byte);
+procedure TWriteHex.WriteByte(aByte: byte);
 begin
   if (ByteCount = MAX_BYTES_PER_LINE) then
     FlushBytes;
   Inc(ByteCount);
-  BytesArray[ByteCount] := AByte;
+  BytesArray[ByteCount] := aByte;
 end;
 
 

@@ -40,6 +40,8 @@
 unit uDisassembler;
 
 {$mode objfpc}{$H+}
+{$R-}
+
 {.$define disassembler_debug}
 
 interface

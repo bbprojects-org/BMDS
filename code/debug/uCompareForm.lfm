@@ -1,7 +1,7 @@
 object CompareForm: TCompareForm
-  Left = 3181
+  Left = 2677
   Height = 442
-  Top = 22
+  Top = 908
   Width = 562
   BorderStyle = bsDialog
   Caption = 'BMDS Compare Data'
@@ -135,7 +135,7 @@ object CompareForm: TCompareForm
         0000000000000000000000000000000000000000000000000000
       }
       Margin = 1
-      OnClick = sbHexFromClick
+      OnClick = sbHexClick
     end
     object edRomFrom: TEdit
       Tag = 1
@@ -189,7 +189,7 @@ object CompareForm: TCompareForm
         0000000000000000000000000000000000000000000000000000
       }
       Margin = 1
-      OnClick = sbRomFromClick
+      OnClick = sbRomClick
     end
     object lbMemFrom1: TLabel
       Tag = 3
@@ -273,7 +273,7 @@ object CompareForm: TCompareForm
         0000000000000000000000000000000000000000000000000000
       }
       Margin = 1
-      OnClick = sbRomFromClick
+      OnClick = sbRomClick
     end
     object sbHexTo: TSpeedButton
       Tag = 5
@@ -318,7 +318,7 @@ object CompareForm: TCompareForm
         0000000000000000000000000000000000000000000000000000
       }
       Margin = 1
-      OnClick = sbHexFromClick
+      OnClick = sbHexClick
     end
     object edHexTo: TEdit
       Tag = 5
@@ -483,14 +483,14 @@ object CompareForm: TCompareForm
     Title = 'Load ROM data file'
     DefaultExt = '.rom'
     Filter = 'ROM images files|*.rom;All files|*.*'
-    left = 488
-    top = 280
+    left = 232
+    top = 344
   end
   object OpenDialog2: TOpenDialog
     Title = 'Load hex data file'
     DefaultExt = '.hex'
     Filter = 'Hex files|*.hex'
-    left = 256
-    top = 224
+    left = 328
+    top = 344
   end
 end

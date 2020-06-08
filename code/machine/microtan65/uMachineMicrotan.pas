@@ -56,7 +56,6 @@
 
 { TODO : uMachineMicrotan -> SaveToFile routine }
 
-{ TODO : uMachineMicrotan -> BUG: Tanbug resetting on invalid command? }
 { TODO : uMachineMicrotan -> BUG: single step/proceed not working as per M65 manual }
 
 unit uMachineMicrotan;
@@ -178,12 +177,12 @@ begin
   fInfo.MemoryButtons := 'Stack=01FF,ROM=C000';
   // Read
   fMemoryMgr.AddRead($0000, $BBFF, nil, '47K RAM');
-  fMemoryMgr.AddRead($BFF0, $BFF3, @ReadBFFx, 'Graphics on / Read keyboard');
-  fMemoryMgr.AddRead($C000, $FFFF, nil, '16K ROM, XBUG + BASIC');
+  fMemoryMgr.AddRead($BFF0, $BFF3, @ReadBFFx, 'Graphics on, Read keyboard');
+  fMemoryMgr.AddRead($C000, $FFFF, nil, '16K ROM, TANBUG + XBUG + BASIC');
   // Write
   fMemoryMgr.AddWrite($0000, $01FF, nil, 'Standard RAM write, lo');
   fMemoryMgr.AddWrite($0200, $03FF, @WriteVRAM, 'Write to Video RAM');
-  fMemoryMgr.AddWrite($0400, $AFFF, nil, 'Standard RAM write, hi');
+  fMemoryMgr.AddWrite($0400, $BBFF, nil, 'Standard RAM write, hi');
   fMemoryMgr.AddWrite($BFF0, $BFF3, @WriteBFFx, 'Reset keyboard, Delayed NMI, Graphics off');
 end;
 

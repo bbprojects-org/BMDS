@@ -255,7 +255,6 @@ const
   INI_DEV_MODE  = 'Mode';
   INI_MACH_ID   = 'MachineID';
   INI_SCREEN    = 'Scr';
-  INI_SHOW_INFO = 'ShowInfo';
 
   {$ifdef darwin}
     FORM_EXTRA_HEIGHT = 44;
