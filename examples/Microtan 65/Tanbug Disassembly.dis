@@ -1,0 +1,9 @@
+[DIS]
+Start=64512
+End=65535
+Desc=Microtan 65 Disassembly
+NumDataAddr=2
+DataStart0=65099
+DataEnd0=65138
+DataStart1=65515
+DataEnd1=65535

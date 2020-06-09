@@ -62,7 +62,7 @@ interface
 uses
   SysUtils, Classes, Dialogs,
   //
-  uErrorDefs;
+  uErrorDefs, uCommon;
 
 const
   MAX_BYTES_PER_LINE  = 16;
@@ -76,7 +76,6 @@ type
 
   TReadHex = class
   private
-    HexFileLines: TStringList;
     fBytesArray: TBytesArray;
     fTotalBytes: integer;
     fStartAddress: word;
@@ -101,7 +100,7 @@ type
   private
     BytesArray: array[1..MAX_BYTES_PER_LINE] of byte;
     ByteCount: integer;
-    fAddress: integer;
+    fAddress: word;
     HexFile: TextFile;
     fRecType: TRecordType;
     fErrorMessage: string;
@@ -120,11 +119,11 @@ type
 
 implementation
 
-
 { ReadHex }
 
 constructor TReadHex.Create(FileName: string; RecType: TRecordType);
 var
+  HexFileLines: TStringList;
   i: integer;
   LineWasData: boolean;
   FirstChar: char;
@@ -163,15 +162,15 @@ end;
 
 destructor TReadHex.Destroy;
 begin
-  HexFileLines.Free;
+  //
   inherited;
 end;
 
 
 function TReadHex.ConvertLineIntelHex(s: string): boolean;
 var
-  BytesCount, RecordType, CheckSum, ThisByte: byte;
-  i: integer;
+  BytesCount, RecordType, ThisByte: byte;
+  i, CheckSum, FileCheckSum: integer;
   LineAddress: word;
 begin
   Result := False;
@@ -180,11 +179,12 @@ begin
   BytesCount := HexToInt(Copy(s, 2, 2));
   LineAddress := HexToInt(Copy(s, 4, 4));
   RecordType := HexToInt(Copy(s, 8, 2));
+  FileCheckSum := HexToInt(Copy(s, 10 + 2*BytesCount, 2));
 
   // Read the data bytes
   SetLength(fBytesArray, Length(fBytesArray) + BytesCount);
-  CheckSum := (BytesCount + Hi(LineAddress) + Lo(LineAddress) + RecordType) and $FF;
-  case RecordType of
+  CheckSum := BytesCount + Hi(LineAddress) + Lo(LineAddress) + RecordType;
+  case (RecordType) of
     0: begin // Data record
          if (BytesCount > 0) then
            begin
@@ -198,11 +198,12 @@ begin
                  ThisByte := HexToInt(Copy(s, 10 + 2*i, 2));
                  fBytesArray[fTotalBytes] := ThisByte;
                  inc(fTotalBytes);
-                 CheckSum := (CheckSum + ThisByte) and $FF;
+                 CheckSum := CheckSum + ThisByte;
                end;
+
              // Test the checksum against the record's value
-             CheckSum := (CheckSum + HexToInt(Copy(s, 10 + 2*BytesCount, 2))) and $FF;
-             Result := (Checksum = 0);
+             CheckSum := ((CheckSum xor $FF) + 1) and $FF;
+             Result := (Checksum = FileCheckSum);
            end;
        end;
     1: begin // End of File Record
@@ -297,19 +298,20 @@ var
   Checksum, i: integer;
 begin
   if (ByteCount > 0) then
-    case fRecType of
+    case (fRecType) of
 
-      // Intel HEX-Record
+      // Intel HEX Record
       rtIntelHex: begin
-                    CheckSum := ByteCount + Hi(fAddress) + Lo(fAddress) + 0;
+                    CheckSum := ByteCount + Hi(fAddress) + Lo(fAddress) {+ RecordType=0};
                     Write(HexFile, Format(':%.2x%.4x00', [ByteCount, fAddress]));
                     for i := 1 to ByteCount do
                       begin
                         Write(HexFile, Format('%.2x', [BytesArray[i]]));
                         CheckSum := Checksum + BytesArray[i];
                       end;
-                    WriteLn(HexFile, Format('%.2x', [(-Checksum) and $FF]));
-                    Inc(fAddress, ByteCount);
+                    CheckSum := ((CheckSum xor $FF) + 1) and $FF;
+                    WriteLn(HexFile, Format('%.2x', [CheckSum]));
+                    fAddress := (fAddress + ByteCount) and $FFFF;
                   end;
 
       // Motorola S-Record
@@ -322,7 +324,7 @@ begin
                            CheckSum := Checksum + BytesArray[i];
                          end;
                        WriteLn(HexFile, Format('%.2x', [(Checksum xor $FFFFFFFF) and $FF]));
-                       Inc(fAddress, ByteCount);
+                       fAddress := (fAddress + ByteCount) and $FFFF;
                      end;
 
     end;

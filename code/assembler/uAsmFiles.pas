@@ -138,8 +138,7 @@ begin
 
   // Initialise output data file
   if (AsmPrefs.WriteToFile) then
-    DataFile := TWriteHex.Create(ChangeFileExt(FileName, '.hex')
-      {, format : defaults to IntelHex});
+    DataFile := TWriteHex.Create(ChangeFileExt(FileName, '.hex'), rtIntelHex);
 end;
 
 

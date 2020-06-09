@@ -1,156 +1,72 @@
 object CompareForm: TCompareForm
-  Left = 2677
-  Height = 442
-  Top = 908
+  Left = 2768
+  Height = 500
+  Top = 731
   Width = 562
   BorderStyle = bsDialog
   Caption = 'BMDS Compare Data'
-  ClientHeight = 442
+  ClientHeight = 500
   ClientWidth = 562
-  Constraints.MaxHeight = 442
   Constraints.MaxWidth = 562
-  Constraints.MinHeight = 442
+  Constraints.MinHeight = 500
   Constraints.MinWidth = 562
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   ParentFont = True
   LCLVersion = '2.1.0.0'
-  object GroupBox1: TGroupBox
+  object gbFrom: TGroupBox
     Left = 16
-    Height = 198
-    Top = 12
-    Width = 256
-    Caption = 'From:'
-    ClientHeight = 180
-    ClientWidth = 248
-    TabOrder = 0
-    object rbRomFrom: TRadioButton
+    Height = 112
+    Top = 11
+    Width = 432
+    Caption = 'From'
+    ClientHeight = 94
+    ClientWidth = 424
+    TabOrder = 5
+    object rgFrom: TRadioGroup
       Tag = 1
       Left = 8
-      Height = 18
-      Top = 8
-      Width = 88
-      Caption = 'ROM Image'
-      Checked = True
+      Height = 48
+      Top = 0
+      Width = 408
+      Align = alTop
+      AutoFill = True
+      BorderSpacing.Left = 8
+      BorderSpacing.Right = 8
+      ChildSizing.LeftRightSpacing = 6
+      ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+      ChildSizing.EnlargeVertical = crsHomogenousChildResize
+      ChildSizing.ShrinkHorizontal = crsScaleChilds
+      ChildSizing.ShrinkVertical = crsScaleChilds
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 3
+      ClientHeight = 30
+      ClientWidth = 400
+      Columns = 3
+      ItemIndex = 0
+      Items.Strings = (
+        'ROM Image'
+        'Hex File'
+        'Memory'
+      )
+      OnClick = rgClick
       TabOrder = 0
-      TabStop = True
-    end
-    object rbHexFrom: TRadioButton
-      Tag = 2
-      Left = 8
-      Height = 18
-      Top = 62
-      Width = 67
-      Caption = 'Hex File'
-      TabOrder = 2
-    end
-    object rbMemFrom: TRadioButton
-      Tag = 3
-      Left = 8
-      Height = 18
-      Top = 116
-      Width = 68
-      Caption = 'Memory'
-      TabOrder = 4
-    end
-    object edMemFrom1: TEdit
-      Tag = 3
-      Left = 32
-      Height = 21
-      Top = 142
-      Width = 68
-      OnChange = edMemFrom1Change
-      TabOrder = 5
-      Text = 'F800'
-    end
-    object edMemFrom2: TEdit
-      Tag = 3
-      Left = 136
-      Height = 21
-      Top = 142
-      Width = 68
-      OnChange = edMemFrom1Change
-      TabOrder = 6
-      Text = 'FBFF'
-    end
-    object lbMemFrom2: TLabel
-      Tag = 3
-      Left = 104
-      Height = 16
-      Top = 145
-      Width = 28
-      Caption = 'to  $'
-      ParentColor = False
-    end
-    object edHexFrom: TEdit
-      Tag = 2
-      Left = 32
-      Height = 21
-      Top = 87
-      Width = 172
-      Enabled = False
-      TabOrder = 3
-    end
-    object sbHexFrom: TSpeedButton
-      Tag = 2
-      Left = 216
-      Height = 22
-      Top = 87
-      Width = 23
-      Glyph.Data = {
-        36040000424D3604000000000000360000002800000010000000100000000100
-        2000000000000004000064000000640000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000FF0000
-        00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
-        00FF000000FF0000000000000000000000000000000000000000000000FF0000
-        00FF008484FF008484FF008484FF008484FF008484FF008484FF008484FF0084
-        84FF008484FF000000FF00000000000000000000000000000000000000FF00FF
-        FFFF000000FF008484FF008484FF008484FF008484FF008484FF008484FF0084
-        84FF008484FF008484FF000000FF000000000000000000000000000000FFFFFF
-        FFFF00FFFFFF000000FF008484FF008484FF008484FF008484FF008484FF0084
-        84FF008484FF008484FF008484FF000000FF0000000000000000000000FF00FF
-        FFFFFFFFFFFF00FFFFFF000000FF008484FF008484FF008484FF008484FF0084
-        84FF008484FF008484FF008484FF008484FF000000FF00000000000000FFFFFF
-        FFFF00FFFFFFFFFFFFFF00FFFFFF000000FF000000FF000000FF000000FF0000
-        00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF00FF
-        FFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FF
-        FFFF000000FF0000000000000000000000000000000000000000000000FFFFFF
-        FFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFF
-        FFFF000000FF0000000000000000000000000000000000000000000000FF00FF
-        FFFFFFFFFFFF00FFFFFF000000FF000000FF000000FF000000FF000000FF0000
-        00FF000000FF0000000000000000000000000000000000000000000000000000
-        00FF000000FF000000FF00000000000000000000000000000000000000000000
-        00000000000000000000000000FF000000FF000000FF00000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000FF000000FF00000000000000000000
-        0000000000000000000000000000000000000000000000000000000000FF0000
-        00000000000000000000000000FF00000000000000FF00000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        00FF000000FF000000FF00000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000
-      }
-      Margin = 1
-      OnClick = sbHexClick
     end
     object edRomFrom: TEdit
       Tag = 1
-      Left = 32
+      Left = 56
       Height = 21
-      Top = 33
-      Width = 172
-      Enabled = False
+      Top = 60
+      Width = 264
+      ReadOnly = True
       TabOrder = 1
     end
     object sbRomFrom: TSpeedButton
       Tag = 1
-      Left = 216
+      Left = 328
       Height = 22
-      Top = 33
+      Top = 60
       Width = 23
       Glyph.Data = {
         36040000424D3604000000000000360000002800000010000000100000000100
@@ -191,50 +107,199 @@ object CompareForm: TCompareForm
       Margin = 1
       OnClick = sbRomClick
     end
+    object edMemFrom1: TEdit
+      Tag = 3
+      Left = 114
+      Height = 21
+      Top = 104
+      Width = 68
+      OnChange = edMemChange
+      TabOrder = 2
+      Text = 'F800'
+    end
+    object edMemFrom2: TEdit
+      Tag = 3
+      Left = 218
+      Height = 21
+      Top = 104
+      Width = 68
+      OnChange = edMemChange
+      TabOrder = 3
+      Text = 'FBFF'
+    end
+    object lbMemFrom2: TLabel
+      Tag = 3
+      Left = 186
+      Height = 16
+      Top = 107
+      Width = 28
+      Caption = 'to  $'
+      ParentColor = False
+    end
     object lbMemFrom1: TLabel
       Tag = 3
-      Left = 22
+      Left = 104
       Height = 16
-      Top = 145
+      Top = 107
       Width = 8
       Caption = '$'
       ParentColor = False
     end
+    object edHexFrom: TEdit
+      Tag = 2
+      Left = 56
+      Height = 21
+      Top = 80
+      Width = 264
+      ReadOnly = True
+      TabOrder = 4
+    end
+    object sbHexFrom: TSpeedButton
+      Tag = 2
+      Left = 328
+      Height = 22
+      Top = 80
+      Width = 23
+      Glyph.Data = {
+        36040000424D3604000000000000360000002800000010000000100000000100
+        2000000000000004000064000000640000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF0000
+        00FF000000FF0000000000000000000000000000000000000000000000FF0000
+        00FF008484FF008484FF008484FF008484FF008484FF008484FF008484FF0084
+        84FF008484FF000000FF00000000000000000000000000000000000000FF00FF
+        FFFF000000FF008484FF008484FF008484FF008484FF008484FF008484FF0084
+        84FF008484FF008484FF000000FF000000000000000000000000000000FFFFFF
+        FFFF00FFFFFF000000FF008484FF008484FF008484FF008484FF008484FF0084
+        84FF008484FF008484FF008484FF000000FF0000000000000000000000FF00FF
+        FFFFFFFFFFFF00FFFFFF000000FF008484FF008484FF008484FF008484FF0084
+        84FF008484FF008484FF008484FF008484FF000000FF00000000000000FFFFFF
+        FFFF00FFFFFFFFFFFFFF00FFFFFF000000FF000000FF000000FF000000FF0000
+        00FF000000FF000000FF000000FF000000FF000000FF000000FF000000FF00FF
+        FFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FF
+        FFFF000000FF0000000000000000000000000000000000000000000000FFFFFF
+        FFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFFFFFF00FFFFFFFFFF
+        FFFF000000FF0000000000000000000000000000000000000000000000FF00FF
+        FFFFFFFFFFFF00FFFFFF000000FF000000FF000000FF000000FF000000FF0000
+        00FF000000FF0000000000000000000000000000000000000000000000000000
+        00FF000000FF000000FF00000000000000000000000000000000000000000000
+        00000000000000000000000000FF000000FF000000FF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000FF000000FF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000FF0000
+        00000000000000000000000000FF00000000000000FF00000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        00FF000000FF000000FF00000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000
+      }
+      Margin = 1
+      OnClick = sbHexClick
+    end
   end
-  object GroupBox2: TGroupBox
-    Left = 288
-    Height = 198
-    Top = 12
-    Width = 256
-    Caption = 'To:'
-    ClientHeight = 180
-    ClientWidth = 248
-    TabOrder = 1
-    object rbRomTo: TRadioButton
-      Tag = 4
+  object gbTo: TGroupBox
+    Left = 16
+    Height = 112
+    Top = 128
+    Width = 432
+    Caption = 'To'
+    ClientHeight = 94
+    ClientWidth = 424
+    TabOrder = 6
+    object rgTo: TRadioGroup
+      Tag = 2
       Left = 8
-      Height = 18
-      Top = 8
-      Width = 88
-      Caption = 'ROM Image'
-      Checked = True
+      Height = 48
+      Top = 0
+      Width = 408
+      Align = alTop
+      AutoFill = True
+      BorderSpacing.Left = 8
+      BorderSpacing.Right = 8
+      ChildSizing.LeftRightSpacing = 6
+      ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+      ChildSizing.EnlargeVertical = crsHomogenousChildResize
+      ChildSizing.ShrinkHorizontal = crsScaleChilds
+      ChildSizing.ShrinkVertical = crsScaleChilds
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 3
+      ClientHeight = 30
+      ClientWidth = 400
+      Columns = 3
+      ItemIndex = 0
+      Items.Strings = (
+        'ROM Image'
+        'Hex File'
+        'Memory'
+      )
+      OnClick = rgClick
       TabOrder = 0
-      TabStop = True
     end
     object edRomTo: TEdit
       Tag = 4
-      Left = 32
+      Left = 56
       Height = 21
-      Top = 33
-      Width = 172
-      Enabled = False
+      Top = 60
+      Width = 264
+      ReadOnly = True
       TabOrder = 1
+    end
+    object edHexTo: TEdit
+      Tag = 5
+      Left = 56
+      Height = 21
+      Top = 80
+      Width = 264
+      ReadOnly = True
+      TabOrder = 2
+    end
+    object edMemTo1: TEdit
+      Tag = 6
+      Left = 114
+      Height = 21
+      Top = 107
+      Width = 68
+      HideSelection = False
+      OnChange = edMemChange
+      TabOrder = 3
+      Text = 'FC00'
+    end
+    object lbMemTo2: TLabel
+      Tag = 6
+      Left = 186
+      Height = 16
+      Top = 110
+      Width = 28
+      Caption = 'to  $'
+      ParentColor = False
+    end
+    object edMemTo2: TEdit
+      Tag = 6
+      Left = 218
+      Height = 21
+      Top = 107
+      Width = 68
+      OnChange = edMemChange
+      TabOrder = 4
+      Text = 'FFFF'
+    end
+    object lbMemTo1: TLabel
+      Tag = 6
+      Left = 104
+      Height = 16
+      Top = 110
+      Width = 8
+      Caption = '$'
+      ParentColor = False
     end
     object sbRomTo: TSpeedButton
       Tag = 4
-      Left = 216
+      Left = 328
       Height = 22
-      Top = 33
+      Top = 60
       Width = 23
       Glyph.Data = {
         36040000424D3604000000000000360000002800000010000000100000000100
@@ -277,9 +342,9 @@ object CompareForm: TCompareForm
     end
     object sbHexTo: TSpeedButton
       Tag = 5
-      Left = 216
+      Left = 328
       Height = 22
-      Top = 87
+      Top = 80
       Width = 23
       Glyph.Data = {
         36040000424D3604000000000000360000002800000010000000100000000100
@@ -320,92 +385,28 @@ object CompareForm: TCompareForm
       Margin = 1
       OnClick = sbHexClick
     end
-    object edHexTo: TEdit
-      Tag = 5
-      Left = 32
-      Height = 21
-      Top = 87
-      Width = 172
-      Enabled = False
-      TabOrder = 3
-    end
-    object rbHexTo: TRadioButton
-      Tag = 5
-      Left = 8
-      Height = 18
-      Top = 62
-      Width = 67
-      Caption = 'Hex File'
-      TabOrder = 2
-    end
-    object rbMemTo: TRadioButton
-      Tag = 6
-      Left = 8
-      Height = 18
-      Top = 116
-      Width = 68
-      Caption = 'Memory'
-      TabOrder = 4
-    end
-    object edMemTo1: TEdit
-      Tag = 6
-      Left = 32
-      Height = 21
-      Top = 142
-      Width = 68
-      HideSelection = False
-      OnChange = edMemTo1Change
-      TabOrder = 5
-      Text = 'FC00'
-    end
-    object lbMemTo2: TLabel
-      Tag = 6
-      Left = 104
-      Height = 16
-      Top = 145
-      Width = 28
-      Caption = 'to  $'
-      ParentColor = False
-    end
-    object edMemTo2: TEdit
-      Tag = 6
-      Left = 136
-      Height = 21
-      Top = 142
-      Width = 68
-      TabOrder = 6
-      Text = 'FFFF'
-    end
-    object lbMemTo1: TLabel
-      Tag = 6
-      Left = 22
-      Height = 16
-      Top = 145
-      Width = 8
-      Caption = '$'
-      ParentColor = False
-    end
   end
   object btnCompare: TButton
     Left = 466
     Height = 22
-    Top = 228
+    Top = 272
     Width = 78
     Caption = 'Compare'
     OnClick = btnCompareClick
-    TabOrder = 3
+    TabOrder = 1
   end
-  object GroupBox3: TGroupBox
+  object gbResults: TGroupBox
     Left = 16
-    Height = 206
-    Top = 216
+    Height = 240
+    Top = 248
     Width = 432
+    Anchors = [akTop, akLeft, akBottom]
     Caption = 'Result'
     ChildSizing.LeftRightSpacing = 8
     ChildSizing.TopBottomSpacing = 8
-    ClientHeight = 188
+    ClientHeight = 222
     ClientWidth = 424
-    TabOrder = 2
+    TabOrder = 0
     object Memo1: TMemo
       Left = 8
       Height = 68
@@ -421,7 +422,7 @@ object CompareForm: TCompareForm
     end
     object DrawGrid1: TDrawGrid
       Left = 8
-      Height = 96
+      Height = 130
       Top = 84
       Width = 408
       Align = alClient
@@ -462,35 +463,46 @@ object CompareForm: TCompareForm
     end
   end
   object btnNext: TButton
-    Left = 464
+    Left = 466
     Height = 22
-    Top = 384
+    Top = 392
     Width = 78
+    Anchors = [akRight, akBottom]
     Caption = 'Next'
     OnClick = btnNextClick
-    TabOrder = 5
+    TabOrder = 3
   end
   object btnPrev: TButton
-    Left = 464
+    Left = 466
     Height = 22
-    Top = 352
+    Top = 360
     Width = 78
+    Anchors = [akRight, akBottom]
     Caption = 'Previous'
     OnClick = btnPrevClick
+    TabOrder = 2
+  end
+  object btnClose: TButton
+    Left = 466
+    Height = 22
+    Top = 448
+    Width = 78
+    Anchors = [akRight, akBottom]
+    Caption = 'Close'
+    OnClick = btnCloseClick
     TabOrder = 4
   end
   object OpenDialog1: TOpenDialog
     Title = 'Load ROM data file'
-    DefaultExt = '.rom'
-    Filter = 'ROM images files|*.rom;All files|*.*'
-    left = 232
-    top = 344
+    Filter = 'ROM images files|*.rom|Binary files|*.bin|All files|*.*'
+    left = 216
+    top = 392
   end
   object OpenDialog2: TOpenDialog
     Title = 'Load hex data file'
     DefaultExt = '.hex'
     Filter = 'Hex files|*.hex'
-    left = 328
-    top = 344
+    left = 336
+    top = 392
   end
 end
