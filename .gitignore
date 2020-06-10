@@ -5,3 +5,4 @@ _build
 _local only
 *.lst
 *.hex
+*[in work].asm

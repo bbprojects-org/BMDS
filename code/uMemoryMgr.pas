@@ -243,14 +243,12 @@ function TMemoryMgr.IsRAM(Addr: word): boolean;
 var
   i: integer;
 begin
-  Result := True;
+  Result := False;
   for i := 0 to (Length(aMemoryWriteSections) - 1) do
     begin
       if ((Addr >= aMemoryWriteSections[i].StartMem) and (Addr <= aMemoryWriteSections[i].EndMem)) then
-        Continue
-      else
         begin
-          Result := False;
+          Result := True;
           Break;
         end;
     end;

@@ -32,7 +32,7 @@ unit uCompareForm;
 {$mode objfpc}{$H+}
 {$R-}
 
-{$define compare_debug}
+{.$define compare_debug}
 
 interface
 

@@ -6,7 +6,7 @@
 // Stop with Reset button
 //
 
-leds          equ   $BC00
+leds          equ   $B000
 
               org   $400,CODE          // Start of program code
 
