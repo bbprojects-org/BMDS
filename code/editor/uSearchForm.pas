@@ -65,7 +65,6 @@ type
   private
     ReplaceFlag: boolean;
     ReplaceAllFlag: boolean;
-    ForwardFlag: boolean;
     function  GetFindText: string;
     procedure SetFindText(const NewText: string);
     function  GetReplaceText: string;
@@ -105,7 +104,6 @@ const
 procedure TSearchForm.FormCreate(Sender: TObject);
 begin
   ReadIniSettings;
-  ForwardFlag := True;
   ReplaceFlag := False;
   ReplaceAllFlag := False;
   cbReplace.Checked := False;
@@ -153,7 +151,6 @@ begin
   if (cbPromptOnReplace.Checked) then Include(Result, ssoPrompt);
   //
   if (rgFromBeginning.Checked) then Include(Result, ssoEntireScope);
-  if (not ForwardFlag) then Include(Result, ssoBackwards);
   if (ReplaceFlag) then Include(Result, ssoReplace);
   if (ReplaceAllFlag) then Include(Result, ssoReplaceAll);
 end;

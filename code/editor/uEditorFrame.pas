@@ -34,7 +34,7 @@ interface
 
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, ExtCtrls, ComCtrls, Menus,
-  SynEdit, SynEditHighlighter, SynEditTypes, SynEditMarks,
+  SynEdit, SynEditHighlighter, SynEditTypes, SynEditMarks, Dialogs,
   SynEditKeyCmds, Graphics, LCLType,
   //
   uHighlighterAsm;
@@ -67,6 +67,7 @@ type
     fOnBreakpoint: TOnBreakpointEvent;
     procedure EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     function HasBreakpoint(LineNumber: integer; var Index: integer): boolean;
+    procedure OnReplaceText(Sender: TObject; const aSearch, aReplace: string; {%H-}aLine, {%H-}aColumn: integer; var aAction: TSynReplaceAction);
     procedure SetHighlighter(aValue: TSynAsmHighlighter);
     procedure UpdateModifiedState;
     function GetIsEdited: boolean;
@@ -103,6 +104,7 @@ begin
   Visible := True;
   fNew := True;
   EditorComponent.OnStatusChange := @EditorStatusChange;
+  EditorComponent.OnReplaceText := @OnReplaceText;
 end;
 
 
@@ -139,13 +141,6 @@ begin
 end;
 
 
-procedure TEditorFrame.EditorComponentChange(Sender: TObject);
-begin
-  if (TPage(Owner).Caption[1] <> '*') then
-    TPage(Owner).Caption := '*' + TPage(Owner).Caption;
-end;
-
-
 procedure TEditorFrame.EditorComponentDropFiles(Sender: TObject; X, Y: integer; aFiles: TStrings);
 begin
   { TODO : uEditorFrame -> need to remove this reference }
@@ -153,12 +148,11 @@ begin
 end;
 
 
-procedure TEditorFrame.UpdateModifiedState;
+{ GETTERS / SETTERS }
+
+procedure TEditorFrame.SetHighlighter(aValue: TSynAsmHighlighter);
 begin
-  fNew := False;
-  TPage(Owner).Caption := ExtractFileName(fFileName);
-  if Assigned(fStatusBar) then
-    fStatusBar.Panels[3].Text := fFileName;
+  EditorComponent.Highlighter := aValue;
 end;
 
 
@@ -167,6 +161,8 @@ begin
   Result := (TPage(Owner).Caption[1] = '*')
 end;
 
+
+{ STATUS MONITORING }
 
 procedure TEditorFrame.EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 var
@@ -202,6 +198,22 @@ begin
 
   if (scSelection in Changes) then
     AssemblerForm.UpdateActionStates;   // Text selected, update actions to reflect
+end;
+
+
+procedure TEditorFrame.EditorComponentChange(Sender: TObject);
+begin
+  if (TPage(Owner).Caption[1] <> '*') then
+    TPage(Owner).Caption := '*' + TPage(Owner).Caption;
+end;
+
+
+procedure TEditorFrame.UpdateModifiedState;
+begin
+  fNew := False;
+  TPage(Owner).Caption := ExtractFileName(fFileName);
+  if Assigned(fStatusBar) then
+    fStatusBar.Panels[3].Text := fFileName;
 end;
 
 
@@ -255,7 +267,7 @@ var
   idx: integer;
   m: TSynEditMark;
 begin
-  if (LineNumber > EditorComponent.Lines.Count) or HasBreakpoint(LineNumber, idx{%H-}) then
+  if ((LineNumber > EditorComponent.Lines.Count) or HasBreakpoint(LineNumber, idx{%H-})) then
     Exit;
 
   m := TSynEditMark.Create(EditorComponent);
@@ -292,7 +304,7 @@ var
   i: integer;
 begin
   Result := False;
-  for i := 0 to EditorComponent.Marks.Count-1 do
+  for i := 0 to (EditorComponent.Marks.Count - 1) do
     if (EditorComponent.Marks.Items[i].Line = LineNumber) then
       begin
         Index := i;
@@ -302,9 +314,36 @@ begin
 end;
 
 
-procedure TEditorFrame.SetHighlighter(aValue: TSynAsmHighlighter);
+{ ON REPLACE }
+
+{ If PromptOnReplace set in SearchForm, then this routine is called by
+  TSynEdit to ask user whether to replace, or not }
+
+procedure TEditorFrame.OnReplaceText(Sender: TObject; const aSearch, aReplace: string; aLine, aColumn: integer; var aAction: TSynReplaceAction);
+
+  function Shorten(const s: string): string;
+  const
+    MAX_LEN = 100;
+  begin
+    Result := s;
+    if (Length(Result) > MAX_LEN) then
+      Result := LeftStr(Result, MAX_LEN) + '...';
+  end;
+
+var
+  ThisText: string;
+  ThisAction: integer;
 begin
-  EditorComponent.Highlighter := aValue;
+  ThisText := 'Replace this occurrence of "%s"' + LineEnding + 'with "%s"?';
+  ThisText := Format(ThisText, [Shorten(aSearch), Shorten(aReplace)]);
+  ThisAction := MessageDlg(ThisText, mtconfirmation, [mbYes, mbYesToAll, mbNo, mbCancel], 0);
+  case ThisAction of
+    mrYes: aAction := raReplace;
+    mrNo: aAction := raSkip;
+    mrAll, mrYesToAll: aAction := raReplaceAll;
+  else
+    aAction := raCancel;
+  end;
 end;
 
 

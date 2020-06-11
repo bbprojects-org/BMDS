@@ -386,21 +386,11 @@ object AssemblerForm: TAssemblerForm
       Category = 'Search'
       Caption = 'Find Next'
       OnExecute = actSearchFindNextExecute
-      OnUpdate = actUpdateFind
     end
     object actSearchFindPrev: TAction
       Category = 'Search'
       Caption = 'Find Previous'
       OnExecute = actSearchFindPrevExecute
-      OnUpdate = actUpdateFind
-    end
-    object actWholeWords: TAction
-      Category = 'Search'
-      OnUpdate = actUpdateOptions
-    end
-    object actCaseSensitive: TAction
-      Category = 'Search'
-      OnUpdate = actUpdateOptions
     end
   end
 end

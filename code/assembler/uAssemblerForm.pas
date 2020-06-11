@@ -4,6 +4,12 @@
 
     Cross assembler for a number of processors, currently 6502, 8080 and CHIP-8
 
+    This form handles the management of multiple editors including standard
+    editing functions (cut, copy, paste, etc) and find & replace. It calls the
+    main assembler module to build code
+
+    The form save its state in the application's INI file
+
 
   LICENSE:
 
@@ -21,9 +27,6 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   =============================================================================}
-
-{ TODO : uAssemblerForm -> BUG: Edit|SelectAll not working }
-{ TODO : uAssemblerForm -> BUG: Cmd-V does not work, Ctrl-V does? }
 
 unit uAssemblerForm;
 
@@ -62,8 +65,6 @@ type
     actEditUndo: TAction;
     actEditPaste: TAction;
     actEditSelectAll: TAction;
-    actCaseSensitive: TAction;
-    actWholeWords: TAction;
     actSearchFindPrev: TAction;
     actSearchFindNext: TAction;
     actSearchReplace: TAction;
@@ -114,9 +115,7 @@ type
     procedure actFileSaveExecute(Sender: TObject);
     procedure actSearchFindNextExecute(Sender: TObject);
     procedure actSearchFindPrevExecute(Sender: TObject);
-    procedure actUpdateFind(Sender: TObject);
     procedure actSearchReplaceExecute(Sender: TObject);
-    procedure actUpdateOptions(Sender: TObject);
     procedure btnAssembleClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
@@ -209,9 +208,9 @@ var
 begin
   list := '';
   lastmnem := '';
-  for i := 1 to Machine.CPU.DataCount-1 do //Length(oa)-1 do
+  for i := 1 to (Machine.CPU.DataCount - 1) do
     begin
-      mnem := Machine.CPU.DataByIndex[i].M; // oa[i].M;
+      mnem := Machine.CPU.DataByIndex[i].M;
       if (mnem <> lastmnem) then
         begin
           list := list + mnem + #13;
@@ -298,10 +297,10 @@ var
 begin
   if (GetActiveEditorFrame <> nil) then
     begin
-      if (GetActiveEditorFrame.IsEdited)
-          and (MessageDlg('File changed', 'The file you are going to close has changed.'
-               + LineEnding + 'Would you like to save it first?',
-               mtWarning, [mbYes, mbNo], 0) = mrYes) then
+      if (GetActiveEditorFrame.IsEdited) and
+         (MessageDlg('File changed', 'The file you are going to close has changed.'
+                     + LineEnding + 'Would you like to save it first?',
+                     mtWarning, [mbYes, mbNo], 0) = mrYes) then
         actFileSaveExecute(Sender);
 
       i := Notebook.ActivePageIndex;
@@ -384,6 +383,10 @@ end;
 
 { SEARCH ITEMS }
 
+{ If the PromptOnReplace option is selected, the TSynEdit component calls
+  the OnReplaceText event which is handled by the 'OnReplaceText' procedure
+  in uEditorFrame to ask the user for a decision each time }
+
 procedure TAssemblerForm.actSearchFindExecute(Sender: TObject);
 begin
   StartFindReplace(False);
@@ -432,8 +435,8 @@ var
   OldEntireScope, Again: boolean;
 begin
   Result := 0;
-  //if (ssoReplace in aOptions) and ReadOnly then
-  //  Exit;
+  if ((ssoReplace in aOptions) and CurrentEd.ReadOnly) then
+    Exit;
 
   OldEntireScope := (ssoEntireScope in aOptions);
   if (ssoBackwards in aOptions) then
@@ -465,10 +468,7 @@ begin
           end;
       end
     else
-      begin
-        Again := False;
-        //CenterCursor(True);
-      end;
+      Again := False;
   until (not Again);
 end;
 
@@ -502,20 +502,6 @@ begin
         Opts := Opts + [ssoBackwards];
       DoFindAndReplace(SearchForm.FindText, SearchForm.ReplaceText, Opts);
     end;
-end;
-
-
-procedure TAssemblerForm.actUpdateFind(Sender: TObject);
-begin
-  if (Sender is TAction) then
-    TAction(Sender).Enabled := True; // (SearchForm.FindText <> ''){ and Assigned(CurrentEd)};
-end;
-
-
-procedure TAssemblerForm.actUpdateOptions(Sender: TObject);
-begin
-  if (Sender is TAction) then
-    TAction(Sender).Enabled := True; // Assigned(CurrentEd);
 end;
 
 
@@ -636,6 +622,8 @@ begin
   //
   actSearchFind.Enabled := False;
   actSearchReplace.Enabled := False;
+  actSearchFindNext.Enabled := False;
+  actSearchFindPrev.Enabled := False;
 end;
 
 
@@ -668,6 +656,8 @@ begin
 
       actSearchFind.Enabled := HasEditor;
       actSearchReplace.Enabled := HasEditor;
+      actSearchFindNext.Enabled := HasEditor and (SearchForm.FindText <> '');
+      actSearchFindPrev.Enabled := HasEditor and (SearchForm.FindText <> '');
     end;
 end;
 
@@ -697,7 +687,7 @@ begin
   if (Notebook.PageCount = 0) then
     Exit;
 
-  for i := 0 to Notebook.PageCount-1 do
+  for i := 0 to (Notebook.PageCount - 1) do
     begin
       ef := TEditorFrame(Notebook.Pages[i].Controls[0]).EditorComponent;
       ef.Font.Name := prefs.FontName;
@@ -732,7 +722,7 @@ begin
   if (Notebook.PageCount = 0) then
     Exit;
 
-  for i := 0 to Notebook.PageCount-1 do
+  for i := 0 to (Notebook.PageCount - 1) do
     begin
       ef := TEditorFrame(Notebook.Pages[i].Controls[0]).EditorComponent;
       // apply prefs
