@@ -25,7 +25,7 @@
       <Unit2>
         <Filename Value="uCommon.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="2"/>
+        <EditorIndex Value="5"/>
         <TopLine Value="121"/>
         <CursorPos X="63" Y="37"/>
         <UsageCount Value="200"/>
@@ -55,8 +55,8 @@
         <Filename Value="assembler/uAssembler.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="406"/>
-        <CursorPos X="88" Y="211"/>
+        <TopLine Value="223"/>
+        <CursorPos X="62" Y="226"/>
         <UsageCount Value="200"/>
       </Unit5>
       <Unit6>
@@ -324,10 +324,11 @@
       <Unit37>
         <Filename Value="assembler/uAsmListing.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="83"/>
-        <CursorPos X="12" Y="113"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="131"/>
+        <CursorPos X="3" Y="41"/>
         <UsageCount Value="203"/>
+        <Loaded Value="True"/>
       </Unit37>
       <Unit38>
         <Filename Value="assembler/uAsmFiles.pas"/>
@@ -496,7 +497,8 @@
         <ResourceBaseClass Value="Form"/>
         <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <CursorPos X="40" Y="9"/>
+        <TopLine Value="8"/>
+        <CursorPos X="55" Y="35"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -579,17 +581,20 @@
       <Unit62>
         <Filename Value="assembler/uErrorDefs.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="2"/>
         <TopLine Value="7"/>
-        <CursorPos X="16" Y="45"/>
+        <CursorPos X="21" Y="46"/>
         <UsageCount Value="200"/>
+        <Loaded Value="True"/>
       </Unit62>
       <Unit63>
         <Filename Value="editor/uMRU.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos Y="29"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="91"/>
+        <CursorPos X="59" Y="99"/>
         <UsageCount Value="226"/>
+        <Loaded Value="True"/>
       </Unit63>
       <Unit64>
         <Filename Value="editor/uHighlighterAsm.pas"/>
@@ -605,7 +610,7 @@
         <ComponentName Value="EditorFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="7"/>
         <CursorPos X="99" Y="15"/>
         <UsageCount Value="200"/>
         <Loaded Value="True"/>
@@ -662,7 +667,7 @@
         <ComponentName Value="SearchForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="6"/>
         <TopLine Value="68"/>
         <CursorPos Y="68"/>
         <UsageCount Value="74"/>
@@ -1111,99 +1116,119 @@
     <OtherDefines Count="1">
       <Define0 Value="Debug"/>
     </OtherDefines>
-    <JumpHistory Count="23" HistoryIndex="22">
+    <JumpHistory Count="28" HistoryIndex="27">
       <Position1>
-        <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="69" Column="15" TopLine="43"/>
-      </Position1>
-      <Position2>
-        <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="441" Column="22" TopLine="423"/>
-      </Position2>
-      <Position3>
-        <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="447" Column="32" TopLine="426"/>
-      </Position3>
-      <Position4>
-        <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="247" Column="9" TopLine="239"/>
-      </Position4>
-      <Position5>
         <Filename Value="editor/uEditorFrame.pas"/>
         <Caret Line="201" Column="3" TopLine="168"/>
-      </Position5>
-      <Position6>
+      </Position1>
+      <Position2>
         <Filename Value="editor/uEditorFrame.pas"/>
         <Caret Line="346" Column="25" TopLine="294"/>
-      </Position6>
-      <Position7>
+      </Position2>
+      <Position3>
         <Filename Value="editor/uEditorFrame.pas"/>
         <Caret Line="37" Column="68"/>
-      </Position7>
-      <Position8>
+      </Position3>
+      <Position4>
         <Filename Value="editor/uEditorFrame.pas"/>
         <Caret Line="342" Column="72" TopLine="294"/>
+      </Position4>
+      <Position5>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="116" TopLine="116"/>
+      </Position5>
+      <Position6>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="115" TopLine="115"/>
+      </Position6>
+      <Position7>
+        <Filename Value="editor/uSearchForm.pas"/>
+        <Caret Line="156" Column="22" TopLine="141"/>
+      </Position7>
+      <Position8>
+        <Filename Value="editor/uSearchForm.pas"/>
+        <Caret Line="68" Column="16" TopLine="38"/>
       </Position8>
       <Position9>
-        <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="117" TopLine="179"/>
+        <Filename Value="editor/uSearchForm.pas"/>
+        <Caret Line="108" Column="14" TopLine="55"/>
       </Position9>
       <Position10>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="116" TopLine="116"/>
+        <Caret Line="657" Column="81" TopLine="461"/>
       </Position10>
       <Position11>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="115" TopLine="115"/>
+        <Caret Line="147" Column="18" TopLine="118"/>
       </Position11>
       <Position12>
-        <Filename Value="editor/uSearchForm.pas"/>
-        <Caret Line="156" Column="22" TopLine="141"/>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="137" Column="28" TopLine="118"/>
       </Position12>
       <Position13>
-        <Filename Value="editor/uSearchForm.pas"/>
-        <Caret Line="68" Column="16" TopLine="38"/>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="147" Column="55" TopLine="118"/>
       </Position13>
       <Position14>
-        <Filename Value="editor/uSearchForm.pas"/>
-        <Caret Line="108" Column="14" TopLine="55"/>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="732" Column="39" TopLine="679"/>
       </Position14>
       <Position15>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="657" Column="81" TopLine="461"/>
+        <Caret Line="137" Column="28" TopLine="108"/>
       </Position15>
       <Position16>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="147" Column="18" TopLine="118"/>
+        <Caret Line="147" Column="55" TopLine="112"/>
       </Position16>
       <Position17>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="137" Column="28" TopLine="118"/>
+        <Caret Line="137" Column="28" TopLine="112"/>
       </Position17>
       <Position18>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="147" Column="55" TopLine="118"/>
+        <Caret Line="147" Column="55" TopLine="112"/>
       </Position18>
       <Position19>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="732" Column="39" TopLine="679"/>
+        <Caret Line="7" Column="66"/>
       </Position19>
       <Position20>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="137" Column="28" TopLine="108"/>
+        <Caret Line="281" Column="66" TopLine="268"/>
       </Position20>
       <Position21>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="147" Column="55" TopLine="112"/>
+        <Caret Line="288" Column="16" TopLine="268"/>
       </Position21>
       <Position22>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="137" Column="28" TopLine="112"/>
+        <Caret Line="593" Column="16" TopLine="540"/>
       </Position22>
       <Position23>
         <Filename Value="assembler/uAssemblerForm.pas"/>
-        <Caret Line="147" Column="55" TopLine="112"/>
+        <Caret Line="187" Column="31" TopLine="145"/>
       </Position23>
+      <Position24>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="138" Column="23" TopLine="109"/>
+      </Position24>
+      <Position25>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="146" Column="23" TopLine="109"/>
+      </Position25>
+      <Position26>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="187" Column="31" TopLine="134"/>
+      </Position26>
+      <Position27>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="261" Column="13" TopLine="208"/>
+      </Position27>
+      <Position28>
+        <Filename Value="assembler/uAssemblerForm.pas"/>
+        <Caret Line="266" TopLine="97"/>
+      </Position28>
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>

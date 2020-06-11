@@ -28,6 +28,13 @@
 
   =============================================================================}
 
+{ TODO : uAssemblerForm -> if symbol not defined, skip BranchToFar / Phasing errors }
+{ TODO : uAssemblerForm -> in SynEdit highlighter, if ASM ok, if LST skip first 22 chars }
+{ TODO : uAssemblerForm -> save changed files before Asm Execute }
+{ TODO : uAssemblerForm -> if use RMB in code section, issue warning incase omitted 'RAM' from ORG }
+{ TODO : uAssemblerForm -> only report PhaseError once }
+
+
 unit uAssemblerForm;
 
 {$mode objfpc}{$H+}
@@ -262,9 +269,12 @@ begin
 end;
 
 
+{ TODO : uAssemblerForm -> if cannot find file to open (i.e. MRU no longer available) give proper error message }
+
 procedure TAssemblerForm.LoadFile(FileName: string);
 begin
-  actFileNewExecute(nil);
+  actFileNewExecute(nil);               // Create empty editor, load to it
+  MRU.AddToRecent(FileName);            // Put this latest to top of MRU
   GetActiveEditorFrame.LoadFromFile(FileName);
 end;
 
@@ -506,6 +516,8 @@ end;
 
 
 { DEBUG - BUTTONS - ASSEMBLE }
+
+{ TODO : uAssemblerForm -> do not allow Assemble of .LST file }
 
 procedure TAssemblerForm.btnAssembleClick(Sender: TObject);
 var

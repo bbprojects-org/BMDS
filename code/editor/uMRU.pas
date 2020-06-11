@@ -115,12 +115,11 @@ procedure TMRU.AddToRecent(FileName: string);
 var
   Index: integer;
 begin
-  // FileName := ExpandFileNameUTF8(FileName);
   Index := fRecent.IndexOf(FileName);
-  if (Index <> -1) then // Move recent to top of list
+  if (Index <> -1) then                 // Move recent to top of list
     fRecent.Delete(Index);
   fRecent.Insert(0, FileName);
-  while (fRecent.Count > MAX_MRU) do        // and delete any beyond max
+  while (fRecent.Count > MAX_MRU) do    // and delete any beyond max
     fRecent.Delete(fRecent.Count-1);
   BuildReopenList;
 end;
