@@ -53,12 +53,12 @@ const
                 '// Template for Microtan 65' + #13 +
                 '//' + #13 + #13 +
                 '#include ''MicrotanDefs''' + #13 + #13 +
-                '            org   $80,RAM     // Zero page variables' + #13 +
-                'item        rmb   1           // Reserve 1 byte' + #13 + #13 +
-                '            org   $400,CODE   // Start of program code' + #13 +
-                'start       nop' + #13 +
-                '            nop' + #13 + #13 +
-                '            end';
+                '              org   $80,RAM            // Zero page variables' + #13 + #13 +
+                'item          rmb   1                  // Reserve 1 byte' + #13 + #13 +
+                '              org   $400,CODE          // Start of program code' + #13 + #13 +
+                'start         nop' + #13 +
+                '              nop' + #13 + #13 +
+                '              end';
     );
 
   IRQ_IDX = 0;

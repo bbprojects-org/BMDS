@@ -34,10 +34,10 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ComCtrls, ExtCtrls,
   ActnList, Menus, StdCtrls, SynEdit, SynEditTypes, ClipBrd, ExtendedNotebook,
-  StrUtils,
+  StrUtils, LCLProc,
   //
   uEditorFrame, uSearchForm, uAssembler, uIniFile, uMRU, uHighlighterAsm,
-  uCpuTypes, uMachineBase, uEdPrefsFrame, uEdColourPrefsFrame;
+  uCpuTypes, uMachineBase, uEdPrefsFrame, uEdColourPrefsFrame, uCommon;
 
 type
   TAsmLineInfo = record
@@ -62,17 +62,21 @@ type
     actEditUndo: TAction;
     actEditPaste: TAction;
     actEditSelectAll: TAction;
-    actEditFind: TAction;
+    actCaseSensitive: TAction;
+    actWholeWords: TAction;
+    actSearchFindPrev: TAction;
+    actSearchFindNext: TAction;
+    actSearchReplace: TAction;
     ActionListFile: TActionList;
     ActionListEdit: TActionList;
+    ActionListSearch: TActionList;
+    actSearchFind: TAction;
     btnAssemble: TButton;
-    FindDialog: TFindDialog;
     memoLog: TMemo;
     Notebook: TExtendedNotebook;
     OpenDialog: TOpenDialog;
     panelBottom: TPanel;
     panelLeft: TPanel;
-    ReplaceDialog: TReplaceDialog;
     SaveDialog: TSaveDialog;
     panelRight: TPanel;
     splitterMiddle: TSplitter;
@@ -97,7 +101,7 @@ type
     tbFind: TToolButton;
     procedure actEditCopyExecute(Sender: TObject);
     procedure actEditCutExecute(Sender: TObject);
-    procedure actEditFindExecute(Sender: TObject);
+    procedure actSearchFindExecute(Sender: TObject);
     procedure actEditPasteExecute(Sender: TObject);
     procedure actEditRedoExecute(Sender: TObject);
     procedure actEditSelectAllExecute(Sender: TObject);
@@ -108,25 +112,26 @@ type
     procedure actFileOpenExecute(Sender: TObject);
     procedure actFileSaveAsExecute(Sender: TObject);
     procedure actFileSaveExecute(Sender: TObject);
+    procedure actSearchFindNextExecute(Sender: TObject);
+    procedure actSearchFindPrevExecute(Sender: TObject);
+    procedure actUpdateFind(Sender: TObject);
+    procedure actSearchReplaceExecute(Sender: TObject);
+    procedure actUpdateOptions(Sender: TObject);
     procedure btnAssembleClick(Sender: TObject);
-    procedure DoReplace(Sender: TObject);
-    procedure FindDialogClose(Sender: TObject);
-    procedure DoFind(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
-    procedure menuSearchFindNextClick(Sender: TObject);
-    procedure menuSearchFindPreviousClick(Sender: TObject);
-    procedure menuSearchReplaceClick(Sender: TObject);
     procedure NotebookChange(Sender: TObject);
   private
     MRU: TMRU;
-    FindText: string;
-    ReplaceText: string;
-    FindOptions: TSynSearchOptions;
-    ReplaceOptions: TSynSearchOptions;
+    SearchForm: TSearchForm;
     hltAsm: TSynAsmHighlighter;
+    CurrentEd: TSynEdit;
+    procedure AssignActionShortcuts;
+    function DoFindAndReplace(aFindText, aReplaceText: string; aOptions: TSynSearchOptions): integer;
+    procedure StartFindReplace(ReplaceFlag: boolean);
+    procedure ReadIniSettings;
     procedure SetEdColourPreferences(prefs: TEdColourPrefs);
     procedure BuildKeywordList;
     function GetActiveEditorFrame: TEditorFrame;
@@ -137,6 +142,7 @@ type
 
     procedure StatusLog(msg: string);
     procedure BrkptHandler(Sender: TObject; LineNumber: integer; IsAdd: boolean);
+    procedure WriteIniSettings;
   public
     procedure LoadFiles(Files: TStrings);
     procedure UpdateActionStates;
@@ -168,25 +174,29 @@ const
   PANELR_WIDTH  = 'PRWidth';
 
 
-{ CREATE }
+{ CREATE / DESTROY }
 
 procedure TAssemblerForm.FormCreate(Sender: TObject);
 begin
-  Left := AppIni.ReadInteger(SECT_ASM, INI_WDW_LEFT, 20);
-  Top := AppIni.ReadInteger(SECT_ASM, INI_WDW_TOP, 20);
-  Width := AppIni.ReadInteger(SECT_ASM, INI_WDW_WIDTH, 640);
-  Height := AppIni.ReadInteger(SECT_ASM, INI_WDW_HEIGHT, 480);
-  panelBottom.Height := AppIni.ReadInteger(SECT_ASM, PANELB_HEIGHT, 50);
-  panelRight.Width  := AppIni.ReadInteger(SECT_ASM, PANELR_WIDTH, 150);
-  // Following is written out in MainForm.WriteIniSettings, but read here
-  Visible := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WDW_VIS, True);
+  AssignActionShortcuts;
+  ReadIniSettings;
 
   hltAsm := TSynAsmHighlighter.Create(self);
   BuildKeywordList;
 
   MRU := TMRU.Create;                   // Need to seperately assign MenuRef
   MRU.OnMenuClick := @LoadFile;
+  SearchForm := TSearchForm.Create(nil);
   UpdateActionStates;
+end;
+
+
+procedure TAssemblerForm.FormDestroy(Sender: TObject);
+begin
+  WriteIniSettings;
+  hltAsm.Free;
+  MRU.Free;
+  SearchForm.Free;
 end;
 
 
@@ -213,21 +223,6 @@ begin
           DIRECTIVES +                  // Includes a #13 at end
           ReplaceStr(Machine.CPU.Info.Registers, ' ', #13);
   hltAsm.Keywords := list;
-end;
-
-
-{ DESTROY }
-
-procedure TAssemblerForm.FormDestroy(Sender: TObject);
-begin
-  AppIni.WriteInteger(SECT_ASM, INI_WDW_LEFT, Left);
-  AppIni.WriteInteger(SECT_ASM, INI_WDW_TOP, Top);
-  AppIni.WriteInteger(SECT_ASM, INI_WDW_WIDTH, Width);
-  AppIni.WriteInteger(SECT_ASM, INI_WDW_HEIGHT, Height);
-  AppIni.WriteInteger(SECT_ASM, PANELB_HEIGHT, panelBottom.Height);
-  AppIni.WriteInteger(SECT_ASM, PANELR_WIDTH, panelRight.Width);
-  hltAsm.Free;
-  MRU.Free;
 end;
 
 
@@ -317,7 +312,7 @@ begin
 end;
 
 
-{ MENU - EDIT ITEMS }
+{ EDIT ITEMS }
 
 procedure TAssemblerForm.actEditUndoExecute(Sender: TObject);
 var
@@ -372,7 +367,7 @@ var
 begin
   ed := GetCurrentEditor;
   if Assigned(ed) then
-    if (ed.SelAvail) then
+    //if (ed.SelAvail) then
       ed.PasteFromClipboard;
 end;
 
@@ -387,65 +382,140 @@ begin
 end;
 
 
-{ MENU SEARCH ITEMS }
+{ SEARCH ITEMS }
 
-procedure TAssemblerForm.actEditFindExecute(Sender: TObject);
-var
-  ed: TSynEdit;
+procedure TAssemblerForm.actSearchFindExecute(Sender: TObject);
 begin
-  ed := GetCurrentEditor;
-  if Assigned(ed) then
+  StartFindReplace(False);
+end;
+
+
+procedure TAssemblerForm.actSearchReplaceExecute(Sender: TObject);
+begin
+  StartFindReplace(True);
+end;
+
+
+procedure TAssemblerForm.StartFindReplace(ReplaceFlag: boolean);
+var
+  Opts: TSynSearchOptions;
+begin
+  CurrentEd := GetCurrentEditor;
+  if (not Assigned(CurrentEd)) then Exit;
+
+  SearchForm.WriteIniSettings;
+  Opts := SearchForm.Options;
+  if (ReplaceFlag) then
+    Opts := Opts + [ssoReplace, ssoReplaceAll]
+  else
+    Opts := Opts - [ssoReplace, ssoReplaceAll];
+  SearchForm.Options := Opts;
+
+  if (CurrentEd.SelAvail) and (CurrentEd.BlockBegin.Y = CurrentEd.BlockEnd.Y) then
+    SearchForm.FindText := CurrentEd.SelText
+  else
+    SearchForm.FindText := '';
+
+  if (SearchForm.ShowModal = mrCancel) then
     begin
-      if (ed.SelAvail) and (ed.BlockBegin.Y = ed.BlockEnd.Y) then
-        FindDialog.FindText := ed.SelText;
-      FindDialog.Execute;
+      SearchForm.ReadIniSettings;
+      Exit;
+    end
+  else
+    DoFindAndReplace(SearchForm.FindText, SearchForm.ReplaceText, SearchForm.Options);
+end;
+
+
+function TAssemblerForm.DoFindAndReplace(aFindText, aReplaceText: string; aOptions: TSynSearchOptions): integer;
+var
+  aText, aCaption: string;
+  OldEntireScope, Again: boolean;
+begin
+  Result := 0;
+  //if (ssoReplace in aOptions) and ReadOnly then
+  //  Exit;
+
+  OldEntireScope := (ssoEntireScope in aOptions);
+  if (ssoBackwards in aOptions) then
+    // Caret in the last line and last character?
+    Again := ((CurrentEd.CaretY >= CurrentEd.Lines.Count) and (CurrentEd.CaretX > Length(CurrentEd.LineText)))
+  else
+    // Caret in first position, top/left?
+    Again := ((CurrentEd.CaretY = 1) and (CurrentEd.CaretX = 1));
+
+  repeat
+    Result := CurrentEd.SearchReplace(aFindText, aReplaceText, aOptions);
+    if ((Result = 0) and not (ssoReplaceAll in aOptions)) then
+      begin
+        aCaption := 'Not Found';
+        aText := Format('Search string ''%s'' not found.', [aFindText]);
+        if (not (Again or OldEntireScope)) then
+          begin
+            if (ssoBackwards in aOptions) then
+              aText := aText + ' Continue search from the end?'
+            else
+              aText := aText + ' Continue search from the beginning?';
+            Again := MessageQuery(aCaption, aText);
+            aOptions := aOptions + [ssoEntireScope];
+          end
+        else
+          begin
+            Again := False;
+            MessageWarning(aCaption, aText);
+          end;
+      end
+    else
+      begin
+        Again := False;
+        //CenterCursor(True);
+      end;
+  until (not Again);
+end;
+
+
+procedure TAssemblerForm.actSearchFindNextExecute(Sender: TObject);
+var
+  Opts: TSynSearchOptions;
+begin
+  if (SearchForm.FindText = '') then
+    StartFindReplace(False)
+  else
+    begin
+      Opts := SearchForm.Options - [ssoEntireScope] + [ssoFindContinue];
+      DoFindAndReplace(SearchForm.FindText, SearchForm.ReplaceText, Opts);
     end;
 end;
 
 
-procedure TAssemblerForm.menuSearchFindNextClick(Sender: TObject);
+procedure TAssemblerForm.actSearchFindPrevExecute(Sender: TObject);
 var
-  opt: TSynSearchOptions;
-  ed: TSynEdit;
+  Opts: TSynSearchOptions;
 begin
-  if (FindText = '') then
-    Exit;
-
-  ed := GetCurrentEditor;
-  if Assigned(ed) then
+  if (SearchForm.FindText = '') then
+    StartFindReplace(False)
+  else
     begin
-      opt := FindOptions - [ssoBackWards];
-      if (ed.SearchReplace(FindText, '', opt) = 0) then
-        ShowMessage(Format('Text "%s", not found', [FindText]));
+      Opts := SearchForm.Options - [ssoEntireScope] + [ssoFindContinue];
+      if (ssoBackwards in Opts) then
+        Opts := Opts - [ssoBackwards]
+      else
+        Opts := Opts + [ssoBackwards];
+      DoFindAndReplace(SearchForm.FindText, SearchForm.ReplaceText, Opts);
     end;
 end;
 
 
-procedure TAssemblerForm.menuSearchFindPreviousClick(Sender: TObject);
-var
-  opt: TSynSearchOptions;
-  ed: TSynEdit;
+procedure TAssemblerForm.actUpdateFind(Sender: TObject);
 begin
-  if (FindText = '') then
-    Exit;
-
-  ed := GetCurrentEditor;
-  if Assigned(ed) then
-    begin
-      opt := FindOptions + [ssoBackWards];
-      if (ed.SearchReplace(FindText, '', opt) = 0) then
-        ShowMessage(Format('Text "%s", not found', [FindText]));
-    end;
+  if (Sender is TAction) then
+    TAction(Sender).Enabled := True; // (SearchForm.FindText <> ''){ and Assigned(CurrentEd)};
 end;
 
 
-procedure TAssemblerForm.menuSearchReplaceClick(Sender: TObject);
-var
-  ed: TSynEdit;
+procedure TAssemblerForm.actUpdateOptions(Sender: TObject);
 begin
-  ed := GetCurrentEditor;
-  if Assigned(ed) then
-    ReplaceDialog.Execute;
+  if (Sender is TAction) then
+    TAction(Sender).Enabled := True; // Assigned(CurrentEd);
 end;
 
 
@@ -506,77 +576,6 @@ begin
 end;
 
 
-{ FIND / REPLACE ROUTINES }
-
-procedure TAssemblerForm.DoFind(Sender: TObject);
-var
-  ed: TSynEdit;
-  fd: TFindDialog;
-begin
-  ed := GetCurrentEditor;
-  if Assigned(ed) then
-    begin
-      fd := (Sender as TFindDialog);
-      ReplaceOptions := [];
-      if (not (frDown in fd.Options)) then
-        ReplaceOptions := ReplaceOptions + [ssoBackWards];
-      if (frMatchCase in fd.Options) then
-        ReplaceOptions := ReplaceOptions + [ssoMatchCase];
-      if (frWholeWord in fd.Options) then
-        ReplaceOptions := ReplaceOptions + [ssoWholeWord];
-      FindText := fd.FindText;
-      if (ed.SearchReplace(FindText, '', ReplaceOptions) = 0) then
-        ShowMessage(Format('Text "%s" not found', [FindText]));
-    end;
-end;
-
-
-procedure TAssemblerForm.FindDialogClose(Sender: TObject);
-begin
-  self.BringToFront;
-end;
-
-
-procedure TAssemblerForm.DoReplace(Sender: TObject);
-var
-  ed: TSynEdit;
-  rd: TReplaceDialog;
-begin
-  ed := GetCurrentEditor;
-  if Assigned(ed) then
-    begin
-      rd := (Sender as TReplaceDialog);
-      FindOptions := [];
-      if (not (frDown in rd.Options)) then
-        FindOptions := FindOptions + [ssoBackWards];
-      if (frMatchCase in rd.Options) then
-        FindOptions := FindOptions + [ssoMatchCase];
-      if (frWholeWord in rd.Options) then
-        FindOptions := FindOptions + [ssoWholeWord];
-      if (frReplace in rd.Options) then
-        ReplaceOptions := ReplaceOptions + [ssoReplace];
-      if (frReplaceAll in rd.Options) then
-        ReplaceOptions := ReplaceOptions + [ssoReplaceAll];
-      if (frFindNext in rd.Options) then
-        ReplaceOptions := ReplaceOptions - [ssoReplace, ssoReplaceAll];
-      if (ed.SelAvail) then
-        ReplaceOptions := ReplaceOptions + [ssoSelectedOnly];
-
-      FindText := rd.FindText;
-      ReplaceText := rd.ReplaceText;
-
-      if (ed.SearchReplace(FindText, ReplaceText, ReplaceOptions) = 0) then
-        ShowMessage(Format('Text "%s" not found', [FindText]))
-      else
-        if ((ssoReplace in ReplaceOptions) and not (ssoReplaceAll in ReplaceOptions)) then
-          begin
-            ReplaceOptions := ReplaceOptions - [ssoReplace];
-            ed.SearchReplace(FindText, '', ReplaceOptions); //Search and select next occurence
-          end;
-    end;
-end;
-
-
 { DROP FILES }
 
 procedure TAssemblerForm.FormDropFiles(Sender: TObject; const FileNames: array of String);
@@ -627,14 +626,16 @@ begin
   actFileSaveAll.Enabled := False;
   actFileClose.Enabled := False;
   //menuFileCloseAll.Enabled := False;  // NEED TO USE ACTION
-
+  //
   actEditUndo.Enabled := False;
   actEditRedo.Enabled := False;
   actEditCut.Enabled := False;
   actEditCopy.Enabled := False;
   actEditPaste.Enabled := False;
   actEditSelectAll.Enabled := False;
-  actEditFind.Enabled := False;
+  //
+  actSearchFind.Enabled := False;
+  actSearchReplace.Enabled := False;
 end;
 
 
@@ -643,10 +644,10 @@ var
   ed: TSynEdit;
   HasEditor, HasSelection, HasClipPaste: boolean;
 begin
-  SetActionStates;                      // Set all off
+  SetActionStates;                      // Set all off, then update ...
   ed := GetCurrentEditor;
   if Assigned(ed) then
-    begin                               // Then reassign as appropriate
+    begin                               // ... if Editor exists
       HasEditor := (Notebook.PageCount > 0);
       HasSelection := HasEditor and (ed.SelAvail);
       HasClipPaste := HasEditor and (ClipBoard.AsText <> '');
@@ -656,7 +657,6 @@ begin
       actFileSaveAll.Enabled := HasEditor;
       actFileClose.Enabled := HasEditor;
       actEditSelectAll.Enabled := HasEditor;
-      actEditFind.Enabled := HasEditor;
 
       actEditUndo.Enabled := ed.CanUndo;
       actEditRedo.Enabled := ed.CanRedo;
@@ -665,6 +665,9 @@ begin
       actEditCopy.Enabled := HasSelection;
 
       actEditPaste.Enabled := HasClipPaste;
+
+      actSearchFind.Enabled := HasEditor;
+      actSearchReplace.Enabled := HasEditor;
     end;
 end;
 
@@ -742,6 +745,77 @@ end;
 procedure TAssemblerForm.SetMruMenuRef(aItem: TMenuItem);
 begin
   MRU.RecentMenuItem := aItem;
+end;
+
+
+{ ASSIGN KEY SHORTCUTS }
+
+procedure TAssemblerForm.AssignActionShortcuts;
+begin
+  {$ifdef darwin}
+     actFileNew.ShortCut := TextToShortCut('Meta+N');
+     actFileOpen.ShortCut := TextToShortCut('Meta+O');
+     actFileClose.ShortCut := TextToShortCut('Meta+W');
+     actFileSave.ShortCut := TextToShortCut('Meta+S');
+     actFileSaveAs.ShortCut := TextToShortCut('Shift+Meta+S');
+     //
+     actEditUndo.ShortCut := TextToShortCut('Meta+Z');
+     actEditRedo.ShortCut := TextToShortCut('Shift+Meta+Z');
+     actEditCut.ShortCut := TextToShortCut('Meta+X');
+     actEditCopy.ShortCut := TextToShortCut('Meta+C');
+     actEditPaste.ShortCut := TextToShortCut('Meta+P');
+     actEditSelectAll.ShortCut := TextToShortCut('Meta+A');
+     //
+     actSearchFind.ShortCut := TextToShortCut('Meta+F');
+     actSearchFindNext.ShortCut := TextToShortCut('Meta+G');
+     actSearchFindPrev.ShortCut := TextToShortCut('Shift+Meta+G');
+  {$endif}
+
+  { TODO : uAssemblerForm -> check Windows shortcuts }
+  {$ifdef windows}
+     actFileNew.ShortCut := TextToShortCut('Ctrl+N');
+     actFileOpen.ShortCut := TextToShortCut('Ctrl+O');
+     actFileClose.ShortCut := TextToShortCut('Ctrl+W');
+     actFileSave.ShortCut := TextToShortCut('Ctrl+S');
+     actFileSaveAs.ShortCut := TextToShortCut('Shift+Ctrl+S');
+     //
+     actEditUndo.ShortCut := TextToShortCut('Ctrl+Z');
+     actEditRedo.ShortCut := TextToShortCut('Shift+Ctrl+Z');
+     actEditCut.ShortCut := TextToShortCut('Ctrl+X');
+     actEditCopy.ShortCut := TextToShortCut('Ctrl+C');
+     actEditPaste.ShortCut := TextToShortCut('Ctrl+P');
+     actEditSelectAll.ShortCut := TextToShortCut('Ctrl+A');
+     //
+     actSearchFind.ShortCut := TextToShortCut('Ctrl+F');
+     actSearchFindNext.ShortCut := TextToShortCut('Ctrl+G');
+     actSearchFindPrev.ShortCut := TextToShortCut('Shift+Ctrl+G');
+  {$endif}
+end;
+
+
+{ READ / WRITE INI SETTINGS }
+
+procedure TAssemblerForm.ReadIniSettings;
+begin
+  Left := AppIni.ReadInteger(SECT_ASM, INI_WDW_LEFT, 20);
+  Top := AppIni.ReadInteger(SECT_ASM, INI_WDW_TOP, 20);
+  Width := AppIni.ReadInteger(SECT_ASM, INI_WDW_WIDTH, 640);
+  Height := AppIni.ReadInteger(SECT_ASM, INI_WDW_HEIGHT, 480);
+  panelBottom.Height := AppIni.ReadInteger(SECT_ASM, PANELB_HEIGHT, 50);
+  panelRight.Width  := AppIni.ReadInteger(SECT_ASM, PANELR_WIDTH, 150);
+  // Following is written out in MainForm.WriteIniSettings, but read here
+  Visible := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WDW_VIS, True);
+end;
+
+
+procedure TAssemblerForm.WriteIniSettings;
+begin
+  AppIni.WriteInteger(SECT_ASM, INI_WDW_LEFT, Left);
+  AppIni.WriteInteger(SECT_ASM, INI_WDW_TOP, Top);
+  AppIni.WriteInteger(SECT_ASM, INI_WDW_WIDTH, Width);
+  AppIni.WriteInteger(SECT_ASM, INI_WDW_HEIGHT, Height);
+  AppIni.WriteInteger(SECT_ASM, PANELB_HEIGHT, panelBottom.Height);
+  AppIni.WriteInteger(SECT_ASM, PANELR_WIDTH, panelRight.Width);
 end;
 
 

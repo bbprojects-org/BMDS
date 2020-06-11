@@ -150,8 +150,11 @@ object AssemblerForm: TAssemblerForm
     end
     object tbFind: TToolButton
       Left = 231
+      Hint = 'Search for text'
       Top = 2
-      Action = actEditFind
+      Caption = 'Find...'
+      Enabled = False
+      ImageIndex = 10
     end
   end
   object StatusBar1: TStatusBar
@@ -259,7 +262,6 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Create new file'
       ImageIndex = 0
       OnExecute = actFileNewExecute
-      ShortCut = 4174
     end
     object actFileOpen: TAction
       Category = 'File'
@@ -267,7 +269,6 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Open file'
       ImageIndex = 1
       OnExecute = actFileOpenExecute
-      ShortCut = 4175
     end
     object actFileClose: TAction
       Category = 'File'
@@ -276,7 +277,6 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Close current file'
       ImageIndex = 16
       OnExecute = actFileCloseExecute
-      ShortCut = 4183
     end
     object actFileExit: TAction
       Category = 'File'
@@ -290,7 +290,6 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Save current file'
       ImageIndex = 2
       OnExecute = actFileSaveExecute
-      ShortCut = 4179
     end
     object actFileSaveAs: TAction
       Category = 'File'
@@ -299,7 +298,6 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Save with new name'
       ImageIndex = 4
       OnExecute = actFileSaveAsExecute
-      ShortCut = 12371
     end
     object actFileSaveAll: TAction
       Category = 'File'
@@ -319,20 +317,6 @@ object AssemblerForm: TAssemblerForm
     left = 144
     top = 240
   end
-  object FindDialog: TFindDialog
-    OnClose = FindDialogClose
-    OnFind = DoFind
-    left = 249
-    top = 240
-  end
-  object ReplaceDialog: TReplaceDialog
-    OnClose = FindDialogClose
-    Options = [frDown, frReplace, frReplaceAll, frHidePromptOnReplace]
-    OnFind = DoFind
-    OnReplace = DoReplace
-    left = 344
-    top = 240
-  end
   object ActionListEdit: TActionList
     left = 176
     top = 71
@@ -343,7 +327,6 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Undo last edit action'
       ImageIndex = 5
       OnExecute = actEditUndoExecute
-      ShortCut = 4186
     end
     object actEditRedo: TAction
       Category = 'Edit'
@@ -352,7 +335,6 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Redo last edit action'
       ImageIndex = 6
       OnExecute = actEditRedoExecute
-      ShortCut = 12378
     end
     object actEditCut: TAction
       Category = 'Edit'
@@ -361,7 +343,6 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Cut the highlighted text'
       ImageIndex = 7
       OnExecute = actEditCutExecute
-      ShortCut = 4184
     end
     object actEditCopy: TAction
       Category = 'Edit'
@@ -370,7 +351,6 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Copy the highlighted text'
       ImageIndex = 8
       OnExecute = actEditCopyExecute
-      ShortCut = 4163
     end
     object actEditPaste: TAction
       Category = 'Edit'
@@ -379,22 +359,48 @@ object AssemblerForm: TAssemblerForm
       Hint = 'Paste the highlighted text'
       ImageIndex = 9
       OnExecute = actEditPasteExecute
-      ShortCut = 4182
     end
     object actEditSelectAll: TAction
       Category = 'Edit'
       Caption = 'Select All'
       Enabled = False
       OnExecute = actEditSelectAllExecute
-      ShortCut = 4161
     end
-    object actEditFind: TAction
-      Category = 'Edit'
+  end
+  object ActionListSearch: TActionList
+    left = 288
+    top = 71
+    object actSearchFind: TAction
+      Category = 'Search'
       Caption = 'Find...'
-      Enabled = False
       Hint = 'Search for text'
       ImageIndex = 10
-      OnExecute = actEditFindExecute
+      OnExecute = actSearchFindExecute
+    end
+    object actSearchReplace: TAction
+      Category = 'Search'
+      Caption = 'Replace...'
+      OnExecute = actSearchReplaceExecute
+    end
+    object actSearchFindNext: TAction
+      Category = 'Search'
+      Caption = 'Find Next'
+      OnExecute = actSearchFindNextExecute
+      OnUpdate = actUpdateFind
+    end
+    object actSearchFindPrev: TAction
+      Category = 'Search'
+      Caption = 'Find Previous'
+      OnExecute = actSearchFindPrevExecute
+      OnUpdate = actUpdateFind
+    end
+    object actWholeWords: TAction
+      Category = 'Search'
+      OnUpdate = actUpdateOptions
+    end
+    object actCaseSensitive: TAction
+      Category = 'Search'
+      OnUpdate = actUpdateOptions
     end
   end
 end

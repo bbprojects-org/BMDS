@@ -62,7 +62,7 @@ interface
 uses
   SysUtils, Classes, Dialogs,
   //
-  uErrorDefs, uCommon;
+  uErrorDefs;
 
 const
   MAX_BYTES_PER_LINE  = 16;

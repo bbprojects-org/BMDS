@@ -35,7 +35,7 @@ interface
 uses
   Classes, SysUtils, FileUtil, Forms, Controls, ExtCtrls, ComCtrls, Menus,
   SynEdit, SynEditHighlighter, SynEditTypes, SynEditMarks,
-  SynEditKeyCmds, Graphics,
+  SynEditKeyCmds, Graphics, LCLType,
   //
   uHighlighterAsm;
 
@@ -59,6 +59,7 @@ type
     procedure EditorComponentChange(Sender: TObject);
     procedure EditorComponentDropFiles(Sender: TObject; {%H-}X, {%H-}Y: integer; aFiles: TStrings);
     procedure EditorComponentGutterClick(Sender: TObject; X, {%H-}Y, Line: integer; {%H-}mark: TSynEditMark);
+    procedure EditorComponentKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     fNew: boolean;
     fFileName: string;
@@ -93,6 +94,8 @@ implementation
 
 uses uAssemblerForm;
 
+{ CREATE / DESTROY }
+
 constructor TEditorFrame.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
@@ -109,6 +112,8 @@ begin
 end;
 
 
+{ SAVE }
+
 procedure TEditorFrame.SaveCurrentFile;
 begin
   EditorComponent.Lines.SaveToFile(fFileName);
@@ -123,6 +128,8 @@ begin
   UpdateModifiedState;
 end;
 
+
+{ LOAD }
 
 procedure TEditorFrame.LoadFromFile(FileName: string);
 begin
@@ -195,6 +202,28 @@ begin
 
   if (scSelection in Changes) then
     AssemblerForm.UpdateActionStates;   // Text selected, update actions to reflect
+end;
+
+
+{ ON KEY DOWN }
+
+procedure TEditorFrame.EditorComponentKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  // Windows keys already defined, add Cmd-keys for Mac
+  {$ifdef darwin}
+  if (Shift = [ssMeta]) then
+    case Key of
+      VK_A: EditorComponent.CommandProcessor(TSynEditorCommand(ecSelectAll), ' ', nil);
+      VK_C: EditorComponent.CommandProcessor(TSynEditorCommand(ecCopy), ' ', nil);
+      VK_V: EditorComponent.CommandProcessor(TSynEditorCommand(ecPaste), ' ', nil);
+      VK_X: EditorComponent.CommandProcessor(TSynEditorCommand(ecCut), ' ', nil);
+      VK_Z: EditorComponent.CommandProcessor(TSynEditorCommand(ecUndo), ' ', nil);
+    end;
+  if (Shift = [ssShift, ssMeta]) then
+    case Key of
+      VK_Z: EditorComponent.CommandProcessor(TSynEditorCommand(ecRedo), ' ', nil);
+    end;
+  {$endif}
 end;
 
 

@@ -49,8 +49,8 @@ type
   function  GetAppDataDirectory: string;
   procedure Split(Input: string; const Delimiter: char; const Strings: TStrings);
   function  GetRegisterIndex(aRegToFind: string; aRegisters: string): integer;
-  function  MessageQuery(aText: string): boolean;
-  procedure MessageWarning(aText: string);
+  function  MessageQuery(aCaption, aText: string): boolean;
+  procedure MessageWarning(aCaption, aText: string);
   function  ConfirmResetDefault: boolean;
   function  GetHex(sText: string): integer;
   procedure SwapButtons({%H-}aButt1, {%H-}aButt2: TButton);
@@ -142,17 +142,17 @@ end;
 
 { QUERY MESSAGE }
 
-function MessageQuery(aText: string): boolean;
+function MessageQuery(aCaption, aText: string): boolean;
 begin
-  Result := MessageDlg(aText, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
+  Result := MessageDlg(aCaption, aText, mtConfirmation, [mbYes, mbNo], 0) = mrYes;
 end;
 
 
 { WARNING MESSAGE }
 
-procedure MessageWarning(aText: string);
+procedure MessageWarning(aCaption, aText: string);
 begin
-  MessageDlg(aText, mtWarning, [mbOK], 0);;
+  MessageDlg(aCaption, aText, mtWarning, [mbOK], 0);;
 end;
 
 

@@ -122,7 +122,7 @@ begin
     ctCHIP8:  ThisTypeMask := %01;
     ctSCHIP8: begin
                { TODO : uCpuChip8 -> add support for SCHIP }
-               MessageWarning('SCHIP currently not supported, defaulting to CHIP8');
+               MessageWarning('Not Supported', 'SCHIP currently not supported, defaulting to CHIP8');
                //ThisTypeMask := %11;
                ThisTypeMask := %01;
                fInfo.Name := 'SCHIP-8'; // Replace default name
@@ -551,7 +551,7 @@ begin
   end;
 
   if (Unknown) then
-    MessageWarning(Format('Unknown opcode: $%.4x', [Opcode]));
+    MessageWarning('Not Found', Format('Unknown opcode: $%.4x', [Opcode]));
 end;
 
 

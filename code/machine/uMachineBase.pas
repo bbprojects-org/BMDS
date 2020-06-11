@@ -242,7 +242,7 @@ function TMachineBase.IsRAM(Addr: word): boolean;
 begin
   Result := fMemoryMgr.IsRAM(Addr);
   if (Result = False) then
-    MessageWarning(Format('Address $%.4x is not writeable, might be ROM', [Addr]));
+    MessageWarning('NOT RAM', Format('Address $%.4x is not writeable, might be ROM', [Addr]));
 end;
 
 

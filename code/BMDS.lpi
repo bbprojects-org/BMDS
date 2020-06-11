@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="3"/>
       <MinorVersionNr Value="5"/>
-      <BuildNr Value="355"/>
+      <BuildNr Value="356"/>
       <Language Value="0809"/>
     </VersionInfo>
     <BuildModes Count="1">
@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="71">
+    <Units Count="72">
       <Unit0>
         <Filename Value="BMDS.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -432,6 +432,13 @@
         <Filename Value="cpu\8080\text.txt"/>
         <IsPartOfProject Value="True"/>
       </Unit70>
+      <Unit71>
+        <Filename Value="editor\uSearchForm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="SearchForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit71>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

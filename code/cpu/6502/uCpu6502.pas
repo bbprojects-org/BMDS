@@ -140,7 +140,7 @@ begin
     ct6502:  ThisTypeMask := %01;
     ct65C02: begin
                { TODO : uCpu6502 -> add support for 65C02 }
-               MessageWarning('65C02 currently not supported, defaulting to 6502');
+               MessageWarning('Not Supported', '65C02 currently not supported, defaulting to 6502');
                //ThisTypeMask := %11;
                ThisTypeMask := %01;
                fInfo.Name := '65C02';   // Replace default name

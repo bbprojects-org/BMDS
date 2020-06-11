@@ -2,6 +2,10 @@
 
   SEARCH FORM
 
+    General purpose find and replace form
+
+    Saves its settings in the app's INI file, for each machine
+
 
   LICENSE:
 
@@ -20,10 +24,6 @@
 
   =============================================================================}
 
-{ TODO : uSearchForm -> make replace edit box dependent on checkbox  }
-{ TODO : uSearchForm -> need whole scope for ReplaceAll }
-{ TODO : uSearchForm -> save settings on close }
-
 unit uSearchForm;
 
 {$mode objfpc}{$H+}
@@ -32,34 +32,54 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
-  Buttons, ComCtrls, SynEdit, SynEditSearch, SynEditTypes;
+  Buttons, ComCtrls, ActnList, SynEdit, SynEditSearch, SynEditTypes, LCLProc,
+  //
+  uIniFile, uCommon;
 
 type
 
   { TSearchForm }
 
   TSearchForm = class(TForm)
-    btnFindNext: TButton;
-    btnReplace: TButton;
+    actReplaceWith: TAction;
+    btnFind: TButton;
     btnReplaceAll: TButton;
-    btnFindPrev: TButton;
+    btnCancel: TButton;
     cbReplace: TCheckBox;
-    cbWholeWords: TCheckBox;
     cbCaseSensitive: TCheckBox;
+    cbWholeWords: TCheckBox;
+    cbPromptOnReplace: TCheckBox;
     edSearch: TLabeledEdit;
     edReplace: TEdit;
-    lblStatus: TLabel;
-    procedure btnFindNextClick(Sender: TObject);
-    procedure btnFindPrevClick(Sender: TObject);
+    gbOptions: TGroupBox;
+    gbFrom: TGroupBox;
+    rgFromBeginning: TRadioButton;
+    rgFromCursor: TRadioButton;
+    procedure btnFindClick(Sender: TObject);
+    procedure btnCancelClick(Sender: TObject);
     procedure btnReplaceAllClick(Sender: TObject);
-    procedure btnReplaceClick(Sender: TObject);
     procedure cbReplaceChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure rgFromChange(Sender: TObject);
   private
-    fSynEdit: TSynEdit;
-    procedure DoSearch(flagReplace: boolean; flagAll: boolean; flagForward: boolean);
+    ReplaceFlag: boolean;
+    ReplaceAllFlag: boolean;
+    ForwardFlag: boolean;
+    function  GetFindText: string;
+    procedure SetFindText(const NewText: string);
+    function  GetReplaceText: string;
+    procedure SetReplaceText(const NewText: string);
+    //
+    procedure SetOptions(NewOptions: TSynSearchOptions);
+    function GetOptions: TSynSearchOptions;
   public
-    property Editor: TSynEdit read fSynEdit write fSynEdit;
+    procedure ReadIniSettings;
+    procedure WriteIniSettings;
+    //
+    property FindText: string read GetFindText write SetFindText;
+    property ReplaceText: string read GetReplaceText write SetReplaceText;
+    property Options: TSynSearchOptions read GetOptions write SetOptions;
   end;
 
 var
@@ -70,77 +90,176 @@ implementation
 
 {$R *.lfm}
 
+const
+  INI_PREFIX     = 'Search';
+  INI_FIND       = 'Find';
+  INI_REPLACE    = 'Replace';
+  INI_CASE       = 'Case';
+  INI_WHOLEWORDS = 'Words';
+  INI_PROMPT     = 'Prompt';
+  INI_FROM       = 'From';
+
+
+{ CREATE / DESTROY }
+
 procedure TSearchForm.FormCreate(Sender: TObject);
 begin
-  fSynEdit := nil;
+  ReadIniSettings;
+  ForwardFlag := True;
+  ReplaceFlag := False;
+  ReplaceAllFlag := False;
   cbReplace.Checked := False;
-  cbReplaceChange(nil);
-  lblStatus.Caption := '';
+  cbReplaceChange(cbReplace);
+end;
+
+
+procedure TSearchForm.FormDestroy(Sender: TObject);
+begin
+  WriteIniSettings;
+end;
+
+
+{ GETTERS / SETTERS }
+
+function TSearchForm.GetFindText: string;
+begin
+  Result := edSearch.Text;
+end;
+
+
+procedure TSearchForm.SetFindText(const NewText: string);
+begin
+  edSearch.Text := NewText;
+end;
+
+
+function TSearchForm.GetReplaceText: string;
+begin
+  Result := edReplace.Text;
+end;
+
+
+procedure TSearchForm.SetReplaceText(const NewText: string);
+begin
+  edReplace.Text := NewText;
+end;
+
+
+function TSearchForm.GetOptions: TSynSearchOptions;
+begin
+  Result := [];
+  if (cbCaseSensitive.Checked) then Include(Result, ssoMatchCase);
+  if (cbWholeWords.Checked) then Include(Result, ssoWholeWord);
+  if (cbPromptOnReplace.Checked) then Include(Result, ssoPrompt);
+  //
+  if (rgFromBeginning.Checked) then Include(Result, ssoEntireScope);
+  if (not ForwardFlag) then Include(Result, ssoBackwards);
+  if (ReplaceFlag) then Include(Result, ssoReplace);
+  if (ReplaceAllFlag) then Include(Result, ssoReplaceAll);
+end;
+
+
+procedure TSearchForm.SetOptions(NewOptions: TSynSearchOptions);
+begin
+  cbCaseSensitive.Checked := ssoMatchCase in NewOptions;
+  cbWholeWords.Checked := ssoWholeWord in NewOptions;
+  cbPromptOnReplace.Checked := ssoPrompt in NewOptions;
+
+  rgFromBeginning.Checked := (ssoEntireScope in NewOptions);
+  rgFromCursor.Checked := (not rgFromBeginning.Checked);
+
+  cbReplace.Checked := (ssoReplace in NewOptions);
+  cbReplaceChange(cbReplace);
+  ReplaceAllFlag := (ssoReplaceAll in NewOptions);
+end;
+
+
+{ UPDATE GUI STATE }
+
+procedure TSearchForm.cbReplaceChange(Sender: TObject);
+begin
+  edReplace.Enabled := cbReplace.Checked;
+  cbPromptOnReplace.Enabled := cbReplace.Checked;
+  if (cbReplace.Checked) then
+    begin
+      btnFind.Caption := 'Replace';
+      Caption := 'Replace';
+      btnReplaceAll.Visible := True;
+      btnFind.Left := 323;
+    end
+  else
+    begin
+      btnFind.Caption := 'Find';
+      Caption := 'Find';
+      btnReplaceAll.Visible := False;
+      btnFind.Left := 346;
+    end;
+  btnCancel.Left := btnFind.Left - 76;
+  btnReplaceAll.Left := btnCancel.Left - 120;
+end;
+
+
+procedure TSearchForm.rgFromChange(Sender: TObject);
+begin
+  if (Sender = rgFromBeginning) then
+    rgFromCursor.Checked := not rgFromBeginning.Checked
+  else
+    rgFromBeginning.Checked := not rgFromCursor.Checked;
+end;
+
+
+{ BUTTONS }
+
+procedure TSearchForm.btnFindClick(Sender: TObject);
+begin
+  ReplaceFlag := (btnFind.Caption = 'Replace');
+  ReplaceAllFlag := False;
+  // ModalResult set to mrOk in button
 end;
 
 
 procedure TSearchForm.btnReplaceAllClick(Sender: TObject);
 begin
-  DoSearch(True, True, True);
+  ReplaceFlag := True;
+  ReplaceAllFlag := True;
+  // ModalResult set to mrAll in button
 end;
 
 
-procedure TSearchForm.btnReplaceClick(Sender: TObject);
+procedure TSearchForm.btnCancelClick(Sender: TObject);
 begin
-  DoSearch(True, False, True);
+  // ModalResult set to mrCancel in button
 end;
 
 
-procedure TSearchForm.btnFindNextClick(Sender: TObject);
+{ READ / WRITE INI SETTINGS }
+
+procedure TSearchForm.ReadIniSettings;
 begin
-  DoSearch(False, False, True);
+  Top := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, 20);
+  Left := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, 170);
+  //
+  edSearch.Text := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + INI_FIND, '');
+  edReplace.Text := AppIni.ReadString(SECT_CUSTOM, INI_PREFIX + INI_REPLACE, '');
+  cbCaseSensitive.Checked := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_CASE, False);
+  cbWholeWords.Checked := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_WHOLEWORDS, False);
+  cbPromptOnReplace.Checked := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_PROMPT, False);
+  rgFromCursor.Checked := AppIni.ReadBool(SECT_CUSTOM, INI_PREFIX + INI_FROM, False);
+  rgFromChange(rgFromCursor);
 end;
 
 
-procedure TSearchForm.btnFindPrevClick(Sender: TObject);
+procedure TSearchForm.WriteIniSettings;
 begin
-  DoSearch(False, False, False);
-end;
-
-
-procedure TSearchForm.DoSearch(flagReplace: boolean; flagAll: boolean; flagForward: boolean);
-var
-  Opts: TSynSearchOptions;
-  count: integer;
-  tmp: string;
-begin
-  Opts := []; // [ssoFindContinue];
-  if (cbWholeWords.Checked) then
-    Opts := Opts + [ssoWholeWord];
-  if (cbCaseSensitive.Checked) then
-    Opts := Opts + [ssoMatchCase];
-  if (not flagForward) then
-    Opts := Opts + [ssoBackwards];
-  if (flagReplace) then
-    Opts := Opts + [ssoReplace];
-  if (flagAll) then
-    Opts := Opts + [ssoReplaceAll];
-
-  if (cbReplace.Checked) then
-    begin
-      count := fSynEdit.SearchReplace(edSearch.Text, edReplace.Text, Opts);
-      tmp := 'Replaced ';
-    end
-  else
-    begin
-      count := fSynEdit.SearchReplace(edSearch.Text, '', Opts);
-      tmp := 'Found ';
-    end;
-
-  lblStatus.Caption := tmp + IntToStr(count);
-end;
-
-
-procedure TSearchForm.cbReplaceChange(Sender: TObject);
-begin
-  edReplace.Enabled := cbReplace.Checked;
-  btnReplace.Enabled := cbReplace.Checked;
-  btnReplaceAll.Enabled := cbReplace.Checked;
+  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, Top);
+  AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, Left);
+  //
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + INI_FIND, edSearch.Text);
+  AppIni.WriteString(SECT_CUSTOM, INI_PREFIX + INI_REPLACE, edReplace.Text);
+  AppIni.WriteBool(SECT_CUSTOM, INI_PREFIX + INI_CASE, cbCaseSensitive.Checked);
+  AppIni.WriteBool(SECT_CUSTOM, INI_PREFIX + INI_WHOLEWORDS, cbWholeWords.Checked);
+  AppIni.WriteBool(SECT_CUSTOM, INI_PREFIX + INI_PROMPT, cbPromptOnReplace.Checked);
+  AppIni.WriteBool(SECT_CUSTOM, INI_PREFIX + INI_FROM, rgFromCursor.Checked);
 end;
 
 

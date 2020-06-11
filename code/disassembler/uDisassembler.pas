@@ -629,7 +629,7 @@ begin
   if (SaveDialog1.Execute) then
   begin
     if FileExists(SaveDialog1.FileName) then
-      if ( MessageQuery('File exists. Overwrite?') ) then
+      if ( MessageQuery('Save Disassembler Settings', 'File exists. Overwrite?') ) then
         DeleteFile(SaveDialog1.FileName)
       else
         Exit;

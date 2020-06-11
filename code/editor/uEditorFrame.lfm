@@ -7,8 +7,8 @@ object EditorFrame: TEditorFrame
   ClientHeight = 240
   ClientWidth = 320
   TabOrder = 0
-  DesignLeft = 1798
-  DesignTop = 23
+  DesignLeft = 3099
+  DesignTop = 98
   inline EditorComponent: TSynEdit
     Left = 0
     Height = 240
@@ -23,6 +23,7 @@ object EditorFrame: TEditorFrame
     ParentFont = False
     PopupMenu = popupEditor
     TabOrder = 0
+    OnKeyDown = EditorComponentKeyDown
     Gutter.Width = 51
     Gutter.MouseActions = <>
     RightGutter.Width = 0
@@ -454,8 +455,6 @@ object EditorFrame: TEditorFrame
     Lines.Strings = (
       'EditorComponent'
     )
-    Options = [eoAutoIndent, eoBracketHighlight, eoGroupUndo, eoScrollPastEol, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces, eoDoubleClickSelectsLine]
-    MouseOptions = [emDoubleClickSelectsLine]
     VisibleSpecialChars = [vscSpace, vscTabAtLast]
     SelectedColor.BackPriority = 50
     SelectedColor.ForePriority = 50
@@ -520,7 +519,7 @@ object EditorFrame: TEditorFrame
     left = 232
     top = 40
     object menuPopupFind: TMenuItem
-      Caption = 'Find'
+      Action = AssemblerForm.actSearchFind
     end
     object N2: TMenuItem
       Caption = '-'
