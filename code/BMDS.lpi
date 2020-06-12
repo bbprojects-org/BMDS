@@ -385,59 +385,59 @@
         <ResourceBaseClass Value="Frame"/>
       </Unit61>
       <Unit62>
-        <Filename Value="assembler\uAsmErrors.pas"/>
+        <Filename Value="editor\uMRU.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit62>
       <Unit63>
-        <Filename Value="editor\uMRU.pas"/>
+        <Filename Value="editor\uHighlighterAsm.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit63>
       <Unit64>
-        <Filename Value="editor\uHighlighterAsm.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit64>
-      <Unit65>
         <Filename Value="editor\uEditorFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="EditorFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit65>
-      <Unit66>
+      </Unit64>
+      <Unit65>
         <Filename Value="cpu\uCpuTypes.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit66>
-      <Unit67>
+      </Unit65>
+      <Unit66>
         <Filename Value="cpu\6502\uTest6502Form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Test6502Form"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit67>
-      <Unit68>
+      </Unit66>
+      <Unit67>
         <Filename Value="cpu\8080\uTest8080Form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Test8080Form"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit68>
-      <Unit69>
+      </Unit67>
+      <Unit68>
         <Filename Value="cpu\8080\uRegistersFrame8080.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RegistersFrame8080"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit69>
-      <Unit70>
+      </Unit68>
+      <Unit69>
         <Filename Value="cpu\8080\text.txt"/>
         <IsPartOfProject Value="True"/>
-      </Unit70>
-      <Unit71>
+      </Unit69>
+      <Unit70>
         <Filename Value="editor\uSearchForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="SearchForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit70>
+      <Unit71>
+        <Filename Value="editor\uFormatter.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit71>
     </Units>
   </ProjectOptions>

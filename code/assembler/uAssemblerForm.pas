@@ -45,7 +45,8 @@ uses
   StrUtils, LCLProc,
   //
   uEditorFrame, uSearchForm, uAssembler, uIniFile, uMRU, uHighlighterAsm,
-  uCpuTypes, uMachineBase, uEdPrefsFrame, uEdColourPrefsFrame, uCommon;
+  uCpuTypes, uMachineBase, uEdPrefsFrame, uEdColourPrefsFrame, uFormatter,
+  uCommon;
 
 type
   TAsmLineInfo = record
@@ -70,6 +71,8 @@ type
     actEditUndo: TAction;
     actEditPaste: TAction;
     actEditSelectAll: TAction;
+    actFormatter: TAction;
+    actAssembler: TAction;
     actSearchFindPrev: TAction;
     actSearchFindNext: TAction;
     actSearchReplace: TAction;
@@ -78,6 +81,7 @@ type
     ActionListSearch: TActionList;
     actSearchFind: TAction;
     btnAssemble: TButton;
+    btnFormat: TButton;
     memoLog: TMemo;
     Notebook: TExtendedNotebook;
     OpenDialog: TOpenDialog;
@@ -93,6 +97,7 @@ type
     tbSep2: TToolButton;
     tbSep3: TToolButton;
     tbSep4: TToolButton;
+    tbSep5: TToolButton;
     ToolBar1: TToolBar;
     tbNew: TToolButton;
     tbOpen: TToolButton;
@@ -105,8 +110,11 @@ type
     tbUndo: TToolButton;
     tbRedo: TToolButton;
     tbFind: TToolButton;
+    procedure actAssemblerExecute(Sender: TObject);
     procedure actEditCopyExecute(Sender: TObject);
     procedure actEditCutExecute(Sender: TObject);
+    procedure actFormatterExecute(Sender: TObject);
+    procedure actButtonsUpdate(Sender: TObject);
     procedure actSearchFindExecute(Sender: TObject);
     procedure actEditPasteExecute(Sender: TObject);
     procedure actEditRedoExecute(Sender: TObject);
@@ -121,7 +129,6 @@ type
     procedure actSearchFindNextExecute(Sender: TObject);
     procedure actSearchFindPrevExecute(Sender: TObject);
     procedure actSearchReplaceExecute(Sender: TObject);
-    procedure btnAssembleClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: boolean);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -515,9 +522,9 @@ end;
 
 { DEBUG - BUTTONS - ASSEMBLE }
 
-{ TODO : uAssemblerForm -> do not allow Assemble of .LST file }
+{ TODO : uAssemblerForm -> do not allow Assembly of .LST file }
 
-procedure TAssemblerForm.btnAssembleClick(Sender: TObject);
+procedure TAssemblerForm.actAssemblerExecute(Sender: TObject);
 var
   ThisInputFile, tmp: string;
   ThisAssembler: TAssembler;
@@ -654,14 +661,12 @@ begin
       actFileSaveAs.Enabled := HasEditor;
       actFileSaveAll.Enabled := HasEditor;
       actFileClose.Enabled := HasEditor;
-      actEditSelectAll.Enabled := HasEditor;
 
+      actEditSelectAll.Enabled := HasEditor;
       actEditUndo.Enabled := ed.CanUndo;
       actEditRedo.Enabled := ed.CanRedo;
-
       actEditCut.Enabled := HasSelection;
       actEditCopy.Enabled := HasSelection;
-
       actEditPaste.Enabled := HasClipPaste;
 
       actSearchFind.Enabled := HasEditor;
@@ -816,6 +821,35 @@ begin
   AppIni.WriteInteger(SECT_ASM, INI_WDW_HEIGHT, Height);
   AppIni.WriteInteger(SECT_ASM, PANELB_HEIGHT, panelBottom.Height);
   AppIni.WriteInteger(SECT_ASM, PANELR_WIDTH, panelRight.Width);
+end;
+
+
+{ FORMAT ASSEMBLY CODE }
+
+procedure TAssemblerForm.actFormatterExecute(Sender: TObject);
+var
+  ed: TSynEdit;
+  formatter: TFormatter;
+begin
+  ed := GetCurrentEditor;
+  if Assigned(ed) then
+    begin
+      if (MessageQuery('Format Text', 'Formatting text cannot be undone. Confirm?')) then
+        begin
+          formatter := TFormatter.Create;
+          try
+            ed.Text := formatter.FormatFile(ed.Text);
+          finally
+            formatter.Free;
+          end;
+        end;
+    end;
+end;
+
+
+procedure TAssemblerForm.actButtonsUpdate(Sender: TObject);
+begin
+  (Sender as TAction).Enabled := (Notebook.PageCount > 0);
 end;
 
 
