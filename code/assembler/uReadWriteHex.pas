@@ -60,12 +60,14 @@ unit uReadWriteHex;
 interface
 
 uses
-  SysUtils, Classes, Dialogs,
-  //
-  uErrorDefs;
+  SysUtils, Classes, Dialogs;
 
 const
-  MAX_BYTES_PER_LINE  = 16;
+  MAX_BYTES_PER_LINE     = 16;
+  ERR_MISSING_COLON      = 'Missing colon at start of line';
+  ERR_TYPE_NOT_SUPPORTED = 'Record type %d not supported';
+  ERR_TYPE_NOT_VALID     = 'Record type %d not valid';
+  ERR_INVALID_HEX        = '[%s] is not a valid hex number';
 
 type
   TRecordType = (rtAuto, rtIntelHex, rtMotorolaS19);
@@ -175,7 +177,7 @@ var
 begin
   Result := False;
   if (s[1] <> ':') then
-    AddError(Error(emRwhMissingColon));
+    AddError(ERR_MISSING_COLON);
   BytesCount := HexToInt(Copy(s, 2, 2));
   LineAddress := HexToInt(Copy(s, 4, 4));
   RecordType := HexToInt(Copy(s, 8, 2));
@@ -210,10 +212,10 @@ begin
          // Do nothing, just flag done as Result flag already FALSE
        end;
     2..5: begin
-            AddError(Format(Error(emRwhNotSupported), [RecordType]));
+            AddError(Format(ERR_TYPE_NOT_SUPPORTED, [RecordType]));
           end;
     else
-      AddError(Format(Error(emRwhNotValid), [RecordType]));
+      AddError(Format(ERR_TYPE_NOT_VALID, [RecordType]));
   end;
 end;
 
@@ -232,7 +234,7 @@ begin
       '0'..'9': Value := ord(s[i]) - ord('0');
       'A'..'F': Value := ord(s[i]) - ord('A')  + 10;
       else
-        AddError(Format(Error(emRwhInvalidHex), [s]));
+        AddError(Format(ERR_INVALID_HEX, [s]));
     end;
     Result := (Result shl 4) + Value;
   end;

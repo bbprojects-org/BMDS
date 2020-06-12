@@ -31,7 +31,6 @@
   { TODO : uAssembler -> for DoWord, follow ENDIAN flag to define order of bytes for
                        each specific CPU }
   { TODO : uAssembler -> stop spare line after macro definition, same line # }
-  { TODO : uAssembler -> add char to Expr so can have LDA #'S', currently errors }
   { TODO : uAssembler -> add DEFINE to create pseudonym for given text,
                          e.g. CHIP8 register. Replaced by parser? }
 
@@ -57,11 +56,9 @@ uses Forms, Classes, SysUtils, FileUtil, SynEdit, SynPluginSyncroEdit, Controls,
      //
      uParser, uSymbols, uAsmListing, uAsmFiles, uAsmPrefsFrame,
      uPreferencesForm, uCpuTypes, uDefs6502, uDefs8080, uDefsChip8, uMachineBase,
-     uErrorDefs, uCommon;
+     uAsmErrors;
 
 type
-  EAnalyseError = class(Exception);
-
   TMemSect = (msRAM, msCode);
 
   TOnLogEvent = procedure(Msg: string) of object;
@@ -90,9 +87,7 @@ type
     fPassNumber: integer;               // Current pass number; 1 or 2
     fFiles: TFiles;                     // Source files manager
     fListing: TListing;                 // Manages assembler listing
-    fErrors: array of string;           // Holds list of errors for summary
-    fErrorCount: integer;
-    fWarningCount: integer;
+    fErrors: TErrors;                   // Manages assembler errors
     fSymbolTable: TSymbols;             // Manages symbols
     fIdentifiers: TArrayIdentfiers;     // Used to return identifiers list
     fLinesInfo: TArrayLineInfo;         // Array used to hold all lines data for debug
@@ -113,8 +108,6 @@ type
     WriteToMemoryError: boolean;
     procedure AddDebugLineInfo;
     procedure AddDirectives;
-    procedure AddError(msg: string; SkipRest: boolean = True);
-    procedure AddWarning(msg: string);
     procedure AddOpcodes;
     procedure AddToMacro;
     procedure DefineMacro;
@@ -139,16 +132,15 @@ type
     function  ParseTerm: integer;
     function  ParseOperand: integer;
     procedure BuildIdentifiersList;    
-    procedure DoLog(msg: string);
     procedure SetAssemblingFlag(state: boolean);
-    function  GetErrorList: string;
+    procedure DoError(Sender: TObject; ErrMsg: string);
+    procedure DoLog(msg: string);
   public
     constructor Create;
     destructor  Destroy; override;
     //
     procedure Execute(SourceFileName: string);
     //
-    property Parser: TParser read fParser;
     property PassNumber: integer read fPassNumber;
     property Files: TFiles read fFiles;
     property Listing: TListing read fListing write fListing;
@@ -157,14 +149,16 @@ type
     property LinesInfo: TArrayLineInfo read fLinesInfo;   
     property IsAssembling: boolean read fIsAssembling;
     property CpuName: string read fCpuName;
-    property ErrorCount: integer read fErrorCount;
-    property WarningCount: integer read fWarningCount;
-    property ErrorList: string read GetErrorList;
     property OnLog: TOnLogEvent read fOnLog write fOnLog;
   end;
 
 
 implementation
+
+const
+  ASSEMBLY_SUMMARY         = 'Assembly generated %d error%s and %d warning%s';
+  SECOND_PASS_ABORTED      = 'Second pass aborted due to %d %s in first pass';
+  ASSEMBLING_FOR_PROCESSOR = 'Assembling ''%s'' for processor %s';
 
 
 { CREATE }
@@ -179,8 +173,6 @@ end;
 
 destructor TAssembler.Destroy;
 begin
-  SetLength(fErrors, 0);
-  fErrors := nil;
   SetLength(IfStackArray, 0);
   IfStackArray := nil;
   SetLength(fLinesInfo, 0);
@@ -204,6 +196,8 @@ begin
   fSymbolTable := TSymbols.Create;
   AddDirectives;
   AddOpcodes;
+  fErrors := TErrors.Create;
+  fErrors.OnError := @DoError;
   fFiles := TFiles.Create(self, SourceFileName);
   fParser := TParser.Create(@fFiles.GetSourceLine);
 
@@ -211,29 +205,27 @@ begin
   SetLength(IfStackArray, 0);           // Initialise IF stack
   DefiningMacro := False;
   MacroLevel := 0;
-  fErrorCount := 0;
-  fWarningCount := 0;
   WriteToMemoryError := False;
 
   PC := 0;
   SetAssemblingFlag(True);              // Conditional assembly flag
   try
     fListing.Start(SourceFileName, Machine.CPU.Info.Name);
-    DoLog(Format('Assembling ''%s'' for processor %s', [ExtractFileName(SourceFileName), Machine.CPU.Info.Name]));
+    DoLog(Format(ASSEMBLING_FOR_PROCESSOR, [ExtractFileName(SourceFileName), Machine.CPU.Info.Name]));
     DoPass(1, SourceFileName);
-    if (fErrorCount = 0) then           // If no errors after Pass 1
+    if (fErrors.ErrorCount = 0) then    // If no errors after Pass 1
       begin
         DoPass(2, SourceFileName);      // ... then do Pass 2
-        fListing.Summary := Format('Assembly generated %d error%s and %d warning%s',
-                     [fErrorCount,   BoolToStr(fErrorCount = 1, '', 's'),
-                      fWarningCount, BoolToStr(fWarningCount = 1, '', 's')]);
+        fListing.Summary := Format(ASSEMBLY_SUMMARY,
+                     [fErrors.ErrorCount,   BoolToStr(fErrors.ErrorCount = 1, '', 's'),
+                      fErrors.WarningCount, BoolToStr(fErrors.WarningCount = 1, '', 's')]);
       end
     else
       begin
-        errorStr := 'error' + BoolToStr(fErrorCount = 1, '', 's');
-        fListing.Summary := Format(Error(emPass2Aborted), [fErrorCount, errorStr]);
+        errorStr := 'error' + BoolToStr(fErrors.ErrorCount = 1, '', 's');
+        fListing.Summary := Format(SECOND_PASS_ABORTED, [fErrors.ErrorCount, errorStr]);
       end;
-    DoLog(ErrorList);
+    DoLog(fErrors.ErrorList + fListing.Summary);
     ListSymbolTable;
     fListing.Finish;                    // List summary and output
 
@@ -241,9 +233,9 @@ begin
   finally
     fParser.Free;
     fFiles.Free;
+    fErrors.Free;
     fSymbolTable.Free;
     fListing.Free;
-    SetLength(fErrors, 0);
   end;
 end;
 
@@ -275,6 +267,7 @@ begin
       ExpectingInstruction := True;
       fParser.GetToken;                 // Get first token in line
       fListing.SetLine(fFiles.CurrentFileName, fFiles.CurrentLineNo, fParser.SourceLine);
+      fErrors.SetLine(fFiles.CurrentFileName, fFiles.CurrentLineNo);
 
       // or if in a macro definition, need to add line to that until "endm"
       if (DefiningMacro) then
@@ -341,7 +334,7 @@ begin
       DoOutputs(StartPC);               // Output data to memory / file
 
     except
-      on E: Exception do AddError(E.Message);
+      on E: Exception do fErrors.AddError(E.Message);
     end;
 end;
 
@@ -375,7 +368,7 @@ begin
         Instruction := fSymbolTable.FindInstruction(StrVal);
         if (Instruction = nil) then
           begin
-            AddError(Format(Error(emInstrNotRecognised), [fParser.Token.StringVal]));
+            fErrors.AddErrorFmt(emInstrNotRecognised, [fParser.Token.StringVal]);
             Exit;
           end;
       end;
@@ -383,7 +376,7 @@ begin
     tkEqual: fSymbolTable.FindInstruction('EQU'); // Translate '=' -> 'equ'
 
   else
-    AddError(Format(Error(emInstrExpected), [fParser.Token.StringVal]));
+    fErrors.AddErrorFmt(emInstrExpected, [fParser.Token.StringVal]);
     Exit;
   end;
 
@@ -503,7 +496,7 @@ begin
                     begin
                       if (bDoneExpr = True) then
                         begin
-                          AddError(Error(emOperandNotFound));
+                          fErrors.AddError(emOperandNotFound);
                           Exit;
                         end
                       else
@@ -555,7 +548,7 @@ begin
       BytesArray[3] := Hi(Value);
     end
   else
-    AddError(Format(Error(emAddrModeNotRecognised), [sAddrMode]));
+    fErrors.AddErrorFmt(emAddrModeNotRecognised, [sAddrMode]);
 
   // Check for any actions modifying operand
   case ThisData.R of
@@ -572,7 +565,7 @@ begin
             if (nOffset >= -$7f) and (nOffset <= $80) then
               BytesArray[2] := nOffset
             else
-              AddError(Error(emBranchTooFar));
+              fErrors.AddError(emBranchTooFar);
           end;
     { TODO : uAssembler -> process registers }
   end;
@@ -621,7 +614,7 @@ begin
             MemorySection := msRAM
           else if (sText <> 'CODE') then
             begin
-              AddError(Format(Error(emMemModeNotRecognised), [fParser.Token.StringVal]));
+              fErrors.AddErrorFmt(emMemModeNotRecognised, [fParser.Token.StringVal]);
               Exit;                     // Exit on mode not recognised error
             end;
         end
@@ -771,7 +764,7 @@ begin
       {$endif}
     end
   else
-    AddError(Error(emLabelMissing));
+    fErrors.AddError(emLabelMissing);
 end;
 
 
@@ -811,7 +804,7 @@ function TAssembler.Expecting(ExpectedTok: TTokenTypes; ExpectedStr: string): bo
 begin
   Result := (fParser.PeekNextToken.Typ in ExpectedTok);
   if (not Result) then
-    AddError(Format(Error(emExpectedNotFound), [ExpectedStr, fParser.PeekNextToken.StringVal]));
+    fErrors.AddErrorFmt(emExpectedNotFound, [ExpectedStr, fParser.PeekNextToken.StringVal]);
 end;
 
 
@@ -848,8 +841,8 @@ begin
       ThisSymbol.Line := fFiles.CurrentLineNo + 1;       // Zero based
       ThisSymbol.SourceIndex := fFiles.CurrentFileIndex; // and file index
       if (symLabel in ThisSymbol.Use) and (ThisSymbol.Value <> PC) then
-        // Only report this error once as it escalates
-        AddError(Format(Error(emPhasingError, True), [ThisSymbol.Value, PC]));
+        // Only report this error once, hence the 'True' parameter
+        fErrors.AddErrorFmt(emPhasingError, [ThisSymbol.Value, PC], True);
     end;
 end;
 
@@ -888,7 +881,7 @@ begin
           if (FileExists(FileName)) then
             fFiles.OpenFile(FileName)
           else if (fPassNumber = 1) then
-            AddError(Format(Error(emIncludeNotFound), [FileName]));
+            fErrors.AddErrorFmt(emIncludeNotFound, [FileName]);
         end;
     end
 
@@ -905,7 +898,7 @@ begin
   else if (DirectiveName = 'ELSE') then
     begin
       if (Length(IfStackArray) = 0) then
-        AddError(Error(emElseWithoutIf))
+        fErrors.AddError(emElseWithoutIf)
       else
         SetAssemblingFlag(not fIsAssembling);
     end
@@ -913,7 +906,7 @@ begin
   else if (DirectiveName = 'ENDIF') then
     begin
       if (Length(IfStackArray) = 0) then
-        AddError(Error(emEndifWithoutIf))
+        fErrors.AddError(emEndifWithoutIf)
       else
         begin
           Len := Length(IfStackArray);
@@ -963,7 +956,7 @@ begin
         fParser.GetToken;               // Skip rest of line, can be anything
     end
   else
-    AddError(Error(emMacroNameMissing));
+    fErrors.AddError(emMacroNameMissing);
 end;
 
 
@@ -990,7 +983,7 @@ begin
   Mnem := UpperCase(fParser.Token.StringVal);
   if (Pos(Mnem, 'END INCLUDE') > 0) then
     begin
-      AddError(Error(emMacroBadInstr));
+      fErrors.AddError(emMacroBadInstr);
       Exit;
     end;
 
@@ -1097,7 +1090,7 @@ begin
 
     tkString: begin
                 if Length(fParser.Token.StringVal) > 1 then
-                  AddError(Format('String ''%s'' too long, single character expected', [fParser.Token.StringVal]))
+                  fErrors.AddErrorFmt(emStringTooLong, [fParser.Token.StringVal])
                 else
                   Result := Ord(fParser.Token.StringVal[1]);
               end;
@@ -1114,70 +1107,25 @@ begin
                   if ((fPassNumber = 1) or (not fIsAssembling)) then
                     Result := PC
                   else
-                    AddError(Format(Error(emSymbolNotDefined), [sSymbol]))
+                    fErrors.AddErrorFmt(emSymbolNotDefined, [sSymbol]);
               end;
 
     tkDollar,
     tkStar:   Result := PC;             // $ or * can represent the location counter
 
   else
-    AddError(Error(emOperandNotFound));
+    fErrors.AddError(emOperandNotFound);
   end;
 end;
 
 
 { ADD ERROR }
 
-procedure TAssembler.AddError(msg: string; SkipRest: boolean);
-var
-  ErrMsg: string;
-  Len: integer;
+procedure TAssembler.DoError(Sender: TObject; ErrMsg: string);
 begin
-  if (not IsNoRepeatError) then         // Only process if not repeated error
-    begin
-      Inc(fErrorCount);
-      ErrMsg := Format('%s(%.3d) Error: %s',
-                    [fFiles.CurrentFileName,
-                     fFiles.CurrentLineNo + 1, // Line numbers are zero based, add 1
-                     msg]);
-      Len := Length(fErrors);           // Add error to overall error list
-      SetLength(fErrors, Len + 1);
-      fErrors[Len] := ErrMsg;
-      fListing.ListError(ErrMsg);       // Add to listing
-    end;
-
-  if (SkipRest) then
-    fParser.SkipRestOfLine;             // One error per line, skip rest
-end;
-
-
-procedure TAssembler.AddWarning(msg: string);
-var
-  WarnMsg: string;
-  Len: integer;
-begin
-  Inc(fWarningCount);
-  WarnMsg := Format('%s(%.3d) Warning: %s',
-                [fFiles.CurrentFileName,
-                 fFiles.CurrentLineNo + 1, // Line numbers are zero based, add 1
-                 msg]);
-  Len := Length(fErrors);               // Add error to overall error list
-  SetLength(fErrors, Len + 1);
-  fErrors[Len] := WarnMsg;
-  fListing.ListError(WarnMsg);          // Add to listing
-end;
-
-
-{ GET ERROR LIST, and add summary }
-
-function TAssembler.GetErrorList: string;
-var
-  i: integer;
-begin
-  Result := '';
-  for i := 0 to Length(fErrors)-1 do
-    Result := Result + fErrors[i] + CRLF;
-  Result := Result + fListing.Summary;
+  if (ErrMsg <> '') then                // If repeat error not allowed, will be empty
+    fListing.ListError(ErrMsg);         // Add to listing
+  fParser.SkipRestOfLine;               // One error per line, skip rest
 end;
 
 

@@ -33,9 +33,7 @@ unit uIniFile;
 interface
 
 uses
-  Forms, Dialogs, SysUtils, IniFiles,
-  //
-  uErrorDefs;
+  Forms, Dialogs, SysUtils, IniFiles;
 
 type
   TOnCustomSectionEvent = procedure(var Value: string) of object;

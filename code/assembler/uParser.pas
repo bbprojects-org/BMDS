@@ -34,9 +34,7 @@ unit uParser;
 interface
 
 uses
-  Classes, SysUtils, StrUtils,
-  //
-  uErrorDefs;
+  Classes, SysUtils, StrUtils;
 
 type
   // EParserError  - defined in classesh.inc
@@ -156,6 +154,10 @@ type
 
 
 implementation
+
+const
+  ERR_UNTERMINATED_STRING = 'Unterminated String';
+  ERR_ILLEGAL_NUMBER      = 'Illegal number format';
 
 
 { CREATE / DESTROY }
@@ -432,7 +434,7 @@ begin
   else
     begin
       CharPtr := tmpCP;                 // Skip over error text
-      raise EParserError.Create(Error(emParIllegalNumber));
+      raise EParserError.Create(ERR_ILLEGAL_NUMBER);
     end;
 end;
 
@@ -448,7 +450,7 @@ begin
     Inc(CharPtr)                        // ... and look for it to terminate string
   until (CharPtr > LineLen) or (fLine[CharPtr] = Delimiter);
   if (CharPtr > LineLen) then
-    raise EParserError.Create(Error(emParUnterminatedString));
+    raise EParserError.Create(ERR_UNTERMINATED_STRING);
   Inc(CharPtr);                         // Point past delimiter
   NextToken.Typ := tkString;
   NextToken.StringVal := MidStr(fLine, Start+1, CharPtr-Start-2);

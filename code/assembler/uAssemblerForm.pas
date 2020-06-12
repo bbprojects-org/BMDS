@@ -28,11 +28,9 @@
 
   =============================================================================}
 
-{ TODO : uAssemblerForm -> if symbol not defined, skip BranchToFar / Phasing errors }
 { TODO : uAssemblerForm -> in SynEdit highlighter, if ASM ok, if LST skip first 22 chars }
 { TODO : uAssemblerForm -> save changed files before Asm Execute }
 { TODO : uAssemblerForm -> if use RMB in code section, issue warning incase omitted 'RAM' from ORG }
-{ TODO : uAssemblerForm -> only report PhaseError once }
 
 
 unit uAssemblerForm;
