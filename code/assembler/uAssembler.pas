@@ -231,7 +231,7 @@ begin
     else
       begin
         errorStr := 'error' + BoolToStr(fErrorCount = 1, '', 's');
-        fListing.Summary := Format(PASS_2_ABORTED, [fErrorCount, errorStr]);
+        fListing.Summary := Format(Error(emPass2Aborted), [fErrorCount, errorStr]);
       end;
     DoLog(ErrorList);
     ListSymbolTable;
@@ -375,7 +375,7 @@ begin
         Instruction := fSymbolTable.FindInstruction(StrVal);
         if (Instruction = nil) then
           begin
-            AddError(Format(INSTR_NOT_RECOGNISED, [fParser.Token.StringVal]));
+            AddError(Format(Error(emInstrNotRecognised), [fParser.Token.StringVal]));
             Exit;
           end;
       end;
@@ -383,7 +383,7 @@ begin
     tkEqual: fSymbolTable.FindInstruction('EQU'); // Translate '=' -> 'equ'
 
   else
-    AddError(Format(INSTR_EXPECTED, [fParser.Token.StringVal]));
+    AddError(Format(Error(emInstrExpected), [fParser.Token.StringVal]));
     Exit;
   end;
 
@@ -503,7 +503,7 @@ begin
                     begin
                       if (bDoneExpr = True) then
                         begin
-                          AddError(OPERAND_NOT_FOUND);
+                          AddError(Error(emOperandNotFound));
                           Exit;
                         end
                       else
@@ -555,7 +555,7 @@ begin
       BytesArray[3] := Hi(Value);
     end
   else
-    AddError(Format(ADDR_MODE_NOT_RECOGNISED, [sAddrMode]));
+    AddError(Format(Error(emAddrModeNotRecognised), [sAddrMode]));
 
   // Check for any actions modifying operand
   case ThisData.R of
@@ -572,7 +572,7 @@ begin
             if (nOffset >= -$7f) and (nOffset <= $80) then
               BytesArray[2] := nOffset
             else
-              AddError(BRANCH_TOO_FAR);
+              AddError(Error(emBranchTooFar));
           end;
     { TODO : uAssembler -> process registers }
   end;
@@ -621,7 +621,7 @@ begin
             MemorySection := msRAM
           else if (sText <> 'CODE') then
             begin
-              AddError(Format(MEM_MODE_NOT_RECOGNISED, [fParser.Token.StringVal]));
+              AddError(Format(Error(emMemModeNotRecognised), [fParser.Token.StringVal]));
               Exit;                     // Exit on mode not recognised error
             end;
         end
@@ -771,7 +771,7 @@ begin
       {$endif}
     end
   else
-    AddError(LABEL_MISSING);
+    AddError(Error(emLabelMissing));
 end;
 
 
@@ -811,7 +811,7 @@ function TAssembler.Expecting(ExpectedTok: TTokenTypes; ExpectedStr: string): bo
 begin
   Result := (fParser.PeekNextToken.Typ in ExpectedTok);
   if (not Result) then
-    AddError(Format(EXPECTED_NOT_FOUND, [ExpectedStr, fParser.PeekNextToken.StringVal]));
+    AddError(Format(Error(emExpectedNotFound), [ExpectedStr, fParser.PeekNextToken.StringVal]));
 end;
 
 
@@ -848,7 +848,8 @@ begin
       ThisSymbol.Line := fFiles.CurrentLineNo + 1;       // Zero based
       ThisSymbol.SourceIndex := fFiles.CurrentFileIndex; // and file index
       if (symLabel in ThisSymbol.Use) and (ThisSymbol.Value <> PC) then
-        AddError(Format(PHASING_ERROR, [ThisSymbol.Value, PC]));
+        // Only report this error once as it escalates
+        AddError(Format(Error(emPhasingError, True), [ThisSymbol.Value, PC]));
     end;
 end;
 
@@ -887,7 +888,7 @@ begin
           if (FileExists(FileName)) then
             fFiles.OpenFile(FileName)
           else if (fPassNumber = 1) then
-            AddError(Format(CANNOT_FIND_INCLUDE_FILE, [FileName]));
+            AddError(Format(Error(emIncludeNotFound), [FileName]));
         end;
     end
 
@@ -904,7 +905,7 @@ begin
   else if (DirectiveName = 'ELSE') then
     begin
       if (Length(IfStackArray) = 0) then
-        AddError(ELSE_WITHOUT_IF)
+        AddError(Error(emElseWithoutIf))
       else
         SetAssemblingFlag(not fIsAssembling);
     end
@@ -912,7 +913,7 @@ begin
   else if (DirectiveName = 'ENDIF') then
     begin
       if (Length(IfStackArray) = 0) then
-        AddError(ENDIF_WITHOUT_IF)
+        AddError(Error(emEndifWithoutIf))
       else
         begin
           Len := Length(IfStackArray);
@@ -962,7 +963,7 @@ begin
         fParser.GetToken;               // Skip rest of line, can be anything
     end
   else
-    AddError(MACRO_NAME_MISSING);
+    AddError(Error(emMacroNameMissing));
 end;
 
 
@@ -989,7 +990,7 @@ begin
   Mnem := UpperCase(fParser.Token.StringVal);
   if (Pos(Mnem, 'END INCLUDE') > 0) then
     begin
-      AddError(MACRO_BAD_INSTRUCTION);
+      AddError(Error(emMacroBadInstr));
       Exit;
     end;
 
@@ -1113,14 +1114,14 @@ begin
                   if ((fPassNumber = 1) or (not fIsAssembling)) then
                     Result := PC
                   else
-                    AddError(Format(SYMBOL_NOT_DEFINED, [sSymbol]))
+                    AddError(Format(Error(emSymbolNotDefined), [sSymbol]))
               end;
 
     tkDollar,
     tkStar:   Result := PC;             // $ or * can represent the location counter
 
   else
-    AddError(OPERAND_NOT_FOUND);
+    AddError(Error(emOperandNotFound));
   end;
 end;
 
@@ -1132,15 +1133,19 @@ var
   ErrMsg: string;
   Len: integer;
 begin
-  Inc(fErrorCount);
-  ErrMsg := Format('%s(%.3d) Error: %s',
-                [fFiles.CurrentFileName,
-                 fFiles.CurrentLineNo + 1, // Line numbers are zero based, add 1
-                 msg]);
-  Len := Length(fErrors);               // Add error to overall error list
-  SetLength(fErrors, Len + 1);
-  fErrors[Len] := ErrMsg;
-  fListing.ListError(ErrMsg);           // Add to listing
+  if (not IsNoRepeatError) then         // Only process if not repeated error
+    begin
+      Inc(fErrorCount);
+      ErrMsg := Format('%s(%.3d) Error: %s',
+                    [fFiles.CurrentFileName,
+                     fFiles.CurrentLineNo + 1, // Line numbers are zero based, add 1
+                     msg]);
+      Len := Length(fErrors);           // Add error to overall error list
+      SetLength(fErrors, Len + 1);
+      fErrors[Len] := ErrMsg;
+      fListing.ListError(ErrMsg);       // Add to listing
+    end;
+
   if (SkipRest) then
     fParser.SkipRestOfLine;             // One error per line, skip rest
 end;

@@ -2,6 +2,18 @@
 
   ERROR TEXTS FOR ASSEMBLER
 
+    This unit defines the error messages, and each has a flag to indicate
+    whether that error has been used already.
+
+    User 'Error(em)' to get the text for a particular ErrorMessage value.
+    This can have an optional second parameter (default False) to set
+    the 'Used' flag for this error at the same time. In addition can use
+    'SetErrorUsed' for any error.
+
+    At each error call the assembler can check the 'IsLastErrorRepeated' flag
+    to see if it has happened before and act accordingly, i.e. do nothing if
+    do not want to repeat the error message.
+
 
   LICENSE:
 
@@ -29,38 +41,104 @@ interface
 uses
   Classes, SysUtils;
 
-const
-  // uAssembler
-  ADDR_MODE_NOT_RECOGNISED = 'Address mode [%s] not recognised';
-  BRANCH_TOO_FAR           = 'Branch too far';
-  CANNOT_FIND_INCLUDE_FILE = 'Cannot find include file [%s]';
-  ELSE_WITHOUT_IF          = 'ELSE without starting IF';
-  ENDIF_WITHOUT_IF         = 'ENDIF without starting IF';
-  EXPECTED_NOT_FOUND       = '[%s] expected but [%s] found';
-  INSTR_NOT_RECOGNISED     = 'Instruction [%s] not recognised';
-  INSTR_EXPECTED           = 'Instruction expected, got [%s]';
-  LABEL_MISSING            = 'Label is required for this instruction';
-  MEM_MODE_NOT_RECOGNISED  = 'Memory mode [%s] not recognised';
-  OPERAND_NOT_FOUND        = 'Operand expected, not found';
-  PHASING_ERROR            = 'Symbol values differ between passes ($%.4x,$%.4x), check addressing mode';
-  SYMBOL_NOT_DEFINED       = 'Symbol [%s] not defined';
-  MACRO_NAME_MISSING       = 'Macro name missing';
-  MACRO_BAD_INSTRUCTION    = 'This instruction not permitted in a macro definition';
+type
+  TErrorMessage = (emStart, emAddrModeNotRecognised, emBranchTooFar,
+                            emIncludeNotFound, emElseWithoutIf,
+                            emEndifWithoutIf, emExpectedNotFound,
+                            emInstrNotRecognised, emInstrExpected,
+                            emLabelMissing, emMemModeNotRecognised,
+                            emOperandNotFound, emPhasingError,
+                            emSymbolNotDefined, emMacroNameMissing,
+                            emMacroBadInstr, emPass2Aborted,
+                            // uParser
+                            emParUnterminatedString, emParIllegalNumber,
+                            // uReadWriteHex
+                            emRwhNotSupported, emRwhNotValid,
+                            emRwhInvalidHex, emRwhMissingColon,
+                   emEnd);
 
-  PASS_2_ABORTED           = 'Second pass aborted due to %d %s in first pass';
+  TError = record
+    Msg: string;
+    NoRepeat: boolean;
+  end;
+  TErrors = array[emStart..emEnd] of TError;
 
-  // uParser
-  PAR_UNTERMINATED_STRING  = 'Unterminated String';
-  PAR_ILLEGAL_NUMBER       = 'Illegal number format';
-
-  // uReadWriteHex
-  RWH_NOT_SUPPORTED        = 'Record type %d not yet supported';
-  RWH_NOT_VALID            = 'Record type %d not valid';
-  RWH_INVALID_HEX          = '[%s] is not a valid hex number';
-  RWH_MISSING_COLON        = 'Missing colon at start of line';
+procedure ErrorsReset;
+procedure SetNoRepeatError(em: TErrorMessage);
+function  Error(em: TErrorMessage; SetNoRepeat: boolean = False): string;
+function  IsNoRepeatError: boolean;
 
 
 implementation
+
+var
+  Errors: TErrors;
+  NoRepeatError: boolean;
+
+procedure Init;
+begin
+  Errors[emAddrModeNotRecognised].Msg := 'Address mode [%s] not recognised';
+  Errors[emBranchTooFar].Msg          := 'Branch too far';
+  Errors[emIncludeNotFound].Msg       := 'Cannot find include file [%s]';
+  Errors[emElseWithoutIf].Msg         := 'ELSE without starting IF';
+  Errors[emEndifWithoutIf].Msg        := 'ENDIF without starting IF';
+  Errors[emExpectedNotFound].Msg      := '[%s] expected but [%s] found';
+  Errors[emInstrNotRecognised].Msg    := 'Instruction [%s] not recognised';
+  Errors[emInstrExpected].Msg         := 'Instruction expected, got [%s]';
+  Errors[emLabelMissing].Msg          := 'Label is required for this instruction';
+  Errors[emMemModeNotRecognised].Msg  := 'Memory mode [%s] not recognised';
+  Errors[emOperandNotFound].Msg       := 'Operand expected, not found';
+  Errors[emPhasingError].Msg          := 'Symbol values differ between passes ($%.4x,$%.4x), check addressing modes above';
+  Errors[emSymbolNotDefined].Msg      := 'Symbol [%s] not defined';
+  Errors[emMacroNameMissing].Msg      := 'Macro name missing';
+  Errors[emMacroBadInstr].Msg         := 'This instruction not permitted in a macro definition';
+
+  Errors[emPass2Aborted].Msg          := 'Second pass aborted due to %d %s in first pass';
+
+  Errors[emParUnterminatedString].Msg := 'Unterminated String';
+  Errors[emParIllegalNumber].Msg      := 'Illegal number format';
+
+  Errors[emRwhNotSupported].Msg       := 'Record type %d not supported';
+  Errors[emRwhNotValid].Msg           := 'Record type %d not valid';
+  Errors[emRwhInvalidHex].Msg         := '[%s] is not a valid hex number';
+  Errors[emRwhMissingColon].Msg       := 'Missing colon at start of line';
+
+  ErrorsReset;
+end;
+
+
+procedure ErrorsReset;
+var
+  i: TErrorMessage;
+begin
+  for i := emStart to emEnd do
+    Errors[i].NoRepeat := False;
+end;
+
+
+procedure SetNoRepeatError(em: TErrorMessage);
+begin
+  Errors[em].NoRepeat := True;
+end;
+
+
+function  Error(em: TErrorMessage; SetNoRepeat: boolean): string;
+begin
+  NoRepeatError := Errors[em].NoRepeat; // Check NoRepeat first
+  Result := Errors[em].Msg;
+  if (SetNoRepeat) then                 // Set 'NoRepeat' if parameter True
+    SetNoRepeatError(em);
+end;
+
+
+function IsNoRepeatError: boolean;
+begin
+  Result := NoRepeatError;
+end;
+
+
+initialization
+  Init;
 
 
 end.

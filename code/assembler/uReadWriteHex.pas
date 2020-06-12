@@ -175,7 +175,7 @@ var
 begin
   Result := False;
   if (s[1] <> ':') then
-    AddError(RWH_MISSING_COLON);
+    AddError(Error(emRwhMissingColon));
   BytesCount := HexToInt(Copy(s, 2, 2));
   LineAddress := HexToInt(Copy(s, 4, 4));
   RecordType := HexToInt(Copy(s, 8, 2));
@@ -210,10 +210,10 @@ begin
          // Do nothing, just flag done as Result flag already FALSE
        end;
     2..5: begin
-            AddError(Format(RWH_NOT_SUPPORTED, [RecordType]));
+            AddError(Format(Error(emRwhNotSupported), [RecordType]));
           end;
     else
-      AddError(Format(RWH_NOT_VALID, [RecordType]));
+      AddError(Format(Error(emRwhNotValid), [RecordType]));
   end;
 end;
 
@@ -232,7 +232,7 @@ begin
       '0'..'9': Value := ord(s[i]) - ord('0');
       'A'..'F': Value := ord(s[i]) - ord('A')  + 10;
       else
-        AddError(Format(RWH_INVALID_HEX, [s]));
+        AddError(Format(Error(emRwhInvalidHex), [s]));
     end;
     Result := (Result shl 4) + Value;
   end;

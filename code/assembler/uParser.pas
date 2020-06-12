@@ -432,7 +432,7 @@ begin
   else
     begin
       CharPtr := tmpCP;                 // Skip over error text
-      raise EParserError.Create(PAR_ILLEGAL_NUMBER);
+      raise EParserError.Create(Error(emParIllegalNumber));
     end;
 end;
 
@@ -448,7 +448,7 @@ begin
     Inc(CharPtr)                        // ... and look for it to terminate string
   until (CharPtr > LineLen) or (fLine[CharPtr] = Delimiter);
   if (CharPtr > LineLen) then
-    raise EParserError.Create(PAR_UNTERMINATED_STRING);
+    raise EParserError.Create(Error(emParUnterminatedString));
   Inc(CharPtr);                         // Point past delimiter
   NextToken.Typ := tkString;
   NextToken.StringVal := MidStr(fLine, Start+1, CharPtr-Start-2);
