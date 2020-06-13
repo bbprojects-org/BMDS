@@ -24,8 +24,6 @@
 
   =============================================================================}
 
-{ TODO : uMemoryMgr -> add array of RAM areas? }
-
 unit uMemoryMgr;
 
 {$mode objfpc}{$H+}

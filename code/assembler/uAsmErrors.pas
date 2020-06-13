@@ -43,14 +43,18 @@ uses
   uCommon;
 
 type
-  TErrorMessage = (emStart, emAddrModeNotRecognised, emBranchTooFar,
-                            emIncludeNotFound, emElseWithoutIf,
-                            emEndifWithoutIf, emExpectedNotFound,
-                            emInstrNotRecognised, emInstrExpected,
-                            emLabelMissing, emMemModeNotRecognised,
-                            emOperandNotFound, emPhasingError,
-                            emSymbolNotDefined, emMacroNameMissing,
-                            emMacroBadInstr, emStringTooLong,
+  TErrorMessage = (emStart,
+                     // errors
+                     emAddrModeNotRecognised, emBranchTooFar,
+                     emIncludeNotFound, emElseWithoutIf,
+                     emEndifWithoutIf, emExpectedNotFound,
+                     emInstrNotRecognised, emInstrExpected,
+                     emLabelMissing, emMemModeNotRecognised,
+                     emOperandNotFound, emPhasingError,
+                     emSymbolNotDefined, emMacroNameMissing,
+                     emMacroBadInstr, emStringTooLong,
+                     // warnings
+                     emReserveInCode, emLimitedBytesList,
                    emEnd);
 
   TErrorDef = record
@@ -84,6 +88,8 @@ type
     procedure AddError(em: TErrorMessage; NoRepeatFlag: boolean = False);
     procedure AddErrorFmt(em: TErrorMessage; const Args: array of const; NoRepeatFlag: boolean = False);
     procedure AddError(msg: string);
+    procedure AddWarning(em: TErrorMessage; NoRepeatFlag: boolean = False);
+    procedure AddWarningFmt(em: TErrorMessage; const Args: array of const; NoRepeatFlag: boolean = False);
     procedure AddWarning(msg: string);
     //
     property ErrorCount: integer read fErrorCount;
@@ -106,7 +112,7 @@ begin
   fWarningCount := 0;
   fCurrentFileName := '';
   fCurrentLineNo := 0;
-
+  // Error messages
   ErrorDefs[emAddrModeNotRecognised].Msg := 'Address mode [%s] not recognised';
   ErrorDefs[emBranchTooFar].Msg          := 'Branch too far';
   ErrorDefs[emIncludeNotFound].Msg       := 'Cannot find include file [%s]';
@@ -123,6 +129,9 @@ begin
   ErrorDefs[emMacroNameMissing].Msg      := 'Macro name missing';
   ErrorDefs[emMacroBadInstr].Msg         := 'This instruction not permitted in a macro definition';
   ErrorDefs[emStringTooLong].Msg         := 'String ''%s'' too long, single character expected';
+  // Warning messages
+  ErrorDefs[emReserveInCode].Msg         := 'Reserving space in CODE area, writing bytes';
+  ErrorDefs[emLimitedBytesList].Msg      := 'Bytes output limited in listing';
 
   for i := emStart to emEnd do
     ErrorDefs[i].NoRepeat := False;
@@ -184,6 +193,30 @@ end;
 
 { ADD WARNING }
 
+procedure TErrors.AddWarning(em: TErrorMessage; NoRepeatFlag: boolean);
+begin
+  if (ErrorDefs[em].NoRepeat) then      // If no repeat error, set empty msg
+    AddWarning('')
+  else
+    AddWarning(ErrorDefs[em].Msg);
+
+  if (NoRepeatFlag) then                // Set 'NoRepeat' if parameter True
+    SetNoRepeat(em);
+end;
+
+
+procedure TErrors.AddWarningFmt(em: TErrorMessage; const Args: array of const; NoRepeatFlag: boolean);
+begin
+  if (ErrorDefs[em].NoRepeat) then      // If no repeat error, set empty msg
+    AddWarning('')
+  else
+    AddWarning(Format(ErrorDefs[em].Msg, Args));
+
+  if (NoRepeatFlag) then                // Set 'NoRepeat' if parameter True
+    SetNoRepeat(em);
+end;
+
+
 procedure TErrors.AddWarning(msg: string);
 var
   ErrorMsg: string;
@@ -196,10 +229,13 @@ begin
       AddToErrorsList(ErrorMsg);
     end;
 
+  ErrorMsg := '';                       // Do not list warnings in the listing
   if Assigned(fOnError) then
     fOnError(self, ErrorMsg);           // Allow caller to add to listing, call SkipRestOfLine...
 end;
 
+
+{ ADD ERRORS / WARNINGS TO LIST }
 
 procedure TErrors.AddToErrorsList(msg: string);
 var

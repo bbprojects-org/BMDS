@@ -45,7 +45,7 @@
 unit uAssembler;
 
 {$mode objfpc}{$H+}
-{$R-}
+{.$R-}
 
 {.$define assembler_debug}
 
@@ -63,7 +63,7 @@ type
 
   TOnLogEvent = procedure(Msg: string) of object;
 
-  TBytes256 = array [0..255] of Byte;
+  TBytes256 = array [1..256] of Byte;
 
   TLineInfo = record
     SourceIndex: integer;               // Index to source file filename (=0 if mainfile)
@@ -190,7 +190,7 @@ end;
 
 procedure TAssembler.Execute(SourceFileName: string);
 var
-  errorStr: string;
+  errorStr, errorList: string;
 begin
   fListing := TListing.Create;
   fSymbolTable := TSymbols.Create;
@@ -213,19 +213,20 @@ begin
     fListing.Start(SourceFileName, Machine.CPU.Info.Name);
     DoLog(Format(ASSEMBLING_FOR_PROCESSOR, [ExtractFileName(SourceFileName), Machine.CPU.Info.Name]));
     DoPass(1, SourceFileName);
+    errorList := fErrors.ErrorList;
     if (fErrors.ErrorCount = 0) then    // If no errors after Pass 1
       begin
         DoPass(2, SourceFileName);      // ... then do Pass 2
-        fListing.Summary := Format(ASSEMBLY_SUMMARY,
+        fListing.Summary := errorList + Format(ASSEMBLY_SUMMARY,
                      [fErrors.ErrorCount,   BoolToStr(fErrors.ErrorCount = 1, '', 's'),
                       fErrors.WarningCount, BoolToStr(fErrors.WarningCount = 1, '', 's')]);
       end
     else
       begin
         errorStr := 'error' + BoolToStr(fErrors.ErrorCount = 1, '', 's');
-        fListing.Summary := Format(SECOND_PASS_ABORTED, [fErrors.ErrorCount, errorStr]);
+        fListing.Summary := errorList + Format(SECOND_PASS_ABORTED, [fErrors.ErrorCount, errorStr]);
       end;
-    DoLog(fErrors.ErrorList + fListing.Summary);
+    DoLog(fListing.Summary);
     ListSymbolTable;
     fListing.Finish;                    // List summary and output
 
@@ -563,7 +564,7 @@ begin
     rREL: begin
             nOffset := Value - (PC + 2);
             if (nOffset >= -$7f) and (nOffset <= $80) then
-              BytesArray[2] := nOffset
+              BytesArray[2] := nOffset and $FF
             else
               fErrors.AddError(emBranchTooFar);
           end;
@@ -633,17 +634,14 @@ end;
   These bytes default to zero, but can be set as an optional value following the
   space declaration }
 
-{ TODO : uAssembler -> if Reserve in CODE area, warn in case forgot MM=RAM }
-
 procedure TAssembler.DoReserve;
 var
-  idx, Operand: integer;
+  idx, Operand, Count: integer;
   FillByte: byte;
 begin
   fListing.HexData := AddrOnly(PC);
   NumBytes := 0;
   Operand := ParseExpr;
-  Inc(PC, Operand);                     // Set space as defined by operand
   FillByte := 0;                        // Default fill value = 0
   if (fParser.PeekNextToken.Typ = tkComma) then
     begin
@@ -651,14 +649,29 @@ begin
       FillByte := ParseExpr;            // Get user fill value
     end;
   if ((MemorySection = msCode) and fIsAssembling) then // If CODE section then
-    for idx := 1 to Operand do
-      fFiles.WriteDataByte(FillByte);   // ... write to output file
+    begin
+      for idx := 1 to Operand do
+        fFiles.WriteDataByte(FillByte); // ... write to output file
+      // Warn just in case user actually intended this for RAM rather than CODE
+      fErrors.AddWarning(emReserveInCode, True);
+      Count := Min(Operand, 3);         // Limit for listing
+      for idx := 1 to Count do          // Save bytes for listing
+        BytesArray[idx] := FillByte;
+      fListing.HexData := AddrPlus(Count);
+      // Warn user if reserving more than 3 bytes space, as only showing 3
+      if (Operand > 3) then
+        fErrors.AddWarning(emLimitedBytesList, True);
+    end;
+
+  Inc(PC, Operand);                     // Set PC for space reserved
 end;
 
 
 { DO BYTE INSTRUCTION }
 
 { Define bytes to be written. Values are 8-bit expressions separated by commas }
+
+{ TODO : uAssembler -> if string too long, issue warning and truncate }
 
 procedure TAssembler.DoByte;
 var

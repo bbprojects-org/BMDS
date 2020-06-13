@@ -30,7 +30,6 @@
 
 { TODO : uAssemblerForm -> in SynEdit highlighter, if ASM ok, if LST skip first 22 chars }
 { TODO : uAssemblerForm -> save changed files before Asm Execute }
-{ TODO : uAssemblerForm -> if use RMB in code section, issue warning incase omitted 'RAM' from ORG }
 
 
 unit uAssemblerForm;
@@ -274,13 +273,16 @@ begin
 end;
 
 
-{ TODO : uAssemblerForm -> if cannot find file to open (i.e. MRU no longer available) give proper error message }
-
 procedure TAssemblerForm.LoadFile(FileName: string);
 begin
-  actFileNewExecute(nil);               // Create empty editor, load to it
-  MRU.AddToRecent(FileName);            // Put this latest to top of MRU
-  GetActiveEditorFrame.LoadFromFile(FileName);
+  if (FileExists(FileName)) then
+    begin
+      actFileNewExecute(nil);               // Create empty editor, load to it
+      MRU.AddToRecent(FileName);            // Put this latest to top of MRU
+      GetActiveEditorFrame.LoadFromFile(FileName);
+    end
+  else
+    MessageWarning('File Not Found', Format('Requested file ''%s'' cannot be found!', [FileName]));
 end;
 
 
@@ -522,8 +524,6 @@ end;
 
 { DEBUG - BUTTONS - ASSEMBLE }
 
-{ TODO : uAssemblerForm -> do not allow Assembly of .LST file }
-
 procedure TAssemblerForm.actAssemblerExecute(Sender: TObject);
 var
   ThisInputFile, tmp: string;
@@ -533,6 +533,9 @@ begin
     begin
       memoLog.Lines.Clear;
       ThisInputFile := GetActiveEditorFrame.FileName;
+      if (LowerCase(ExtractFileExt(ThisInputFile)) <> '.asm') then
+        if (not MessageQuery('Incorrect File Type?', 'This file is not a .ASM file. Do you really want to try to assemble it?')) then
+          Exit;
       ThisAssembler := TAssembler.Create;
       ThisAssembler.OnLog := @StatusLog;
       try
