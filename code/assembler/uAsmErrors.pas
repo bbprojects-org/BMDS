@@ -55,6 +55,7 @@ type
                      emMacroBadInstr, emStringTooLong,
                      // warnings
                      emReserveInCode, emLimitedBytesList,
+                     emNotRam,
                    emEnd);
 
   TErrorDef = record
@@ -75,6 +76,7 @@ type
     fOnError: TOnErrorEvent;
     fCurrentFileName: string;
     fCurrentLineNo: integer;
+    fNoWarnLine: integer;
     ErrorDefs: TErrorDefs;
     //
     procedure AddToErrorsList(msg: string);
@@ -95,6 +97,7 @@ type
     property ErrorCount: integer read fErrorCount;
     property WarningCount: integer read fWarningCount;
     property ErrorList: string read GetErrorList;
+    property NoWarnLine: integer write fNoWarnLine;
     property OnError: TOnErrorEvent read fOnError write fOnError;
   end;
 
@@ -132,6 +135,7 @@ begin
   // Warning messages
   ErrorDefs[emReserveInCode].Msg         := 'Reserving space in CODE area, writing bytes';
   ErrorDefs[emLimitedBytesList].Msg      := 'Bytes output limited in listing';
+  ErrorDefs[emNotRam].Msg                := 'Address $%.4x is not writeable, might be ROM';
 
   for i := emStart to emEnd do
     ErrorDefs[i].NoRepeat := False;
@@ -200,7 +204,8 @@ begin
   else
     AddWarning(ErrorDefs[em].Msg);
 
-  if (NoRepeatFlag) then                // Set 'NoRepeat' if parameter True
+  // Set 'NoRepeat' if flag True, and no previous #NOWARN
+  if (NoRepeatFlag and (fCurrentLineNo <> fNoWarnLine)) then
     SetNoRepeat(em);
 end;
 
@@ -212,7 +217,8 @@ begin
   else
     AddWarning(Format(ErrorDefs[em].Msg, Args));
 
-  if (NoRepeatFlag) then                // Set 'NoRepeat' if parameter True
+  // Set 'NoRepeat' if flag True, and no previous #NOWARN
+  if (NoRepeatFlag and (fCurrentLineNo <> fNoWarnLine)) then
     SetNoRepeat(em);
 end;
 
@@ -221,12 +227,17 @@ procedure TErrors.AddWarning(msg: string);
 var
   ErrorMsg: string;
 begin
-  ErrorMsg := msg;
-  if (msg <> '') then
+  // If previous directive was to ignore next warning (#NOWARN) then
+  // if the line numbers match skip the warning
+  if (fCurrentLineNo <> fNoWarnLine) then
     begin
-      Inc(fWarningCount);
-      ErrorMsg := Format('%s(%.3d) Warning: %s', [fCurrentFilename, fCurrentLineNo, msg]);
-      AddToErrorsList(ErrorMsg);
+      ErrorMsg := msg;
+      if (msg <> '') then
+        begin
+          Inc(fWarningCount);
+          ErrorMsg := Format('%s(%.3d) Warning: %s', [fCurrentFilename, fCurrentLineNo, msg]);
+          AddToErrorsList(ErrorMsg);
+        end;
     end;
 
   ErrorMsg := '';                       // Do not list warnings in the listing

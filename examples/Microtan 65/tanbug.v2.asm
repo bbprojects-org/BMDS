@@ -121,6 +121,7 @@ STKINI        EQU   $C558              // Basic reinit subroutine
 // will not change with future TANBUG versions
 //
 
+#nowarn       // Suppress warning about $F800 unwriteable, next line. It's ok
 PRPUP         JMP   OINT               // Jump table to utility routines
 OUTPAR        JMP   PARPR              // Parallel print output
 OUTSER        JMP   SERPNT             // Serial printer output
@@ -766,6 +767,7 @@ Lbl_FB65      STA   LINBOT,X
               PLA                           
               RTS                           
 
+#nowarn       // Suppress warnings about RMB in CODE area, next line. It's ok
 SPARE         RMB   145, $FF           // Output $FF gap fillers in Code
 
 // If all went well for TANBUG V2 expanded code, the next address should

@@ -190,7 +190,7 @@ end;
 
 procedure TAssembler.Execute(SourceFileName: string);
 var
-  errorStr, errorList: string;
+  errorStr: string;
 begin
   fListing := TListing.Create;
   fSymbolTable := TSymbols.Create;
@@ -213,18 +213,17 @@ begin
     fListing.Start(SourceFileName, Machine.CPU.Info.Name);
     DoLog(Format(ASSEMBLING_FOR_PROCESSOR, [ExtractFileName(SourceFileName), Machine.CPU.Info.Name]));
     DoPass(1, SourceFileName);
-    errorList := fErrors.ErrorList;
     if (fErrors.ErrorCount = 0) then    // If no errors after Pass 1
       begin
         DoPass(2, SourceFileName);      // ... then do Pass 2
-        fListing.Summary := errorList + Format(ASSEMBLY_SUMMARY,
+        fListing.Summary := fErrors.ErrorList + Format(ASSEMBLY_SUMMARY,
                      [fErrors.ErrorCount,   BoolToStr(fErrors.ErrorCount = 1, '', 's'),
                       fErrors.WarningCount, BoolToStr(fErrors.WarningCount = 1, '', 's')]);
       end
     else
       begin
         errorStr := 'error' + BoolToStr(fErrors.ErrorCount = 1, '', 's');
-        fListing.Summary := errorList + Format(SECOND_PASS_ABORTED, [fErrors.ErrorCount, errorStr]);
+        fListing.Summary := fErrors.ErrorList + Format(SECOND_PASS_ABORTED, [fErrors.ErrorCount, errorStr]);
       end;
     DoLog(fListing.Summary);
     ListSymbolTable;
@@ -410,7 +409,7 @@ end;
 
 procedure TAssembler.DoOutputs(StartAddr: integer);
 var
-  i, nOffset, nNumOf3, nRem: integer;
+  i, nOffset, nNumOf3, nRem, WriteAddr: integer;
 begin
   // If pass 2 and option selected, then write code to memory / file
   if ((fPassNumber = 2) and (fIsAssembling)) then
@@ -418,10 +417,14 @@ begin
       begin
         if (AsmPrefs.WriteToMemory and (not WriteToMemoryError)) then
           begin
-            if (Machine.IsRAM(StartAddr + i - 1)) then
-              Machine.Memory[StartAddr + i - 1] := BytesArray[i]
+            WriteAddr := StartAddr + i - 1;
+            if (Machine.IsRAM(WriteAddr)) then
+              Machine.Memory[WriteAddr] := BytesArray[i]
             else
-              WriteToMemoryError := True;
+              begin
+                WriteToMemoryError := True;
+                fErrors.AddWarningFmt(emNotRam, [WriteAddr], True);
+              end;
           end;
         if (AsmPrefs.WriteToFile) then
           fFiles.WriteDataByte(BytesArray[i]);
@@ -936,6 +939,12 @@ begin
   else if (DirectiveName = 'EXITM') then
     begin
       // How to do this?
+    end
+
+  else if (DirectiveName = 'NOWARN') then
+    begin
+      // Mark next line to ignore. Add 2 as line numbers are zero based here
+      fErrors.NoWarnLine := fFiles.CurrentLineNo + 2;
     end;
 end;
 
