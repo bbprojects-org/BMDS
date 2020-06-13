@@ -68,6 +68,7 @@ type
     procedure EditorStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     function HasBreakpoint(LineNumber: integer; var Index: integer): boolean;
     procedure OnReplaceText(Sender: TObject; const aSearch, aReplace: string; {%H-}aLine, {%H-}aColumn: integer; var aAction: TSynReplaceAction);
+    function GetHighlighter: TSynAsmHighlighter;
     procedure SetHighlighter(aValue: TSynAsmHighlighter);
     procedure UpdateModifiedState;
     function GetIsEdited: boolean;
@@ -84,7 +85,7 @@ type
     property IsEdited: boolean read GetIsEdited;
     property FileName: string read fFileName;
     property StatusBarRef: TStatusBar write fStatusBar;
-    property Highlighter: TSynAsmHighlighter write SetHighlighter;
+    property Highlighter: TSynAsmHighlighter read GetHighlighter write SetHighlighter;
     property OnBreakpoint: TOnBreakpointEvent read fOnBreakpoint write fOnBreakpoint;
   end;
 
@@ -150,6 +151,12 @@ end;
 
 { GETTERS / SETTERS }
 
+function TEditorFrame.GetHighlighter: TSynAsmHighlighter;
+begin
+  Result := TSynAsmHighlighter(EditorComponent.Highlighter);
+end;
+
+
 procedure TEditorFrame.SetHighlighter(aValue: TSynAsmHighlighter);
 begin
   EditorComponent.Highlighter := aValue;
@@ -158,7 +165,7 @@ end;
 
 function TEditorFrame.GetIsEdited: boolean;
 begin
-  Result := (TPage(Owner).Caption[1] = '*')
+  Result := (TPage(Owner).Caption[1] = '*');
 end;
 
 

@@ -43,6 +43,7 @@ type
     fTokenID: TtkTokenKind;
     fStringDelimCh: char;
     Run: LongInt;
+    fFileExt: string;
     procedure MakeMethodTables;
     procedure SetKeyWords(const Value: string);
     procedure CommentProc;
@@ -87,6 +88,7 @@ type
     property OperatorAttri: TSynHighlighterAttributes read fOperatorAttri write fOperatorAttri;
 
     property Keywords: string write SetKeyWords;
+    property FileExt: string write fFileExt;
   end;
 
 
@@ -95,6 +97,10 @@ implementation
 var
   Identifiers: array[#0..#255] of ByteBool;
 
+const
+  LST_CODE_SECT = 24;
+
+
 procedure MakeIdentTable;
 var
   i: char;
@@ -102,12 +108,7 @@ var
 begin
   idents := '_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   for i := #0 to #255 do
-    begin
-      if (pos(i, idents) > 0) then
-        Identifiers[i] := True
-      else
-        Identifiers[i] := False;
-    end;
+    Identifiers[i] := (pos(i, idents) > 0);
 end;
 
 
@@ -216,7 +217,7 @@ end;
 procedure TSynAsmHighlighter.HashProc;
 begin
   inc(Run);
-  if (Run = 1) then                     // First position?
+  if ((Run = 1) or ((Run = (LST_CODE_SECT+1)) and (fFileExt = '.LST'))) then // First position?
     begin
       while Identifiers[fLine[Run]] do
         inc(Run);
@@ -251,10 +252,23 @@ end;
 
 procedure TSynAsmHighlighter.NumberProc;
 begin
-  inc(Run);
-  fTokenID := tkNumber;
-  while fLine[Run] in ['0'..'9'] do
-    inc(Run);
+  if (Run = 0) then                     // Cannot be an ASM line, assume LST
+    begin
+      while ((fLine[Run] <> #0) and (Run < LST_CODE_SECT)) do
+        Inc(Run);                       // Skip code text
+      if (fLine[Run] = #0) then
+        fTokenID := tkNull
+      else
+        fTokenID := tkKeyword;
+    end
+
+  else                                  // Otherwise it is a number!
+    begin
+      inc(Run);
+      fTokenID := tkNumber;
+      while fLine[Run] in ['0'..'9'] do
+        inc(Run);
+    end;
 end;
 
 
@@ -331,6 +345,7 @@ begin
   while fLine[Run] in [#1..#9, #11, #12, #14..#32] do
     inc(Run);
 end;
+
 
 procedure TSynAsmHighlighter.StringProc;
 begin

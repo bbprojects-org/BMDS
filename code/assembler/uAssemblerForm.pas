@@ -28,7 +28,6 @@
 
   =============================================================================}
 
-{ TODO : uAssemblerForm -> in SynEdit highlighter, if ASM ok, if LST skip first 22 chars }
 { TODO : uAssemblerForm -> save changed files before Asm Execute }
 
 
@@ -280,6 +279,7 @@ begin
       actFileNewExecute(nil);               // Create empty editor, load to it
       MRU.AddToRecent(FileName);            // Put this latest to top of MRU
       GetActiveEditorFrame.LoadFromFile(FileName);
+      GetActiveEditorFrame.Highlighter.FileExt := UpperCase(ExtractFileExt(FileName));
     end
   else
     MessageWarning('File Not Found', Format('Requested file ''%s'' cannot be found!', [FileName]));
