@@ -245,7 +245,7 @@ begin
   Memo1.Lines.Add('against ' + ToStr);
 
   {$ifdef compare_debug}
-  AppLog.Debug(Format('TCompareForm.btnCompareClick, %s against %s, len %d', [FromStr, ToStr, LengthFrom]));
+  AppLog.Debug('TCompareForm.btnCompareClick, %s against %s, len %d', [FromStr, ToStr, LengthFrom]);
   {$endif}
 
   DrawGrid1.RowCount := LengthFrom;
@@ -446,7 +446,7 @@ begin
   end;
 
   {$ifdef compare_debug}
-  AppLog.Debug(Format('TCompareForm.ReadRomFile, file [%s], length %d', [ExtractFileName(FileName), Result]));
+  AppLog.Debug('TCompareForm.ReadRomFile, file [%s], length %d', [ExtractFileName(FileName), Result]);
   {$endif}
 end;
 
@@ -481,7 +481,7 @@ var
   idx: integer;
 begin
   {$ifdef compare_debug}
-  AppLog.Debug(Format('TCompareForm.ReadHexFile, file [%s]', [ExtractFileName(FileName)]));
+  AppLog.Debug('TCompareForm.ReadHexFile, file [%s]', [ExtractFileName(FileName)]);
   {$endif}
 
   Result := 0;
@@ -502,7 +502,7 @@ begin
   end;
 
   {$ifdef compare_debug}
-  AppLog.Debug(Format('TCompareForm.ReadHexFile, bytes read %d', [Result]));
+  AppLog.Debug('TCompareForm.ReadHexFile, bytes read %d', [Result]);
   {$endif}
 end;
 
@@ -561,7 +561,7 @@ begin
   Result := ToAddr - FromAddr + 1;
 
   {$ifdef compare_debug}
-  AppLog.Debug(Format('TCompareForm.ReadMem, from $%.4x, to $%.4x, length %d', [FromAddr, ToAddr, Result]));
+  AppLog.Debug('TCompareForm.ReadMem, from $%.4x, to $%.4x, length %d', [FromAddr, ToAddr, Result]);
   {$endif}
 end;
 

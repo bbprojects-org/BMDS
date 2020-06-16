@@ -68,7 +68,7 @@ uses
   LCLIntf, LCLType, Forms, Classes, SysUtils, ExtCtrls, Graphics, Dialogs,
   //
   uMachineBase, uCpuBase, uCpuTypes, uCpu6502, uDefs6502, uFilesMgr, uMemoryMgr,
-  uPrefsMicrotan, uCommon, uGfxMgr, SDL2;
+  uPrefsMicrotan, uCommon, uGfxMgr, uVia6522, SDL2;
 
 type
   TGraphicsBits = array[$200..$3FF] of boolean;
@@ -78,6 +78,7 @@ type
   TMachineMicrotan = class(TMachineBase)
   private
     fCPU: TCpu6502;                     // 6502 CPU object
+    f6522A: TVia6522;
     KeyboardPort: byte;                 // Read keyboard port
     KeyboardFlipFlop: boolean;          // Keyboard flip-flop set by interrupt
 
@@ -89,15 +90,19 @@ type
     LastPC: word;
                             
     procedure DoConfigChange(Sender: TObject; ChangedItem: integer);
+    procedure DoViaInterrupt(Sender: TObject);
     procedure BuildTextures;
     procedure CheckInput;
     procedure SetMachineInfo;
     procedure CreateMemoryManager;
     procedure Create6502Cpu;
+    procedure Create6522Via;
     procedure CreateScreenAndGraphics;
     procedure BuildChunkyCharacters;
     procedure BuildCharacterSet;
+    function  ReadBFCx(Addr: word): byte;
     function  ReadBFFx(Addr: word): byte;
+    procedure WriteBFCx(Addr: word; Value: byte);
     procedure WriteBFFx(Addr: word; Value: byte);
     procedure WriteVRAM(Addr: word; Value: byte);
   protected
@@ -117,6 +122,7 @@ type
     procedure LoadFromFile(FileName: string); override;
     //
     property CPU: TCpuBase read GetCPU;
+    property VIA1: TVia6522 read f6522A write f6522A;
 end;
 
 
@@ -135,6 +141,7 @@ begin
   SetMachineInfo;
   CreateMemoryManager;
   Create6502Cpu;
+  Create6522Via;
   CreateScreenAndGraphics;
 
   FPS := 50;
@@ -177,12 +184,14 @@ begin
   fInfo.MemoryButtons := 'Stack=01FF,ROM=C000';
   // Read
   fMemoryMgr.AddRead($0000, $BBFF, nil, '47K RAM');
+  fMemoryMgr.AddRead($BFC0, $BFCF, @ReadBFCx, 'VIA1 6522 Read');
   fMemoryMgr.AddRead($BFF0, $BFF3, @ReadBFFx, 'Graphics on, Read keyboard');
   fMemoryMgr.AddRead($C000, $FFFF, nil, '16K ROM, TANBUG + XBUG + BASIC');
   // Write
   fMemoryMgr.AddWrite($0000, $01FF, nil, 'Standard RAM write, lo');
   fMemoryMgr.AddWrite($0200, $03FF, @WriteVRAM, 'Write to Video RAM');
   fMemoryMgr.AddWrite($0400, $BBFF, nil, 'Standard RAM write, hi');
+  fMemoryMgr.AddWrite($BFC0, $BFCF, @WriteBFCx, 'VIA1 6522 Write');
   fMemoryMgr.AddWrite($BFF0, $BFF3, @WriteBFFx, 'Reset keyboard, Delayed NMI, Graphics off');
 end;
 
@@ -195,6 +204,16 @@ begin
   fCPU.OnRead := @fMemoryMgr.MemReadHandler;
   fCPU.OnWrite := @fMemoryMgr.MemWriteHandler;
   fCPU.Reset;
+end;
+
+
+{ CREATE 6522 VIA }
+
+procedure TMachineMicrotan.Create6522Via;
+begin
+  f6522A := TVia6522.Create;
+  f6522A.OnInterrupt := @DoViaInterrupt;
+  f6522A.Reset;
 end;
 
 
@@ -303,6 +322,7 @@ begin
         end;
 
       CyclesDone := fCPU.ExecuteInstruction;
+      f6522A.DoCycles(CyclesDone);
       Dec(CyclesToGo, CyclesDone);
 
       if (DelayedNmiCounter <> 0) then  // If delayed NMI active, clock downwards
@@ -343,6 +363,7 @@ end;
 procedure TMachineMicrotan.Reset;
 begin
   fCPU.Reset;
+  f6522A.Reset;
 end;
 
 
@@ -399,7 +420,27 @@ begin
 end;
 
 
-{ READ $BFFx }
+{ READ / WRITE $BFCx - 6522 VIA1 I/O }
+
+function TMachineMicrotan.ReadBFCx(Addr: word): byte;
+begin
+  Result := f6522A.Read(Addr);
+end;
+
+
+procedure TMachineMicrotan.WriteBFCx(Addr: word; Value: byte);
+begin
+  f6522A.Write(Addr, Value);
+end;
+
+
+procedure TMachineMicrotan.DoViaInterrupt(Sender: TObject);
+begin
+  fCPU.Interrupt(IRQ_IDX);
+end;
+
+
+{ READ / WRITE $BFFx - General I/O }
 
 function TMachineMicrotan.ReadBFFx(Addr: word): byte;
 begin         
@@ -417,8 +458,6 @@ begin
   end;
 end;
 
-
-{ WRITE $BFFx }
 
 procedure TMachineMicrotan.WriteBFFx(Addr: word; Value: byte);
 begin

@@ -322,6 +322,7 @@ begin
   PushW(fRegs.PC);
   Push(GetPSW and (not P_BRK));         // Clear flag B and push PSW
   Iflag := True;                        // Set to prevent further IRQ
+  IRQflag := False;
   fRegs.PC := MemRead(ADDR_IRQ) + (MemRead(ADDR_IRQ+1) shl 8);
   Inc(Cycles, 7);
 end;
@@ -372,10 +373,10 @@ begin
   Cycles := 0;
   fInvalidFlag := False;
 
-  if ((not Iflag) and IRQflag) then     // Check for any interrupts first
-    CallIRQ;
-  if (NMIflag) then
+  if (NMIflag) then                     // Check for any interrupts first
     CallNMI;
+  if (IRQflag and (not Iflag)) then
+    CallIRQ;
 
   // Execute the current opcode
   TracePC := fRegs.PC;

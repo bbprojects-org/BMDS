@@ -100,7 +100,7 @@ begin
     for i := 0 to (LinesIn.Count - 1) do
       begin
        {$ifdef formatter_debug}
-        AppLog.Debug(Format('TFormatter.FormatFile, line %d', [i+1]));
+        AppLog.Debug('TFormatter.FormatFile, line %d', [i+1]);
        {$endif}
         LinesOut.Add(FormatLine(LinesIn.Strings[i]));
       end;
@@ -277,7 +277,7 @@ begin
     tkDirective:      tmp := 'tkDirective';
     tkEOL:            tmp := 'tkEOL';
   end;
-  AppLog.Debug(Format('TFormatter.GetToken, tok=%s, val=[%s]', [tmp, CurrentToken.StringVal]));
+  AppLog.Debug('TFormatter.GetToken, tok=%s, val=[%s]', [tmp, CurrentToken.StringVal]);
   {$endif}
 end;
 

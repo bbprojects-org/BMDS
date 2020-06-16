@@ -32,7 +32,7 @@ interface
 uses
   ExtCtrls, Graphics, LCLIntf, LCLType, Classes, Forms, SysUtils, Dialogs,
   //
-  uCpuBase, uBreakpointsFrame, uMemoryMgr, uGfxMgr, uPrefsFrameBase, uCommon;
+  uCpuBase, uBreakpointsFrame, uMemoryMgr, uGfxMgr, uPrefsFrameBase;
 
 type
   TMachineState = (msStopped, msRunning, msStoppedOnBrkpt, msStoppedOnRead,

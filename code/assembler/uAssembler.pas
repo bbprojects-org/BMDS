@@ -45,8 +45,6 @@
 unit uAssembler;
 
 {$mode objfpc}{$H+}
-{.$R-}
-
 {.$define assembler_debug}
 
 interface
@@ -54,6 +52,9 @@ interface
 uses Forms, Classes, SysUtils, FileUtil, SynEdit, SynPluginSyncroEdit, Controls,
      Graphics, Dialogs, Menus, ExtCtrls, ActnList, LCLType, Math,
      //
+    {$ifdef assembler_debug}
+    uCommon,
+    {$endif}
      uParser, uSymbols, uAsmListing, uAsmFiles, uAsmPrefsFrame,
      uPreferencesForm, uCpuTypes, uDefs6502, uDefs8080, uDefsChip8, uMachineBase,
      uAsmErrors;
@@ -249,7 +250,7 @@ var
 begin
   {$ifdef assembler_debug}
   AppLog.Debug('');
-  AppLog.Debug(Format('TAssembler.DoPass, PASS=%d', [PassNo]));
+  AppLog.Debug('TAssembler.DoPass, PASS=%d', [PassNo]);
   {$endif}
   fPassNumber := PassNo;
   fListing.PassNumber := PassNo;
@@ -524,7 +525,7 @@ begin
     end;
 
   {$ifdef assembler_debug}
-  AppLog.Debug(Format('TAssembler.DoMnemonic, %.4d, %s, AM=[%s]', [fFiles.CurrentLineNo + 1, Instruction.Name, sAddrMode]));
+  AppLog.Debug('TAssembler.DoMnemonic, %.4d, %s, AM=[%s]', [fFiles.CurrentLineNo + 1, Instruction.Name, sAddrMode]);
   {$endif}
 
 
@@ -776,7 +777,7 @@ begin
       ThisSymbol.Use := [symDefine, symSet];
       fListing.HexData := AddrOnly(ThisSymbol.Value);
       {$ifdef assembler_debug}
-      AppLog.Debug(Format('TAssembler.DoEqu [%s = %.4x]', [ThisSymbol.Name, ThisSymbol.Value]));
+      AppLog.Debug('TAssembler.DoEqu [%s = %.4x]', [ThisSymbol.Name, ThisSymbol.Value]);
       {$endif}
     end
   else
