@@ -42,6 +42,11 @@ type
   TBrkptHandler = procedure(Addr: word; out IsBrkpt: boolean) of object;
   TConfigChange = procedure(Sender: TObject; ChangedItem: TMachineChangedItem) of object;
 
+  // Valid file extensions supporting these machines
+  TFileExt     = (feM65, feSI, feC8, feBIN, feHEX, feALL);
+  TFileExtSet  = set of TFileExt;
+  TFileExtList = array[TFileExt] of string;
+
   TMachineInfo = record
     // Name is used to register Machine class, and saved in CurrentMachineID
     Year: integer;                      // Year introduced
@@ -52,6 +57,8 @@ type
     ScreenWidthPx, ScreenHeightPx: integer;
     ScaleModifier: integer;             // Used for small screen sizes (eg CHIP-8)
     HasCodeToExecute: boolean;          // If a ROM available and loaded
+    FileExts: TFileExtSet;              // Defines which file EXT valid for machine
+    DefaultLoadAddr: integer;           // Default address to load binary files to
   end;
 
   { TMachineBase }

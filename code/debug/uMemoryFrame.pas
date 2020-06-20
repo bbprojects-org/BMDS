@@ -23,7 +23,6 @@
 
   =============================================================================}
 
-{ TODO : uMemoryFrame -> option width 8/16/24 bytes per row? }
 { TODO : uMemoryFrame -> highlight any bytes on the stack / point to SP position }
 
 unit uMemoryFrame;

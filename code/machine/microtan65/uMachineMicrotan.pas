@@ -164,6 +164,8 @@ begin
   fInfo.ScaleModifier := 1;
   fInfo.MachineDefsFileName := 'MicrotanDefs.asm';
   fInfo.State := msStopped;
+  fInfo.FileExts := [feM65, feBIN, feHEX];
+  fInfo.DefaultLoadAddr := $400;
 end;
 
 

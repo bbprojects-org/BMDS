@@ -5,10 +5,12 @@ object MainForm: TMainForm
   Width = 512
   AllowDropFiles = True
   BorderIcons = [biSystemMenu, biMinimize]
-  BorderStyle = bsDialog
   Caption = 'BMDS'
   ClientHeight = 214
   ClientWidth = 512
+  Constraints.MaxWidth = 512
+  Constraints.MinHeight = 44
+  Constraints.MinWidth = 512
   Font.Height = -10
   KeyPreview = True
   Menu = MainMenu
@@ -19,6 +21,18 @@ object MainForm: TMainForm
   OnKeyDown = FormKeyDown
   ShowHint = True
   LCLVersion = '2.1.0.0'
+  object memoLog: TMemo
+    Left = 0
+    Height = 168
+    Top = 28
+    Width = 512
+    Align = alClient
+    BorderSpacing.Top = 28
+    Lines.Strings = (    )
+    ReadOnly = True
+    ScrollBars = ssAutoVertical
+    TabOrder = 3
+  end
   object MainToolBar: TToolBar
     Left = 8
     Height = 24
@@ -34,13 +48,13 @@ object MainForm: TMainForm
     object tbLoadCode: TToolButton
       Left = 1
       Top = 0
-      Action = actLoadCode
+      Action = actLoad
       ShowCaption = False
     end
     object tbSaveCode: TToolButton
       Left = 23
       Top = 0
-      Action = actSaveCode
+      Action = actSave
       ShowCaption = False
     end
     object tbSep1: TToolButton
@@ -203,10 +217,10 @@ object MainForm: TMainForm
         Caption = '-'
       end
       object menuLoadCode: TMenuItem
-        Action = actLoadCode
+        Action = actLoad
       end
       object menuSaveCode: TMenuItem
-        Action = actSaveCode
+        Action = actSave
       end
       object N8: TMenuItem
         Caption = '-'
@@ -1594,22 +1608,21 @@ object MainForm: TMainForm
       Category = 'Machine'
       Caption = 'actInterrupt'
     end
-    object actLoadCode: TFileOpen
+    object actLoad: TFileOpen
       Category = 'Machine'
-      Caption = 'Load Code...'
-      Hint = 'Open'
+      Caption = 'Load...'
+      Hint = 'Load code / machine state file'
       ImageIndex = 1
-      ShortCut = 16463
-      BeforeExecute = actLoadCodeBeforeExecute
-      OnAccept = actLoadCodeAccept
+      BeforeExecute = actLoadBeforeExecute
+      OnAccept = actLoadAccept
     end
-    object actSaveCode: TFileSaveAs
+    object actSave: TFileSaveAs
       Category = 'Machine'
-      Caption = 'Save Code ...'
-      Hint = 'Save machine code'
+      Caption = 'Save...'
+      Hint = 'Save machine state'
       ImageIndex = 2
-      BeforeExecute = actSaveCodeBeforeExecute
-      OnAccept = actSaveCodeAccept
+      BeforeExecute = actSaveBeforeExecute
+      OnAccept = actSaveAccept
     end
     object actShowDebug: TAction
       Category = 'Debug'

@@ -49,10 +49,10 @@ uses
   //
   uCommon, uIniFile, uAboutForm, uPreferencesForm, uDisassembler, uCompareForm,
   uMachineBase, uDebugForm, uAssemblerForm, uGenPrefsFrame, uEdPrefsFrame,
-  uDefs8080, uMachineInfoForm;
+  uDefs8080, uMachineInfoForm, uReadWriteHex;
 
 type
-  
+
   { TMainForm }
 
   TMainForm = class(TForm)
@@ -71,9 +71,10 @@ type
     actStop: TAction;
     actRun: TAction;
     ActionList1: TActionList;
-    actLoadCode: TFileOpen;
-    actSaveCode: TFileSaveAs;
+    actLoad: TFileOpen;
+    actSave: TFileSaveAs;
     DebugToolBar: TToolBar;
+    memoLog: TMemo;
     memoDebug: TMemo;
     menuAsm: TMenuItem;
     menuAsmNew: TMenuItem;
@@ -161,19 +162,19 @@ type
     procedure actShowDebugExecute(Sender: TObject);
     procedure actShowCompareExecute(Sender: TObject);
     procedure actShowDisassemblerExecute(Sender: TObject);
-    procedure actLoadCodeAccept(Sender: TObject);
-    procedure actLoadCodeBeforeExecute(Sender: TObject);
+    procedure actLoadAccept(Sender: TObject);
+    procedure actLoadBeforeExecute(Sender: TObject);
     procedure actModeExecute(Sender: TObject);
     procedure actQuitExecute(Sender: TObject);
     procedure actResetExecute(Sender: TObject);
     procedure actRunExecute(Sender: TObject);
-    procedure actSaveCodeAccept(Sender: TObject);
-    procedure actSaveCodeBeforeExecute(Sender: TObject);
+    procedure actSaveAccept(Sender: TObject);
+    procedure actSaveBeforeExecute(Sender: TObject);
     procedure actStepExecute(Sender: TObject);
     procedure actStepOverExecute(Sender: TObject);
     procedure actStopExecute(Sender: TObject);
     procedure btnAssembleClick(Sender: TObject);
-    procedure btnTestClick(Sender: TObject);
+    procedure Log(Msg: string; const Args: array of const);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -215,6 +216,14 @@ type
     procedure MakeMachineMenu;
     procedure SetMachineScreenSize(aMultiplier: integer);
     procedure DoMachineConfigChange(Sender: TObject; {%H-}ChangedItem: TMachineChangedItem);
+    procedure LoadFile(FileName: string);
+    procedure LoadFileMachine(FileName: string);
+    procedure LoadFileBinary(FileName: string);
+    procedure LoadFileHex(FileName: string);
+    function ValidExt(Ext: string): boolean;
+    function BuildFilter(FileExts: TFileExtSet): string;
+    function GetAddr(FileName: string): integer;
+    function MaxStr(str: string; max: integer): string;
   private     // INI file
     procedure CreateAppIni;
     procedure ReadIniSettings;
@@ -239,6 +248,10 @@ type
   public
     //
   end;
+
+const
+  feNAMES: array[TFileExt] of string = ('.m65', '.si', '.c8', '.bin', '.hex', '.*');
+  MAX_LEN_FN = 32;
 
 var
   MainForm: TMainForm;
@@ -283,7 +296,6 @@ begin
   {$else}
     menuHelpWindows.Visible := True;    // Default for these is not visible
   {$endif}
-  Height := 44;
 
   MachineDataFolder := '';
   CreateAppIni;
@@ -328,18 +340,11 @@ end;
 { FORM DROP FILES }
 
 procedure TMainForm.FormDropFiles(Sender: TObject; const Files: array of String);
-var
-  Stream: TFileStream;
 begin
   if (Length(Files) = 1) then
-    begin
-      // Need to get load addr from filename
-      Stream := TFileStream.Create(Files[0], fmOpenRead);
-      Stream.Read(Machine.Memory[$100], Stream.Size);
-      Stream.Free;
-      // Load .bin and .hex files into memory
-      { TODO : uMainForm -> provide some feedback that load has been done! }
-    end;
+    LoadFile(Files[0])
+  else
+    MessageError('Only one file permitted');
 end;
 
 
@@ -545,6 +550,8 @@ begin
 end;
 
 
+{ Only show editor menu items when the editor form is actually in view }
+
 procedure TMainForm.OnShowHideAsmForm(Sender: TObject);
 begin
   menuAsm.Visible := AssemblerForm.Visible;
@@ -577,7 +584,7 @@ begin
 end;
 
 
-{ FORM CLOSE }
+{ MAIN FORM CLOSE }
 
 procedure TMainForm.FormClose(Sender: TObject; var CloseAction: TCloseAction);
 begin
@@ -718,60 +725,176 @@ end;
 
 { MENU - LOAD CODE FOR THIS MACHINE }
 
-procedure TMainForm.actLoadCodeBeforeExecute(Sender: TObject);
+procedure TMainForm.actLoadBeforeExecute(Sender: TObject);
 begin
-  { TODO : uMainForm -> put these in each Machine's defs }
-  //actLoadCode.Dialog.DefaultExt := '.bin';
-  //actLoadCode.Dialog.Filter := 'Binary Files|*.bin';
+  actLoad.Dialog.Filter := BuildFilter(Machine.Info.FileExts);
 end;
 
 
-procedure TMainForm.actLoadCodeAccept(Sender: TObject);
+procedure TMainForm.actLoadAccept(Sender: TObject);
 var
-  InStream: TMemoryStream;
-  MemPtr: ^Byte;
-  idx: integer;
+  //OldState: TMachineState;
   FileName: string;
 begin
-  StopMachine;                      // Stop machine if running
-  FileName := actLoadCode.Dialog.FileName;
-  if (ExtractFileExt(FileName) = '.m65') then
+  //OldState := Machine.State;
+  //StopMachine;                          // Stop machine if running
+  FileName := actLoad.Dialog.FileName;
+  LoadFile(FileName);
+  //if (OldState = msRunning) then
+  //  actRunExecute(nil);                 // Restart if it was running on entry
+end;
+
+
+function TMainForm.BuildFilter(FileExts: TFileExtSet): string;
+var
+  ThisFileExt: TFileExt;
+  FilterItems: string;
+begin
+  Result := '';
+  FilterItems := '';
+  for ThisFileExt in FileExts do
     begin
-      Machine.LoadFromFile(FileName);
-      if (DeveloperMode) then
-        DebugForm.Refresh;
-    end
-  else
-    begin
-      ShowMessage('Not a standard M65 file?');
-      Exit;
-      // DEBUG
-      InStream := TMemoryStream.Create;
-      try
-        InStream.LoadFromFile(actLoadCode.Dialog.FileName);
-        MemPtr := InStream.Memory;
-        for idx := 0 to (InStream.Size - 1) do
-          begin
-            Machine.Memory[$400 + idx] := MemPtr^; { TODO : uMainForm -> need address to load to }
-            Inc(MemPtr);
-          end;
-      finally
-        InStream.Free;
+      if (Result <> '') then
+        Result := Result + ';';
+      Result := Result + '*' + feNAMES[ThisFileExt];
+
+      if (FilterItems <> '') then
+        FilterItems := FilterItems + '|';
+      case ThisFileExt of
+        feM65: FilterItems := FilterItems + 'Microtan file (*' + feNAMES[ThisFileExt] + ')|*' + feNAMES[ThisFileExt];
+        feSI:  FilterItems := FilterItems + 'Space Invaders file (*' + feNAMES[ThisFileExt] + ')|*' + feNAMES[ThisFileExt];
+        feC8:  FilterItems := FilterItems + 'CHIP-8 file (*' + feNAMES[ThisFileExt] + ')|*' + feNAMES[ThisFileExt];
+        feBIN: FilterItems := FilterItems + 'Binary file (*' + feNAMES[ThisFileExt] + ')|*' + feNAMES[ThisFileExt];
+        feHEX: FilterItems := FilterItems + 'HEX file (*' + feNAMES[ThisFileExt] + ')|*' + feNAMES[ThisFileExt];
       end;
     end;
-  //Machine.Reset;                    // In case machine was running before
+
+  Result := 'BMDS File (' + Result + ')|' + Result
+            + '|' + FilterItems
+            + '|' + 'All files (*.*)|*.*';
+end;
+
+
+procedure TMainForm.LoadFile(FileName: string);
+var
+  Ext: string;
+begin
+  Ext := LowerCase(ExtractFileExt(FileName));
+  if (ValidExt(Ext)) then
+    case Ext of
+      '.m65', '.si', '.c8': LoadFileMachine(FileName);
+      '.bin':               LoadFileBinary(FileName);
+      '.hex':               LoadFileHex(FileName);
+    end
+  else
+    MessageError(Format('File type "*%s" not valid for this machine [%s]', [Ext, Machine.Name]));
+end;
+
+
+function TMainForm.ValidExt(Ext: string): boolean;
+var
+  ThisFileExt: TFileExt;
+begin
+  Result := False;
+  for ThisFileExt in Machine.Info.FileExts do
+    if (Ext = feNAMES[ThisFileExt]) then
+      begin
+        Result := True;
+        Exit;
+      end;
+end;
+
+
+procedure TMainForm.LoadFileMachine(FileName: string);
+begin
+  Machine.LoadFromFile(FileName);
+  if (DeveloperMode) then
+    DebugForm.Refresh;
+  Log('Machine file "%s" loaded to %s', [MaxStr(ExtractFileName(FileName), MAX_LEN_FN), Machine.Name]);
+end;
+
+
+procedure TMainForm.LoadFileBinary(FileName: string);
+var
+  Stream: TFileStream;
+  LoadAddr: integer;
+  Extra: string;
+begin
+  Extra := '';
+  Stream := TFileStream.Create(FileName, fmOpenRead);
+  LoadAddr := GetAddr(FileName);
+  if (LoadAddr = -1) then
+    begin
+      LoadAddr := Machine.Info.DefaultLoadAddr;
+      Extra := ' [DEFAULT ADDR]';
+    end;
+  try
+    Stream.Read(Machine.Memory[LoadAddr], Stream.Size);
+  finally
+    Stream.Free;
+  end;
+  Log('Binary file "%s" loaded to $%.4x on %s%s', [MaxStr(ExtractFileName(FileName), MAX_LEN_FN), LoadAddr, Machine.Name, Extra]);
+end;
+
+
+procedure TMainForm.LoadFileHex(FileName: string);
+var
+  ReadHex: TReadHex;
+  i: integer;
+begin
+  ReadHex := TReadHex.Create(FileName);
+  try
+    for i := 0 to (ReadHex.BytesRead - 1) do
+      Machine.Memory[ReadHex.StartAddress + i] := ReadHex.BytesArray[i];
+    if (ReadHex.ErrorMessage <> '') then
+      MessageError(ReadHex.ErrorMessage)
+    else
+      Log('Hex file "%s" loaded to $%.4x on %s', [MaxStr(ExtractFileName(FileName), MAX_LEN_FN), ReadHex.StartAddress, Machine.Name]);
+  finally
+    ReadHex.Free;
+  end;
+end;
+
+
+{ Get hex load address from filename; e.g. 'MyFileName (xxxx).bin' }
+
+function TMainForm.GetAddr(FileName: string): integer;
+var
+  Pos1, Pos2: integer;
+  AddrStr: string;
+begin
+  Pos1 := Pos('(', FileName);
+  Pos2 := Pos(')', FileName);
+  if ((Pos1 > 0) and (Pos2 > Pos1)) then
+    begin
+      AddrStr := Copy(FileName, Pos1 + 1, Pos2 - Pos1 - 1);
+      Result := GetHex(AddrStr);
+    end
+  else
+    Result := -1;
+end;
+
+
+{ Limit string to a max length, adding '...' if too long }
+
+function TMainForm.MaxStr(str: string; max: integer): string;
+begin
+  if (Length(str) > max) then
+    Result := LeftStr(str, max-2) + '...'
+  else
+    Result := str;
 end;
 
 
 { MENU - SAVE CODE FOR THIS MACHINE }
 
-procedure TMainForm.actSaveCodeBeforeExecute(Sender: TObject);
+procedure TMainForm.actSaveBeforeExecute(Sender: TObject);
 begin
   //
 end;
 
 
-procedure TMainForm.actSaveCodeAccept(Sender: TObject);
+procedure TMainForm.actSaveAccept(Sender: TObject);
 begin
   //
 end;
@@ -789,6 +912,7 @@ begin
 
   Machine.State := msRunning;
   UpdateStatus;
+  Machine.SetFocus;
   while (Machine.State = msRunning) do  // Run until state changes
     begin
       Machine.RunForOneFrame;
@@ -800,8 +924,6 @@ begin
       SetButtonsState(False);
       UpdateStatus;
     end;
-
-  Machine.SetFocus;
 end;
 
 
@@ -952,17 +1074,17 @@ end;
 
 procedure TMainForm.UpdateStatus;
 var
-  tmp: string;
+  StateStr: string;
 begin
   case (Machine.State) of
-    msRunning:        tmp := 'Running';
-    msStopped:        tmp := 'Stopped';
-    msStoppedOnBrkpt: tmp := Format('Breakpoint $%.4x', [Machine.CPU.PC]);
+    msRunning:        StateStr := 'Running';
+    msStopped:        StateStr := 'Stopped';
+    msStoppedOnBrkpt: StateStr := Format('Breakpoint $%.4x', [Machine.CPU.PC]);
   end;
-  StatusBar.Panels[0].Text := tmp;
+  StatusBar.Panels[0].Text := StateStr;
   if (DeveloperMode) then
     begin
-      DebugForm.Status := tmp;
+      DebugForm.Status := StateStr;
       DebugForm.Refresh;
     end;
 end;
@@ -990,6 +1112,7 @@ begin
   CurrentMachineID := AppIni.ReadString(SECT_MAIN, INI_MACH_ID, '');
   Left := AppIni.ReadInteger(SECT_CUSTOM, INI_WDW_LEFT, 20);
   Top := AppIni.ReadInteger(SECT_CUSTOM, INI_WDW_TOP, 20);
+  Height := AppIni.ReadInteger(SECT_CUSTOM, INI_WDW_HEIGHT, 74);
   DeveloperMode := AppIni.ReadBool(SECT_CUSTOM, INI_DEV_MODE, False);
 
   tmpScreenPosition.X := AppIni.ReadInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_LEFT, -1);
@@ -1004,6 +1127,7 @@ begin
   WriteMachineID(CurrentMachineID);
   AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_LEFT, Left);
   AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_TOP, Top);
+  AppIni.WriteInteger(SECT_CUSTOM, INI_WDW_HEIGHT, Height);
   AppIni.WriteBool(SECT_CUSTOM, INI_DEV_MODE, DeveloperMode);
   AppIni.WriteInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_LEFT, Machine.ScreenPosition.X);
   AppIni.WriteInteger(SECT_CUSTOM, INI_SCREEN + INI_WDW_TOP, Machine.ScreenPosition.Y);
@@ -1020,6 +1144,12 @@ begin
       AppIni.WriteBool(SECT_CUSTOM, 'Dis' + INI_WDW_VIS, DisassemblerForm.Visible);
       AppIni.WriteBool(SECT_CUSTOM, 'Compare' + INI_WDW_VIS, CompareForm.Visible);
     end;
+end;
+
+
+procedure TMainForm.Log(Msg: string; const Args: array of const);
+begin
+  memoLog.Lines.Add(Format(Msg, Args));
 end;
 
 
@@ -1089,7 +1219,7 @@ begin
     begin
       LEDs[i] := TImage.Create(self);
       LEDs[i].Parent := self;
-      LEDs[i].Left := 480 - i*24;
+      LEDs[i].Left := 480 - i*24;       // Right = bit0 to left = bit7
       LEDs[i].Top := 3;
       LEDs[i].Height := 21;
       LEDs[i].Width := 22;
@@ -1127,34 +1257,6 @@ begin
   if (GenPrefs.LedsEnabled) then
     if (Addr = GenPrefs.LedAddress) then
       SetLEDs(Value);
-end;
-
-
-{ DEBUG }
-
-procedure TMainForm.btnTestClick(Sender: TObject);
-{
-var
-  WriteHex: TWriteHex;
-  ReadHex: TReadHex;
-  i: integer;
-  }
-begin
-  {
-  OpenDialog1.Execute;
-  WriteHex := TWriteHex.Create(OpenDialog1.FileName + '.TMP');
-  WriteHex.SetStart($FFED);
-  WriteHex.WriteBytes(Machine.Memory, $FFED, $FFF3);
-  WriteHex.Free;
-
-  ReadHex := TReadHex.Create(OpenDialog1.FileName);
-  for i := 0 to (ReadHex.BytesRead - 1) do
-    Machine.Memory[ReadHex.StartAddress + i] := ReadHex.BytesArray[i];
-  if (ReadHex.ErrorMessage <> '') then
-    ShowMessage(ReadHex.ErrorMessage);
-  EditorForm.Memo.Lines.Add(Format('Start address %.4x for %d bytes', [ReadHex.StartAddress, ReadHex.BytesRead]));
-  ReadHex.Free;
-  }
 end;
 
 

@@ -22,8 +22,6 @@
 
   =============================================================================}
 
-{ TODO : uAsmListing -> check old uListing, and delete if nothing extra }
-
 unit uAsmListing;
 
 {$mode objfpc}{$H+}

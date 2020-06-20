@@ -180,6 +180,8 @@ begin
   fInfo.MemoryButtons := '';
   fInfo.State := msStopped;
   fInfo.HasCodeToExecute := False;      // Until ROMS loaded without error below
+  fInfo.FileExts := [feSI];
+  fInfo.DefaultLoadAddr := 0;
 end;
 
 

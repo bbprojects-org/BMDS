@@ -68,10 +68,6 @@ type
 var
   AboutForm: TAboutForm;
 
-const
-  APP_NAME    = 'BMDS';
-  APP_COPY    = 'Copyright RC Beveridge, 2002-';
-
 
 implementation
 

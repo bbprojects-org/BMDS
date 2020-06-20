@@ -91,6 +91,7 @@ begin
   fInfo.MemoryButtons       := 'Font=0000,Start=0200'; // Hex values
   fInfo.MachineDefsFileName := '';
   fInfo.HasCodeToExecute    := False;   // Needs a program to execute
+  fInfo.FileExts := [feC8, feBIN, feHEX];
 
   fMemoryMgr := TMemoryMgr.Create(MEM_SIZE_4K);
 

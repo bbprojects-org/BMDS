@@ -498,8 +498,8 @@ end;
 function TSynAsmHighlighter.GetSampleSource: string;
 begin
   Result := '// Comment' + #13 +
-            '#cpu ''6502''           // directive & string' + #13 +
             '           org $FC00  // keyword & number' + #13 +
+            '           fcc ''string''' + #13 +
             '#if dosomething       // directive & identifier' + #13 +
             '           lda #12    // keyword, symbol & number' + #13 +
             '#endif' + #13 +

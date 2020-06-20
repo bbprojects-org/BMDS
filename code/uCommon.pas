@@ -51,6 +51,7 @@ type
   function  GetRegisterIndex(aRegToFind: string; aRegisters: string): integer;
   function  MessageQuery(aCaption, aText: string): boolean;
   procedure MessageWarning(aCaption, aText: string);
+  procedure MessageError(aText: string);
   function  ConfirmResetDefault: boolean;
   function  GetHex(sText: string): integer;
   procedure SwapButtons({%H-}aButt1, {%H-}aButt2: TButton);
@@ -60,6 +61,9 @@ var
   AppLog: TEventLog;
 
 const
+  APP_NAME = 'BMDS';
+  APP_COPY = 'Copyright RC Beveridge, 2002-';
+
   {$ifdef darwin}
     DIRECTORY_SEPARATOR = '/';
     CRLF = #10;
@@ -140,7 +144,7 @@ begin
 end;
 
 
-{ QUERY MESSAGE }
+{ MESSAGES }
 
 function MessageQuery(aCaption, aText: string): boolean;
 begin
@@ -148,11 +152,15 @@ begin
 end;
 
 
-{ WARNING MESSAGE }
-
 procedure MessageWarning(aCaption, aText: string);
 begin
   MessageDlg(aCaption, aText, mtWarning, [mbOK], 0);;
+end;
+
+
+procedure MessageError(aText: string);
+begin
+    MessageDlg(APP_NAME, aText, mtError, [mbOk], 0);
 end;
 
 

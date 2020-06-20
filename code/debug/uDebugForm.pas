@@ -24,6 +24,7 @@
 
   =============================================================================}
 
+
 unit uDebugForm;
 
 {$mode objfpc}{$H+}
@@ -280,6 +281,8 @@ end;
 
 procedure TDebugForm.Refresh;
 begin
+  if (MemoryFrame <> nil) then
+    MemoryFrame.Refresh;
   if (TraceFrame <> nil) then
     begin
       TraceFrame.Rows := Machine.CPU.TraceCount + 1;
