@@ -1,0 +1,46 @@
+object EditScreenForm: TEditScreenForm
+  Left = 2650
+  Height = 318
+  Top = 540
+  Width = 323
+  BorderStyle = bsDialog
+  Caption = 'Edit Screen Characters'
+  ClientHeight = 318
+  ClientWidth = 323
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  LCLVersion = '2.1.0.0'
+  object Memo1: TMemo
+    Left = 4
+    Height = 280
+    Top = 4
+    Width = 315
+    Align = alClient
+    BorderSpacing.Bottom = 30
+    BorderSpacing.Around = 4
+    Font.Height = -12
+    Font.Name = 'Monaco'
+    Lines.Strings = (    )
+    OnChange = Memo1Change
+    ParentFont = False
+    TabOrder = 0
+  end
+  object btnOK: TButton
+    Left = 232
+    Height = 25
+    Top = 288
+    Width = 75
+    Caption = 'OK'
+    OnClick = btnOKClick
+    TabOrder = 1
+  end
+  object btnCancel: TButton
+    Left = 152
+    Height = 25
+    Top = 288
+    Width = 75
+    Caption = 'Cancel'
+    OnClick = btnCancelClick
+    TabOrder = 2
+  end
+end

@@ -54,8 +54,6 @@
 
   ============================================================================= }
 
-{ TODO : uMachineMicrotan -> SaveToFile routine }
-
 { TODO : uMachineMicrotan -> BUG: single step/proceed not working as per M65 manual }
 
 unit uMachineMicrotan;
@@ -66,9 +64,10 @@ interface
 
 uses
   LCLIntf, LCLType, Forms, Classes, SysUtils, ExtCtrls, Graphics, Dialogs,
+  Menus,
   //
   uMachineBase, uCpuBase, uCpuTypes, uCpu6502, uDefs6502, uFilesMgr, uMemoryMgr,
-  uPrefsMicrotan, uCommon, uGfxMgr, uVia6522, SDL2;
+  uPrefsMicrotan, uCommon, uGfxMgr, uVia6522, uEditScreenForm, SDL2;
 
 type
   TGraphicsBits = array[$200..$3FF] of boolean;
@@ -88,9 +87,11 @@ type
     GraphicsBits: TGraphicsBits;        // ... and state for all character elements
     DelayedNmiCounter: integer;         // Used to support M65 delayed NMI processing
     LastPC: word;
-                            
+
     procedure DoConfigChange(Sender: TObject; ChangedItem: integer);
+    procedure DoScreenUpdateAfterWrite;
     procedure DoViaInterrupt(Sender: TObject);
+    procedure EditScreen(Sender: TObject);
     procedure BuildTextures;
     procedure CheckInput;
     procedure SetMachineInfo;
@@ -118,8 +119,9 @@ type
     procedure RunForOneFrame; override;
     procedure Step; override;   
     procedure ScreenRefresh; override;
-    procedure SaveToFile(strm: TStream);
+    procedure SaveToFile(FileName: string; FullSystem: boolean = False); override;
     procedure LoadFromFile(FileName: string); override;
+    procedure SetCustomMenuItem(var item: TMenuItem); override;
     //
     property CPU: TCpuBase read GetCPU;
     property VIA1: TVia6522 read f6522A write f6522A;
@@ -166,6 +168,7 @@ begin
   fInfo.State := msStopped;
   fInfo.FileExts := [feM65, feBIN, feHEX];
   fInfo.DefaultLoadAddr := $400;
+  fInfo.HasCustomMenu := True;
 end;
 
 
@@ -659,48 +662,122 @@ begin
 end;
 
 
+{ CREATE CUSTOM MENU }
+
+{ Edit screen characters }
+
+procedure TMachineMicrotan.SetCustomMenuItem(var item: TMenuItem);
+begin
+  item.Caption := 'Edit Screen';
+  item.OnClick := @EditScreen;
+end;
+
+
+procedure TMachineMicrotan.EditScreen(Sender: TObject);
+var
+  es: TEditScreenForm;
+  idx: integer;
+begin
+  for idx := $200 to $3FF do            // Clear graphics bits
+    GraphicsBits[idx] := False;
+
+  es := TEditScreenForm.Create(nil);
+  try
+    es.OnScreenWrite := @DoScreenUpdateAfterWrite;
+    es.MemoryRef := fMemoryMgr.Memory;
+    es.ShowModal;
+  finally
+    es.Free;
+  end;
+end;
+
+
+{ Callback from EditScreenForm to update screen display }
+
+procedure TMachineMicrotan.DoScreenUpdateAfterWrite;
+begin
+  ScreenRefresh;
+end;
+
+
 { LOAD / SAVE MACHINE STATE TO FILE }
 
 procedure TMachineMicrotan.LoadFromFile(FileName: string);
 var
   LoadStream: TMemoryStream;
-  LoadPtr: PChar;
-  idx, bit, ThisByte, Addr: integer;  
+  idx, bit, ThisByte, Addr, RamSize: integer;
   tempRegs: TRegs6502;
 begin
   LoadStream := TMemoryStream.Create;
   try
-    LoadStream.LoadFromFile(FileName);
-    LoadPtr := LoadStream.Memory;
-    if (LoadStream.Size = 8263) then    // Standard file?
-    begin
-      for idx := 0 to $1FFF do          // Copy 8K memory image
-        fMemoryMgr.Memory[idx] := byte(LoadPtr[idx]);
-      for idx := 0 to 63 do             // 64 bytes chunky graphics bits
+    LoadStream.LoadFromFile(FileName);  // Sets Position = 0
+    if (LoadStream.Size = 8263) then    // Compatible .M65 file?
+      RamSize := $2000                  // 8K
+    else
+      RamSize := $BC00;                 // 47K full system
+    for idx := 0 to (RamSize - 1) do    // Copy memory image
+      fMemoryMgr.Memory[idx] := LoadStream.ReadByte;
+
+    for idx := 0 to 63 do               // 64 bytes chunky graphics bits
       begin
-        ThisByte := byte(LoadPtr[$2000 + idx]);
+        ThisByte := LoadStream.ReadByte;
         Addr := $200 + (idx * 8);
         for bit := 0 to 7 do
           GraphicsBits[Addr + bit] := ((ThisByte and (1 shl bit)) > 0);
         ScreenRefresh;                  // Refresh display
       end;
-      tempRegs.PC := byte(LoadPtr[$2040]) + (byte(LoadPtr[$2041]) shl 8);
-      tempRegs.PSW := byte(LoadPtr[$2042]);
-      tempRegs.A := byte(LoadPtr[$2043]);
-      tempRegs.X := byte(LoadPtr[$2044]);
-      tempRegs.Y := byte(LoadPtr[$2045]);
-      tempRegs.SP := byte(LoadPtr[$2046]);
-      fCPU.Regs := tempRegs;
-    end;
+                                        // Registers
+    tempRegs.PC := LoadStream.ReadByte + (LoadStream.ReadByte shl 8);
+    tempRegs.PSW := LoadStream.ReadByte;
+    tempRegs.A := LoadStream.ReadByte;
+    tempRegs.X := LoadStream.ReadByte;
+    tempRegs.Y := LoadStream.ReadByte;
+    tempRegs.SP := LoadStream.ReadByte;
+    fCPU.Regs := tempRegs;
   finally
     LoadStream.Free;
   end;
 end;
 
 
-procedure TMachineMicrotan.SaveToFile(strm: TStream);
+{ TODO : uMachineMicrotan -> save 6522 state too, if full system }
+
+procedure TMachineMicrotan.SaveToFile(FileName: string; FullSystem: boolean);
+var
+  SaveStream: TMemoryStream;
+  idx, bit, ThisByte, Addr, RamSize: integer;
 begin
-  //
+  SaveStream := TMemoryStream.Create;
+  try
+    if (FullSystem) then
+      RamSize := $BC00                  // 47K full system
+    else
+      RamSize := $2000;                 // 8K, compatible .M65 file
+    for idx := 0 to (RamSize - 1) do    // Save memory image
+      SaveStream.WriteByte(fMemoryMgr.Memory[idx]);
+
+    for idx := 0 to 63 do               // Save 64 bytes chunky graphics bits
+      begin
+        ThisByte := 0;
+        Addr := $200 + (idx * 8);
+        for bit := 0 to 7 do
+          if (GraphicsBits[Addr + bit]) then
+            ThisByte := ThisByte or (1 shl bit);
+        SaveStream.WriteByte(ThisByte);
+      end;
+                                        // Save all registers
+    SaveStream.WriteByte(fCPU.Regs.PC and $FF);
+    SaveStream.WriteByte((fCPU.Regs.PC shr 8) and $FF);
+    SaveStream.WriteByte(fCPU.Regs.PSW);
+    SaveStream.WriteByte(fCPU.Regs.A);
+    SaveStream.WriteByte(fCPU.Regs.X);
+    SaveStream.WriteByte(fCPU.Regs.Y);
+    SaveStream.WriteByte(fCPU.Regs.SP);
+
+    SaveStream.SaveToFile(FileName);
+  finally
+    SaveStream.Free;
+  end;
 end;
 
 

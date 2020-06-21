@@ -31,6 +31,7 @@ interface
 
 uses
   ExtCtrls, Graphics, LCLIntf, LCLType, Classes, Forms, SysUtils, Dialogs,
+  Menus,
   //
   uCpuBase, uBreakpointsFrame, uMemoryMgr, uGfxMgr, uPrefsFrameBase;
 
@@ -58,7 +59,8 @@ type
     ScaleModifier: integer;             // Used for small screen sizes (eg CHIP-8)
     HasCodeToExecute: boolean;          // If a ROM available and loaded
     FileExts: TFileExtSet;              // Defines which file EXT valid for machine
-    DefaultLoadAddr: integer;           // Default address to load binary files to
+    DefaultLoadAddr: integer;           // Default binary file load address
+    HasCustomMenu: boolean;
   end;
 
   { TMachineBase }
@@ -96,7 +98,9 @@ type
     procedure ScreenRefresh;      virtual; abstract;
     procedure Stop;               virtual;
     procedure LoadFromFile(FileName: string); virtual; abstract;
+    procedure SaveToFile(FileName: string; FullSystem: boolean = False); virtual; abstract;
     procedure SetFocus;
+    procedure SetCustomMenuItem(var item: TMenuItem); virtual;
     function  IsRAM(Addr: word): boolean;
 
     property Name: string read fName write fName;
@@ -250,6 +254,13 @@ begin
   Result := fMemoryMgr.IsRAM(Addr);
 end;
 
+
+{ CREATE A CUSTOM MENU ITEM }
+
+procedure TMachineBase.SetCustomMenuItem(var item: TMenuItem);
+begin
+  //
+end;
 
 
 { TMachineFactory }

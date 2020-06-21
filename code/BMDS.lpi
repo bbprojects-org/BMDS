@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="3"/>
       <MinorVersionNr Value="5"/>
-      <BuildNr Value="357"/>
+      <BuildNr Value="358"/>
       <Language Value="0809"/>
     </VersionInfo>
     <BuildModes Count="1">
@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="73">
+    <Units Count="74">
       <Unit0>
         <Filename Value="BMDS.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -443,6 +443,13 @@
         <Filename Value="cpu\6502\uVia6522.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit72>
+      <Unit73>
+        <Filename Value="machine\microtan65\uEditScreenForm.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="EditScreenForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit73>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

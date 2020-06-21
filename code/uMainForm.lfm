@@ -98,7 +98,7 @@ object MainForm: TMainForm
     EdgeInner = esNone
     EdgeOuter = esNone
     Images = ImageList1
-    TabOrder = 2
+    TabOrder = 1
     object tbShowDebug: TToolButton
       Left = 1
       Top = 0
@@ -169,6 +169,9 @@ object MainForm: TMainForm
       object menuInfo: TMenuItem
         Caption = 'Show Info...'
         OnClick = menuMachineInfoClick
+      end
+      object MenuItem1: TMenuItem
+        Caption = 'MenuItem1'
       end
       object N6: TMenuItem
         Caption = '-'

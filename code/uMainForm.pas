@@ -31,7 +31,6 @@
                                                                              
 { TODO : uMainForm -> recheck Cross-Platform guidance for Free Pascal, adjust
                       as necessary (http://wiki.lazarus.freepascal.org/Multiplatform_Programming_Guide) }
-{ TODO : uMainForm -> do 'Step Over' code }
 
 unit uMainForm;
 
@@ -92,6 +91,7 @@ type
     menuEditCopy: TMenuItem;
     menuEditPaste: TMenuItem;
     menuEditSelectAll: TMenuItem;
+    MenuItem1: TMenuItem;
     menuTestCPU: TMenuItem;
     menuSearchReplace: TMenuItem;
     menuSearchFindPrev: TMenuItem;
@@ -456,6 +456,9 @@ begin
   Machine.Name := CurrentMachineID;
   Machine.MemoryMgr.OnMemoryWrite := @DoCheckLedsWrite;
   Machine.OnConfigChange := @DoMachineConfigChange;
+  if (Machine.Info.HasCustomMenu) then
+    Machine.SetCustomMenuItem(MenuItem1);
+  MenuItem1.Visible := Machine.Info.HasCustomMenu;
 
   // If ScreenSize is defined in INI file, then set machine screen size, else
   // leave default size
@@ -733,15 +736,11 @@ end;
 
 procedure TMainForm.actLoadAccept(Sender: TObject);
 var
-  //OldState: TMachineState;
   FileName: string;
 begin
-  //OldState := Machine.State;
-  //StopMachine;                          // Stop machine if running
+  StopMachine;                          // Stop machine if running
   FileName := actLoad.Dialog.FileName;
   LoadFile(FileName);
-  //if (OldState = msRunning) then
-  //  actRunExecute(nil);                 // Restart if it was running on entry
 end;
 
 
@@ -781,10 +780,14 @@ var
 begin
   Ext := LowerCase(ExtractFileExt(FileName));
   if (ValidExt(Ext)) then
-    case Ext of
-      '.m65', '.si', '.c8': LoadFileMachine(FileName);
-      '.bin':               LoadFileBinary(FileName);
-      '.hex':               LoadFileHex(FileName);
+    begin
+      case Ext of
+        '.m65', '.si', '.c8': LoadFileMachine(FileName);
+        '.bin':               LoadFileBinary(FileName);
+        '.hex':               LoadFileHex(FileName);
+      end;
+      Machine.Reset;                    // Auto reset
+      actRunExecute(nil);               // and start TANBUG
     end
   else
     MessageError(Format('File type "*%s" not valid for this machine [%s]', [Ext, Machine.Name]));
@@ -889,14 +892,23 @@ end;
 { MENU - SAVE CODE FOR THIS MACHINE }
 
 procedure TMainForm.actSaveBeforeExecute(Sender: TObject);
+var
+  FirstExt: TFileExt;
 begin
-  //
+  FirstExt := Low(Machine.Info.FileExts);
+  actSave.Dialog.DefaultExt := feNAMES[FirstExt];
 end;
 
 
+{ TODO : uMainForm -> have config option for 8K/47K save in M65 }
+
 procedure TMainForm.actSaveAccept(Sender: TObject);
+var
+  FileName: string;
 begin
-  //
+  FileName := actSave.Dialog.FileName;
+  Machine.SaveToFile(FileName, False);  // Save compatible .M65 format for now
+  Log('Machine file for %s saved to "%s"', [Machine.Name, MaxStr(ExtractFileName(FileName), MAX_LEN_FN)]);
 end;
 
 
@@ -989,7 +1001,7 @@ end;
 
 procedure TMainForm.actStepOverExecute(Sender: TObject);
 begin
-  //
+  { TODO : uMainForm -> do 'Step Over' code }
 end;
 
 
