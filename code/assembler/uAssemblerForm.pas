@@ -47,6 +47,8 @@ uses
   uCommon;
 
 type
+  TOnLogEvent = procedure(Msg: string) of object;
+
   TAsmLineInfo = record
     FileIndex: byte;                    // Max 256 files, 0 = main
     LineNumber: word;                   // Max 65535 lines in document, assume ok!
@@ -79,7 +81,6 @@ type
     ActionListSearch: TActionList;
     actSearchFind: TAction;
     btnAssemble: TButton;
-    btnFormat: TButton;
     memoLog: TMemo;
     Notebook: TExtendedNotebook;
     OpenDialog: TOpenDialog;
@@ -95,7 +96,6 @@ type
     tbSep2: TToolButton;
     tbSep3: TToolButton;
     tbSep4: TToolButton;
-    tbSep5: TToolButton;
     ToolBar1: TToolBar;
     tbNew: TToolButton;
     tbOpen: TToolButton;
@@ -133,6 +133,7 @@ type
     procedure FormDropFiles(Sender: TObject; const FileNames: array of String);
     procedure NotebookChange(Sender: TObject);
   private
+    fOnLog: TOnLogEvent;                // Callback with status/log info
     MRU: TMRU;
     SearchForm: TSearchForm;
     hltAsm: TSynAsmHighlighter;
@@ -149,7 +150,7 @@ type
     procedure SetActionStates;
     procedure SetMruMenuRef(aItem: TMenuItem);
 
-    procedure StatusLog(msg: string);
+    procedure StatusLog(msg: string; DestMain: boolean);
     procedure BrkptHandler(Sender: TObject; LineNumber: integer; IsAdd: boolean);
     procedure WriteIniSettings;
   public
@@ -158,6 +159,7 @@ type
     procedure SetEditorPreferences(prefs: TEdPrefs);
     //
     property MruMenuRef: TMenuItem write SetMruMenuRef;
+    property OnLog: TOnLogEvent read fOnLog write fOnLog;
   end;
 
 var
@@ -617,9 +619,15 @@ end;
 
 { SEND STATUS MESSAGE TO MEMO }
 
-procedure TAssemblerForm.StatusLog(msg: string);
+procedure TAssemblerForm.StatusLog(msg: string; DestMain: boolean);
 begin
-  memoLog.Lines.Add(msg);
+  if (DestMain) then                    // Message for main form?
+    begin
+      if Assigned(fOnLog) then          // then pass upwards if handler assigned
+        fOnLog(msg)
+    end
+  else
+    memoLog.Lines.Add(msg);             // else report locally
 end;
 
 
@@ -837,7 +845,7 @@ begin
   ed := GetCurrentEditor;
   if Assigned(ed) then
     begin
-      if (MessageQuery('Format Text', 'Formatting text cannot be undone. Confirm?')) then
+      if (MessageQuery('Format Code', 'Formatting code text cannot be undone. Confirm?')) then
         begin
           formatter := TFormatter.Create;
           try

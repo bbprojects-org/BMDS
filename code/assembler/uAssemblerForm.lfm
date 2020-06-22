@@ -155,25 +155,6 @@ object AssemblerForm: TAssemblerForm
       Action = actAssembler
       TabOrder = 0
     end
-    object tbSep5: TToolButton
-      Left = 358
-      Height = 22
-      Top = 2
-      Caption = '-'
-      Enabled = False
-      ParentShowHint = False
-      ShowCaption = False
-      ShowHint = True
-      Style = tbsSeparator
-    end
-    object btnFormat: TButton
-      Left = 366
-      Height = 22
-      Top = 2
-      Width = 75
-      Action = actFormatter
-      TabOrder = 1
-    end
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -385,7 +366,7 @@ object AssemblerForm: TAssemblerForm
       OnExecute = actEditSelectAllExecute
     end
     object actFormatter: TAction
-      Caption = 'Format'
+      Caption = 'Format Code'
       OnExecute = actFormatterExecute
       OnUpdate = actButtonsUpdate
     end

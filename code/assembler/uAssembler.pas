@@ -62,7 +62,7 @@ uses Forms, Classes, SysUtils, FileUtil, SynEdit, SynPluginSyncroEdit, Controls,
 type
   TMemSect = (msRAM, msCode);
 
-  TOnLogEvent = procedure(Msg: string) of object;
+  TOnLogEvent = procedure(Msg: string; DestMain: boolean) of object;
 
   TBytes256 = array [1..256] of Byte;
 
@@ -135,7 +135,7 @@ type
     procedure BuildIdentifiersList;    
     procedure SetAssemblingFlag(state: boolean);
     procedure DoError(Sender: TObject; ErrMsg: string);
-    procedure DoLog(msg: string);
+    procedure DoLog(msg: string; DestMain: boolean = False);
   public
     constructor Create;
     destructor  Destroy; override;
@@ -220,6 +220,8 @@ begin
         fListing.Summary := fErrors.ErrorList + Format(ASSEMBLY_SUMMARY,
                      [fErrors.ErrorCount,   BoolToStr(fErrors.ErrorCount = 1, '', 's'),
                       fErrors.WarningCount, BoolToStr(fErrors.WarningCount = 1, '', 's')]);
+        if (AsmPrefs.WriteToMemory and (not WriteToMemoryError)) then
+          DoLog(Format('Machine code for "%s" written to %s memory', [ExtractFileName(SourceFileName), Machine.Name]), True); // 'True' = msg for main form
       end
     else
       begin
@@ -1237,10 +1239,10 @@ end;
 
 { SEND STATUS MESSAGE }
 
-procedure TAssembler.DoLog(msg: string);
+procedure TAssembler.DoLog(msg: string; DestMain: boolean);
 begin
   if Assigned(fOnLog) then
-    fOnLog(msg);
+    fOnLog(msg, DestMain);
 end;
 
 

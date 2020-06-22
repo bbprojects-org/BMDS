@@ -92,6 +92,8 @@ type
     menuEditPaste: TMenuItem;
     menuEditSelectAll: TMenuItem;
     MenuItem1: TMenuItem;
+    menuFormat: TMenuItem;
+    N12: TMenuItem;
     menuTestCPU: TMenuItem;
     menuSearchReplace: TMenuItem;
     menuSearchFindPrev: TMenuItem;
@@ -239,6 +241,7 @@ type
     procedure DoCheckLEDsWrite(Sender: TObject; Addr, Value: integer);
   private
     procedure DoConfigChange(Sender: TObject; ChangedItem: integer);
+    procedure DoAssemblerLog(msg: string);
     procedure MakeMachineAndForms;
     procedure FreeMachineAndForms;
     procedure SetButtonsState(IsRunning: boolean);
@@ -339,7 +342,7 @@ end;
 
 { FORM DROP FILES }
 
-procedure TMainForm.FormDropFiles(Sender: TObject; const Files: array of String);
+procedure TMainForm.FormDropFiles(Sender: TObject; const Files: array of string);
 begin
   if (Length(Files) = 1) then
     LoadFile(Files[0])
@@ -549,6 +552,7 @@ begin
   AssemblerForm := TAssemblerForm.Create(nil);
   AssemblerForm.OnShow := @OnShowHideAsmForm;
   AssemblerForm.OnHide := @OnShowHideAsmForm;
+  AssemblerForm.OnLog  := @DoAssemblerLog;
   AssemblerForm.MruMenuRef := menuAsmRecent;
 end;
 
@@ -1218,6 +1222,14 @@ begin
     3: SetLEDs(LedsSetValue);           // LedsColour
     4: {nothing};                       // LedsAddress
   end;
+end;
+
+
+{ MESSAGE FROM ASSEMBLER }
+
+procedure TMainForm.DoAssemblerLog(msg: string);
+begin
+  Log(msg, []);
 end;
 
 

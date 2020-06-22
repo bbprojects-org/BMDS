@@ -737,6 +737,13 @@ object MainForm: TMainForm
       object N4: TMenuItem
         Caption = '-'
       end
+      object menuFormat: TMenuItem
+        Action = AssemblerForm.actFormatter
+      end
+      object N12: TMenuItem
+        Caption = '-'
+        RadioItem = True
+      end
       object menuEditSelectAll: TMenuItem
         Action = AssemblerForm.actEditSelectAll
       end
