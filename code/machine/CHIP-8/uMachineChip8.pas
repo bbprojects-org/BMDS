@@ -39,7 +39,7 @@ uses
   uPrefsChip8, uCommon, SDL2;
 
 const
-  STEPS_PER_FRAME = 10;
+  STEPS_PER_FRAME = 5;
 
 type
 
@@ -60,14 +60,14 @@ type
   public
     constructor Create; override;
     destructor  Destroy; override;
-
+    //
     procedure Reset; override;
     procedure RunForOneFrame; override;
     procedure Step; override;    
     procedure ScreenRefresh; override; 
-    procedure SaveToFile(strm: TStream);
-    procedure LoadFromFile(FileName: string);
-
+    procedure SaveToFile(FileName: string; {%H-}FullSystem: boolean = False); override;
+    procedure LoadFromFile(FileName: string); override;
+    //
     property CPU: TCpuBase read GetCPU;
     property DelayTimer: byte read fDelayTimer write fDelayTimer;
     property SoundTimer: byte read fSoundTimer write fSoundTimer;
@@ -87,11 +87,13 @@ begin
   fInfo.Year                := 1975;
   fInfo.ScreenWidthPx       := 64;
   fInfo.ScreenHeightPx      := 32;
-  fInfo.ScaleModifier       := 5;       // Make 64x32 screen a bit bigger!
+  fInfo.ScaleModifier       := 5;       // Make 64x32 pixel screen a bit bigger!
   fInfo.MemoryButtons       := 'Font=0000,Start=0200'; // Hex values
   fInfo.MachineDefsFileName := '';
   fInfo.HasCodeToExecute    := False;   // Needs a program to execute
-  fInfo.FileExts := [feC8, feBIN, feHEX];
+  fInfo.FileExts            := [feC8, feBIN];
+  fInfo.DefaultLoadAddr     := $200;
+  fInfo.HasCustomMenu       := False;
 
   fMemoryMgr := TMemoryMgr.Create(MEM_SIZE_4K);
 
@@ -139,19 +141,19 @@ begin
             'CHIP-8 is an interpreted programming language, developed by Joseph ' +
             'Weisbecker. It was initially used on the COSMAC VIP and RCA Telmac ' +
             '1800 8-bit microcomputers in the mid-1970s. CHIP-8 programs are run ' +
-            'on a CHIP-8 virtual machine.  It was made to allow video games to ' +
+            'on a CHIP-8 virtual machine. It was made to allow video games to ' +
             'be more easily programmed for these computers.' + CRLF + CRLF +
             'The basic specification included:' + CRLF +
             '  - Sixteen 8-bit registers' + CRLF +
             '  - One 16-bit address/index register' + CRLF +
-            '  - 4K RAM, inc 48 bytes for stack' + CRLF +
+            '  - 4K RAM, and 16 word stack' + CRLF +
             '  - Two timers counting down at 60Hz; delay timer and sound timer' + CRLF +
             '  - Hex keyboard' + CRLF +
             '  - Screen 64x32 mono. Graphic sprites 8 pixels wide, 1-15 pixels high' + CRLF + CRLF +
             'A descendant, SCHIP (Super-CHIP), came out in 1990 introducing 128x64 ' +
             'resolution and some additional instructions.' + CRLF + CRLF +
             'Keys for this emulation:' + CRLF +
-            '  8, 4, 6, 2 => up,left,right,down';
+            '  8, 4, 6, 2 => up,left,right,down (TBD)';
 end;
 
 
@@ -219,42 +221,35 @@ end;
 
 { Checks for any user input when machine is running }
 
+const
+  KEY_MATRIX: array[$0..$F] of byte =
+    ($31,$32,$33,$34,        // 1 2 3 4
+     $51,$57,$45,$52,        // Q W E R
+     $41,$53,$44,$46,        // A S D F
+     $5A,$58,$43,$56);       // Z X C V
+
 procedure TMachineChip8.CheckInput;
 var
   sdlEvent: PSDL_Event;
-  thisKey: word;
+  thisKey: integer;
+  index: byte;
 begin
   New(sdlEvent);
   while (SDL_PollEvent(sdlEvent) = 1) do
     begin
-      if (SdlEvent^.type_ = SDL_KEYDOWN) then
+      if ((SdlEvent^.type_ = SDL_KEYDOWN) or (SdlEvent^.type_ = SDL_KEYUP)) then
         begin
           thisKey := sdlEvent^.key.keysym.sym;
-          (*
-          if (Key = Chr(27)) then Exit;
 
-          case Ord(Key) of
-            $31: fCPU.Key[$1] := 1;             // 1
-            $32: fCPU.Key[$2] := 1;             // 2
-            $33: fCPU.Key[$3] := 1;             // 3
-            $34: fCPU.Key[$C] := 1;             // 4
+          if (thisKey = $1B) then       // ESC key?
+            Exit;
 
-            $51: fCPU.Key[$4] := 1;             // Q
-            $57: fCPU.Key[$5] := 1;             // W
-            $45: fCPU.Key[$6] := 1;             // E
-            $52: fCPU.Key[$D] := 1;             // R
-
-            $41: fCPU.Key[$7] := 1;             // A
-            $53: fCPU.Key[$8] := 1;             // S
-            $44: fCPU.Key[$9] := 1;             // D
-            $46: fCPU.Key[$E] := 1;             // F
-
-            $5A: fCPU.Key[$A] := 1;             // Z
-            $58: fCPU.Key[$0] := 1;             // X
-            $43: fCPU.Key[$B] := 1;             // C
-            $56: fCPU.Key[$F] := 1;             // V
-          end;
-          *)
+          for index := $0 to $F do      // Check translation table
+            if (thisKey = KEY_MATRIX[index]) then
+              begin                     // If valid key, indicate whether pressed
+                fCPU.Key[index] := (SdlEvent^.type_ = SDL_KEYDOWN);
+                break;
+              end;
         end;
     end;
   Dispose(sdlEvent);
@@ -292,17 +287,39 @@ begin
 end;
 
 
-{ LOAD / SAVE TO FILE }
+{ LOAD / SAVE MACHINE STATE TO FILE }
 
 procedure TMachineChip8.LoadFromFile(FileName: string);
+var
+  LoadStream: TMemoryStream;
 begin
-  //
+  LoadStream := TMemoryStream.Create;
+  try
+    LoadStream.LoadFromFile(FileName);  // Sets Position = 0
+    // 4K memory
+    // 16B stack
+    // Registers V0-VF, I, SP, PC
+    // Display buffer
+  finally
+    LoadStream.Free;
+  end;
 end;
 
 
-procedure TMachineChip8.SaveToFile(strm: TStream);
+procedure TMachineChip8.SaveToFile(FileName: string; FullSystem: boolean);
+var
+  SaveStream: TMemoryStream;
 begin
-  //
+  SaveStream := TMemoryStream.Create;
+  try
+    // 4K memory
+    // 16B stack
+    // Registers V0-VF, I, SP, PC
+    // Display buffer
+    SaveStream.SaveToFile(FileName);
+  finally
+    SaveStream.Free;
+  end;
 end;
 
 

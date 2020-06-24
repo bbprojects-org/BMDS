@@ -59,7 +59,7 @@ type
     SP: byte;                           // Stack pointer 16-bit
   end;
 
-  TKeys = array[0..15] of byte;         // Sixteen key 'keypad'
+  TKeys = array[0..15] of boolean;      // Sixteen key 'keypad'
 
   TPixels = array[0..64*32-1] of byte;  // Display buffer in pixels
 
@@ -76,8 +76,8 @@ type
     TraceList: array[0..TRACE_MAX] of TRegsChip8;
 
     procedure ProcessOpcode;
-    function  GetKey(Index: byte): byte;
-    procedure SetKey(Index: byte; Value: byte);
+    function  GetKey(Index: byte): boolean;
+    procedure SetKey(Index: byte; Value: boolean);
     procedure SetMachine(Value: TMachineBase);
   protected
     function GetPC: word; override;
@@ -98,7 +98,7 @@ type
     property  Pixels: TPixels read fPixelsArray;
     property  Regs: TRegsChip8 read GetRegs write fRegs;
     property  Machine: TMachineBase read fMachine write SetMachine;
-    property  Key[Index: byte]: byte read GetKey write SetKey;
+    property  Key[Index: byte]: boolean read GetKey write SetKey;
   end;
 
 
@@ -168,13 +168,13 @@ end;
 
 { GET / SET KEYS }
 
-function TCpuChip8.GetKey(Index: byte): byte;
+function TCpuChip8.GetKey(Index: byte): boolean;
 begin
   Result := fKeys[Index];
 end;
 
 
-procedure TCpuChip8.SetKey(Index: byte; Value: byte);
+procedure TCpuChip8.SetKey(Index: byte; Value: boolean);
 begin
   fKeys[Index] := Value;
 end;
@@ -212,7 +212,7 @@ var
 begin
   for i := 0 to 15 do                   // Clear registers
     fRegs.V[i] := 0;
-  fRegs.PC := $200;                     // Default start addr for CHIP8
+  fRegs.PC := $200;                     // Default start addr for CHIP8 [[For ETI-660 it was $600]]
   fRegs.I  := 0;
   fRegs.SP := 0;
   fCpuState := csStopped;
@@ -459,13 +459,13 @@ begin
 
                $009E: // $Ex9E: skip next instruction if key in Vx is pressed
                   begin
-                    if (fKeys[fRegs.V[IndexX]] <> 0) then
+                    if (fKeys[fRegs.V[IndexX]]) then
                       Inc(fRegs.PC, 2); // Already pointing at next instr, point past it
                   end;
 
                $00A1: // $ExA1: skip next instruction if key in Vx is not pressed
                   begin
-                    if (fKeys[fRegs.V[IndexX]] = 0) then
+                    if (not fKeys[fRegs.V[IndexX]]) then
                       Inc(fRegs.PC, 2); // Already pointing at next instr, point past it
                   end;
 
@@ -489,7 +489,7 @@ begin
                     while (not KeyPressed) do
                       begin
                         for i := 0 to 15 do
-                          if (fKeys[i] <> 0) then
+                          if (fKeys[i]) then
                             begin
                               fRegs.V[IndexX] := i;
                               KeyPressed := True;
