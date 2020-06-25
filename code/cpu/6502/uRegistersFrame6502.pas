@@ -94,16 +94,18 @@ begin
     begin
       ThisRegs := fCpuRef.Regs;
       StatusFlags := ThisRegs.PSW;
+
+      edPC.Text := Format('%.4X', [ThisRegs.PC]);
+      edInstruction.Text := fCpuRef.GetDisassembly(ThisRegs.PC).Text;
       edA.Text := Format('%.2X', [ThisRegs.A]);
       edA2.Text := Format('%d, ''%s'', %s', [ThisRegs.A, GetAscii(ThisRegs.A), GetBinary(ThisRegs.A)]);
       edX.Text := Format('%.2X', [ThisRegs.X]);
       edX2.Text := Format('%d, ''%s'', %s', [ThisRegs.X, GetAscii(ThisRegs.X), GetBinary(ThisRegs.X)]);
       edY.Text := Format('%.2X', [ThisRegs.Y]);
       edY2.Text := Format('%d, ''%s'', %s', [ThisRegs.Y, GetAscii(ThisRegs.Y), GetBinary(ThisRegs.Y)]);
-      edPSW.Text := Format('%.2X', [StatusFlags]);
       edSP.Text := Format('%.2X', [ThisRegs.SP]);
       ShowStack;
-      edPC.Text := Format('%.4X', [ThisRegs.PC]);
+      edPSW.Text := Format('%.2X', [StatusFlags]);
       cbNflag.Checked := ((StatusFlags and P_NEGATIVE) > 0);
       cbVflag.Checked := ((StatusFlags and P_OVERFLOW) > 0);
       cbBflag.Checked := ((StatusFlags and P_BRK) > 0);
@@ -111,7 +113,6 @@ begin
       cbIflag.Checked := ((StatusFlags and P_IRQ_DISABLED) > 0);
       cbZflag.Checked := ((StatusFlags and P_ZERO) > 0);
       cbCflag.Checked := ((StatusFlags and P_CARRY) > 0);
-      edInstruction.Text := fCpuRef.GetDisassembly(ThisRegs.PC).Text;
     end;
 end;
 

@@ -157,306 +157,306 @@
         <IsPartOfProject Value="True"/>
       </Unit22>
       <Unit23>
-        <Filename Value="cpu\CHIP-8\uRegistersFormChip8.pas"/>
+        <Filename Value="machine\microtan65\uMachineMicrotan.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="RegistersFormChip8"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
       </Unit23>
       <Unit24>
-        <Filename Value="machine\microtan65\uMachineMicrotan.pas"/>
+        <Filename Value="uFilesMgr.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit24>
       <Unit25>
-        <Filename Value="uFilesMgr.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit25>
-      <Unit26>
         <Filename Value="uPreferencesForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PreferencesForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit25>
+      <Unit26>
+        <Filename Value="SDL2\SDL2.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit26>
       <Unit27>
-        <Filename Value="SDL2\SDL2.pas"/>
+        <Filename Value="cpu\8080\uCpu8080.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit27>
       <Unit28>
-        <Filename Value="cpu\8080\uCpu8080.pas"/>
+        <Filename Value="machine\SpaceInvaders\uMachineSpaceInvaders.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit28>
       <Unit29>
-        <Filename Value="machine\SpaceInvaders\uMachineSpaceInvaders.pas"/>
+        <Filename Value="cpu\8080\uDefs8080.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit29>
       <Unit30>
-        <Filename Value="cpu\8080\uDefs8080.pas"/>
+        <Filename Value="cpu\8080\uDis8080.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit30>
       <Unit31>
-        <Filename Value="cpu\8080\uDis8080.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit31>
-      <Unit32>
         <Filename Value="cpu\8080\uRegistersForm8080.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RegistersForm8080"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit31>
+      <Unit32>
+        <Filename Value="uMemoryMgr.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit32>
       <Unit33>
-        <Filename Value="uMemoryMgr.pas"/>
+        <Filename Value="uSoundMgr.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit33>
       <Unit34>
-        <Filename Value="uSoundMgr.pas"/>
+        <Filename Value="SDL2\SDL2_mixer.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit34>
       <Unit35>
-        <Filename Value="SDL2\SDL2_mixer.pas"/>
+        <Filename Value="assembler\uAsmErrors.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit35>
       <Unit36>
-        <Filename Value="assembler\uAsmErrors.pas"/>
+        <Filename Value="assembler\uAsmListing.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit36>
       <Unit37>
-        <Filename Value="assembler\uAsmListing.pas"/>
+        <Filename Value="assembler\uAsmFiles.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit37>
       <Unit38>
-        <Filename Value="assembler\uAsmFiles.pas"/>
+        <Filename Value="assembler\uAsmListHtml.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit38>
       <Unit39>
-        <Filename Value="assembler\uAsmListHtml.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit39>
-      <Unit40>
         <Filename Value="debug\uDebugForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="DebugForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit40>
-      <Unit41>
+      </Unit39>
+      <Unit40>
         <Filename Value="debug\uMemoryFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MemoryFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit41>
-      <Unit42>
+      </Unit40>
+      <Unit41>
         <Filename Value="machine\uMachineConfigBase.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MachineConfigFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit42>
-      <Unit43>
+      </Unit41>
+      <Unit42>
         <Filename Value="machine\microtan65\uConfigMicrotan.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ConfigMicrotan"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit43>
-      <Unit44>
+      </Unit42>
+      <Unit43>
         <Filename Value="machine\uMachineInfoForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MachineInfoForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit44>
-      <Unit45>
+      </Unit43>
+      <Unit44>
         <Filename Value="assembler\uAsmConfigFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="AsmConfigFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit45>
-      <Unit46>
+      </Unit44>
+      <Unit45>
         <Filename Value="cpu\uRegistersFrameBase.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RegistersFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit46>
-      <Unit47>
+      </Unit45>
+      <Unit46>
         <Filename Value="cpu\6502\uRegistersFrame6502.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RegistersFrame6502"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit47>
-      <Unit48>
+      </Unit46>
+      <Unit47>
         <Filename Value="debug\uTraceFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="TraceFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit48>
-      <Unit49>
+      </Unit47>
+      <Unit48>
         <Filename Value="debug\uBreakpointsFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="BreakpointsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit49>
-      <Unit50>
+      </Unit48>
+      <Unit49>
         <Filename Value="debug\uWatchesFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="WatchesFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit50>
-      <Unit51>
+      </Unit49>
+      <Unit50>
         <Filename Value="uGfxMgr.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit51>
-      <Unit52>
+      </Unit50>
+      <Unit51>
         <Filename Value="machine\SpaceInvaders\uConfigSpaceInvaders.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ConfigSpaceInvaders"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit52>
-      <Unit53>
+      </Unit51>
+      <Unit52>
         <Filename Value="editor\uEdPrefsFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="EdPrefsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit53>
-      <Unit54>
+      </Unit52>
+      <Unit53>
         <Filename Value="assembler\uAssemblerForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="AssemblerForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit54>
-      <Unit55>
+      </Unit53>
+      <Unit54>
         <Filename Value="uPrefsFrameBase.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="PrefsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit55>
-      <Unit56>
+      </Unit54>
+      <Unit55>
         <Filename Value="uGenPrefsFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="GenPrefsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit56>
-      <Unit57>
+      </Unit55>
+      <Unit56>
         <Filename Value="machine\SpaceInvaders\uPrefsSpaceInvaders.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="SIPrefsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit57>
-      <Unit58>
+      </Unit56>
+      <Unit57>
         <Filename Value="machine\microtan65\uPrefsMicrotan.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="M65PrefsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit58>
-      <Unit59>
+      </Unit57>
+      <Unit58>
         <Filename Value="machine\CHIP-8\uPrefsChip8.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Chip8PrefsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit59>
-      <Unit60>
+      </Unit58>
+      <Unit59>
         <Filename Value="editor\uEdColourPrefsFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="EdColourPrefsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit60>
-      <Unit61>
+      </Unit59>
+      <Unit60>
         <Filename Value="assembler\uAsmPrefsFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="AsmPrefsFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
+      </Unit60>
+      <Unit61>
+        <Filename Value="editor\uMRU.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit61>
       <Unit62>
-        <Filename Value="editor\uMRU.pas"/>
+        <Filename Value="editor\uHighlighterAsm.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit62>
       <Unit63>
-        <Filename Value="editor\uHighlighterAsm.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit63>
-      <Unit64>
         <Filename Value="editor\uEditorFrame.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="EditorFrame"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit64>
-      <Unit65>
+      </Unit63>
+      <Unit64>
         <Filename Value="cpu\uCpuTypes.pas"/>
         <IsPartOfProject Value="True"/>
-      </Unit65>
-      <Unit66>
+      </Unit64>
+      <Unit65>
         <Filename Value="cpu\6502\uTest6502Form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Test6502Form"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit66>
-      <Unit67>
+      </Unit65>
+      <Unit66>
         <Filename Value="cpu\8080\uTest8080Form.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="Test8080Form"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-      </Unit67>
-      <Unit68>
+      </Unit66>
+      <Unit67>
         <Filename Value="cpu\8080\uRegistersFrame8080.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="RegistersFrame8080"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
-      </Unit68>
-      <Unit69>
+      </Unit67>
+      <Unit68>
         <Filename Value="cpu\8080\text.txt"/>
         <IsPartOfProject Value="True"/>
-      </Unit69>
-      <Unit70>
+      </Unit68>
+      <Unit69>
         <Filename Value="editor\uSearchForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="SearchForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit69>
+      <Unit70>
+        <Filename Value="editor\uFormatter.pas"/>
+        <IsPartOfProject Value="True"/>
       </Unit70>
       <Unit71>
-        <Filename Value="editor\uFormatter.pas"/>
+        <Filename Value="cpu\6502\uVia6522.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit71>
       <Unit72>
-        <Filename Value="cpu\6502\uVia6522.pas"/>
-        <IsPartOfProject Value="True"/>
-      </Unit72>
-      <Unit73>
         <Filename Value="machine\microtan65\uEditScreenForm.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="EditScreenForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+      </Unit72>
+      <Unit73>
+        <Filename Value="cpu\CHIP-8\uAsmChip8.pp"/>
+        <IsPartOfProject Value="True"/>
       </Unit73>
       <Unit74>
-        <Filename Value="cpu\CHIP-8\uAsmChip8.pp"/>
+        <Filename Value="assembler\uAsmTypes.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit74>
       <Unit75>
-        <Filename Value="assembler\uAsmTypes.pas"/>
+        <Filename Value="cpu\CHIP-8\uRegistersFrameChip8.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="RegistersFrameChip8"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Frame"/>
       </Unit75>
     </Units>
   </ProjectOptions>

@@ -52,6 +52,7 @@ type
     fDelayTimer: byte;
     fSoundTimer: byte;    
     ScreenImage: TBitmap;                                          
+    LastPC: word;
     procedure CheckInput;
     procedure MemRead(Sender: TObject; Addr: word; var Value: byte);
     procedure MemWrite(Sender: TObject; Addr: word; Value: byte);
@@ -109,6 +110,7 @@ begin
   fCPU.OnRead := @MemRead;
   fCPU.OnWrite := @MemWrite;
   fCPU.Reset;
+  LastPC := 0;
 
   FPS := 60;                            // Matches counter rate
   fDelayTimer := 0;
@@ -166,6 +168,7 @@ procedure TMachineChip8.RunForOneFrame;
 var
   TimeBetweenFramesMS, LastTime, SleepMS: integer;
   NumStepsToGo: integer;
+  IsBrkpt: boolean;
 begin
   TimeBetweenFramesMS := 1000 div FPS;
   LastTime := DateTimeToTimeStamp(Now).Time;
@@ -174,6 +177,18 @@ begin
   NumStepsToGo := STEPS_PER_FRAME;
   while ((fInfo.State = msRunning) and (NumStepsToGo > 0)) do
     begin
+      // If PC same as last time, stopped on breakpoint so skip check and run this time
+      if Assigned(fBkptHandler) and (fCPU.PC <> LastPC) then
+        begin
+          LastPC := fCPU.PC;
+          fBkptHandler(fCPU.PC, IsBrkpt); // Check for Breakpoints
+          if (IsBrkpt) then
+            begin
+              fInfo.State := msStoppedOnBrkpt;
+              Break;
+            end;
+        end;
+
       fCPU.ExecuteInstruction;
       Dec(NumStepsToGo);
     end;

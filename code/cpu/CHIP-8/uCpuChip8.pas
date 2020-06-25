@@ -56,12 +56,12 @@ type
     V: array[0..15] of byte;            // Sixteen 8-bit general purpose registers
     I: word;                            // Index 16-bit register
     PC: word;                           // Program counter 16-bit
-    SP: byte;                           // Stack pointer 16-bit
+    SP: byte;                           // Stack pointer 8-bit
   end;
 
   TKeys = array[0..15] of boolean;      // Sixteen key 'keypad'
-
   TPixels = array[0..64*32-1] of byte;  // Display buffer in pixels
+  TStack = array[0..15] of word;
 
   { TCpuChip8 }
 
@@ -73,7 +73,7 @@ type
     fPixelsArray: TPixels;
     DoneInvalidWarning: boolean;
 
-    Stack: array[0..15] of word;
+    fStack: TStack;
     TraceList: array[0..TRACE_MAX] of TRegsChip8;
 
     procedure ProcessOpcode;
@@ -98,6 +98,7 @@ type
 
     property  Pixels: TPixels read fPixelsArray;
     property  Regs: TRegsChip8 read GetRegs write fRegs;
+    property  Stack: TStack read fStack;
     property  Machine: TMachineBase read fMachine write SetMachine;
     property  Key[Index: byte]: boolean read GetKey write SetKey;
   end;
@@ -106,7 +107,7 @@ type
 implementation
 
 uses
-  uMachineChip8, uDisChip8;
+  uMachineChip8, uDisChip8, uRegistersFrameChip8;
 
 
 { CREATE }
@@ -115,6 +116,9 @@ constructor TCpuChip8.Create(ct: TCpuType);
 var
   ThisTypeMask: byte;
 begin
+  fRegistersFrame := TRegistersFrameChip8.Create(nil);
+  (fRegistersFrame as TRegistersFrameChip8).CpuRef := self;
+
   fCpuType  := ct;
   fCpuState := csStopped;
 
@@ -291,7 +295,8 @@ begin
                $000E: // $00EE: return from subroutine
                   begin
                     Dec(fRegs.SP);      // Restore PC from stack
-                    fRegs.PC := Stack[fRegs.SP];
+                    fRegs.SP := fRegs.SP and $0F; // Limit to 16 entries
+                    fRegs.PC := fStack[fRegs.SP];
                   end;
 
              else
@@ -306,9 +311,10 @@ begin
 
     $2000: // $2NNN: call subroutine at address NNN
            begin
-             Stack[fRegs.SP] := fRegs.PC; // Save current address in stack
+             fStack[fRegs.SP] := fRegs.PC; // Save current address in stack
                                         // Note: already incremented
              Inc(fRegs.SP);
+             fRegs.SP := fRegs.SP and $0F; // Limit to 16 entries
              fRegs.PC := Opcode and $0FFF;
            end;
 
