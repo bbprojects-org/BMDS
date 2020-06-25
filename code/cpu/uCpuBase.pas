@@ -31,8 +31,7 @@ interface
 uses
   Classes, Forms, SysUtils,
   //
-  uRegistersFrameBase,
-  uCpuTypes;
+  uRegistersFrameBase, uCpuTypes, uSymbols;
 
 const
   TRACE_MAX  = $800;                    // Size this so easy to mask off overrun
@@ -70,6 +69,9 @@ type
     fOnReadPort: TOnReadPortEvent;
     fOnWritePort: TOnWritePortEvent;
     //
+    RegsReplace: TStringArray;
+    RegsKeywords: TStringArray;
+    //
     function GetPC: word; virtual; abstract;
     function GetTraceColumns: TTraceColArray; virtual; abstract;
     function GetDataByIndex(Index: integer): TOpcodeRawData; virtual;
@@ -87,6 +89,8 @@ type
     function  GetTrace(Index: integer): TDisassembledData; virtual; abstract;
     function  GetDisassembly(Addr:word): TDisassembledData; virtual; abstract;
     procedure TestCpu; virtual;
+    function GetRegReplaceIndex(Reg: string): integer;
+    function GetRegKeywordIndex(Reg: string): integer;
     //
     property RegisterFrame: TRegistersFrame read fRegistersFrame write fRegistersFrame;
     property CpuType: TCpuType read fCpuType;
@@ -202,6 +206,8 @@ end;
 procedure TCpuBase.SetInfo(const Info: TCpuInfo);
 begin
   fInfo := Info;
+  SetLength(RegsReplace, 0);
+  SetLength(RegsKeywords, 0);
 end;
 
 
@@ -244,6 +250,46 @@ end;
 procedure TCpuBase.TestCpu;
 begin
   //
+end;
+
+
+{ CHECK REGISTERS, RETURN INDEX IF FOUND }
+
+function TCpuBase.GetRegReplaceIndex(Reg: string): integer;
+var
+  i: integer;
+begin
+  Result := -1;
+  if (fInfo.RegsReplace = '') then Exit;
+
+  if (Length(RegsReplace) = 0) then
+    RegsReplace := fInfo.RegsReplace.Split(' '); // Do once
+
+  for i := 0 to Length(RegsReplace)-1 do
+    if (RegsReplace[i] = Reg) then
+      begin
+        Result := i;
+        Exit;
+      end;
+end;
+
+
+function TCpuBase.GetRegKeywordIndex(Reg: string): integer;
+var
+  i: integer;
+begin
+  Result := -1;
+  if (fInfo.RegsKeywords = '') then Exit;
+
+  if (Length(RegsKeywords) = 0) then
+    RegsKeywords := fInfo.RegsKeywords.Split(' '); // Do once
+
+  for i := 0 to Length(RegsKeywords)-1 do
+    if (RegsKeywords[i] = Reg) then
+      begin
+        Result := i;
+        Exit;
+      end;
 end;
 
 

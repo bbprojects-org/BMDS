@@ -3,7 +3,7 @@
   <ProjectSession>
     <Version Value="12"/>
     <BuildModes Active="Default"/>
-    <Units Count="113">
+    <Units Count="98">
       <Unit0>
         <Filename Value="BMDS.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -19,15 +19,15 @@
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="71"/>
-        <CursorPos Y="117"/>
+        <CursorPos X="18" Y="88"/>
         <UsageCount Value="207"/>
       </Unit1>
       <Unit2>
         <Filename Value="uCommon.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="120"/>
-        <CursorPos X="13" Y="54"/>
+        <TopLine Value="10"/>
+        <CursorPos Y="50"/>
         <UsageCount Value="200"/>
       </Unit2>
       <Unit3>
@@ -44,8 +44,7 @@
         <ComponentName Value="MainForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <TopLine Value="806"/>
-        <CursorPos X="100" Y="831"/>
+        <CursorPos X="36" Y="270"/>
         <UsageCount Value="207"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -54,8 +53,7 @@
         <Filename Value="assembler/uAssembler.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="196"/>
-        <CursorPos X="53" Y="226"/>
+        <CursorPos Y="38"/>
         <UsageCount Value="200"/>
       </Unit5>
       <Unit6>
@@ -69,8 +67,8 @@
         <Filename Value="assembler/uParser.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="91"/>
-        <CursorPos X="106" Y="96"/>
+        <TopLine Value="174"/>
+        <CursorPos X="3" Y="227"/>
         <UsageCount Value="200"/>
       </Unit7>
       <Unit8>
@@ -85,25 +83,26 @@
         <Filename Value="assembler/uSymbols.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="217"/>
-        <CursorPos X="15" Y="112"/>
+        <TopLine Value="153"/>
+        <CursorPos X="29" Y="183"/>
         <UsageCount Value="200"/>
       </Unit9>
       <Unit10>
         <Filename Value="cpu/uCpuBase.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="166"/>
-        <CursorPos X="90" Y="194"/>
+        <CursorPos X="43" Y="34"/>
         <UsageCount Value="207"/>
       </Unit10>
       <Unit11>
         <Filename Value="cpu/6502/uCpu6502.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="200"/>
-        <CursorPos X="3" Y="217"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="17"/>
+        <CursorPos X="50" Y="47"/>
         <UsageCount Value="207"/>
+        <Loaded Value="True"/>
       </Unit11>
       <Unit12>
         <Filename Value="cpu/6502/uDis6502.pas"/>
@@ -117,8 +116,8 @@
         <Filename Value="cpu/6502/uDefs6502.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="36"/>
-        <CursorPos X="99" Y="57"/>
+        <TopLine Value="23"/>
+        <CursorPos Y="39"/>
         <UsageCount Value="207"/>
       </Unit13>
       <Unit14>
@@ -128,7 +127,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="3" Y="35"/>
+        <TopLine Value="534"/>
+        <CursorPos X="3" Y="564"/>
         <UsageCount Value="200"/>
       </Unit14>
       <Unit15>
@@ -149,60 +149,56 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="602"/>
-        <CursorPos X="55" Y="632"/>
+        <TopLine Value="111"/>
+        <CursorPos Y="153"/>
         <UsageCount Value="232"/>
       </Unit16>
       <Unit17>
         <Filename Value="machine/uAddrDefs.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="37"/>
-        <CursorPos X="51" Y="84"/>
+        <TopLine Value="7"/>
+        <CursorPos X="83" Y="11"/>
         <UsageCount Value="226"/>
       </Unit17>
       <Unit18>
         <Filename Value="machine/uMachineBase.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="1"/>
-        <TopLine Value="72"/>
-        <CursorPos X="15" Y="101"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="74"/>
+        <CursorPos X="103" Y="100"/>
         <UsageCount Value="207"/>
-        <Loaded Value="True"/>
       </Unit18>
       <Unit19>
         <Filename Value="machine/CHIP-8/uMachineChip8.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="132"/>
-        <CursorPos X="43" Y="144"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="50"/>
+        <CursorPos X="3" Y="32"/>
         <UsageCount Value="207"/>
-        <Loaded Value="True"/>
       </Unit19>
       <Unit20>
         <Filename Value="cpu/CHIP-8/uCpuChip8.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="3"/>
-        <TopLine Value="51"/>
-        <CursorPos X="39" Y="492"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="110"/>
+        <CursorPos X="17" Y="62"/>
         <UsageCount Value="221"/>
-        <Loaded Value="True"/>
       </Unit20>
       <Unit21>
         <Filename Value="cpu/CHIP-8/uDefsChip8.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="19"/>
-        <CursorPos X="34" Y="49"/>
+        <TopLine Value="11"/>
+        <CursorPos X="33" Y="47"/>
         <UsageCount Value="221"/>
       </Unit21>
       <Unit22>
         <Filename Value="cpu/CHIP-8/uDisChip8.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="262"/>
-        <CursorPos X="45" Y="5"/>
+        <TopLine Value="257"/>
+        <CursorPos X="67" Y="281"/>
         <UsageCount Value="221"/>
       </Unit22>
       <Unit23>
@@ -218,11 +214,10 @@
       <Unit24>
         <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
-        <TopLine Value="374"/>
-        <CursorPos X="53" Y="343"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="614"/>
+        <CursorPos X="40" Y="644"/>
         <UsageCount Value="221"/>
-        <Loaded Value="True"/>
       </Unit24>
       <Unit25>
         <Filename Value="uFilesMgr.pas"/>
@@ -255,30 +250,31 @@
         <Filename Value="cpu/8080/uCpu8080.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="134"/>
-        <CursorPos X="52" Y="157"/>
+        <TopLine Value="80"/>
+        <CursorPos X="36" Y="113"/>
         <UsageCount Value="200"/>
       </Unit28>
       <Unit29>
         <Filename Value="machine/SpaceInvaders/uMachineSpaceInvaders.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="147"/>
-        <CursorPos X="29" Y="184"/>
+        <TopLine Value="105"/>
+        <CursorPos X="77" Y="130"/>
         <UsageCount Value="200"/>
       </Unit29>
       <Unit30>
         <Filename Value="cpu/8080/uDefs8080.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="55"/>
-        <CursorPos Y="86"/>
+        <TopLine Value="129"/>
+        <CursorPos X="22" Y="182"/>
         <UsageCount Value="204"/>
       </Unit30>
       <Unit31>
         <Filename Value="cpu/8080/uDis8080.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
+        <TopLine Value="24"/>
         <CursorPos X="33" Y="35"/>
         <UsageCount Value="262"/>
       </Unit31>
@@ -296,8 +292,8 @@
         <Filename Value="uMemoryMgr.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="25"/>
-        <CursorPos X="3" Y="41"/>
+        <TopLine Value="73"/>
+        <CursorPos X="17" Y="82"/>
         <UsageCount Value="202"/>
       </Unit33>
       <Unit34>
@@ -320,8 +316,8 @@
         <Filename Value="assembler/uAsmErrors.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="67"/>
-        <CursorPos X="74" Y="94"/>
+        <TopLine Value="116"/>
+        <CursorPos X="13" Y="131"/>
         <UsageCount Value="200"/>
       </Unit36>
       <Unit37>
@@ -335,14 +331,16 @@
         <Filename Value="assembler/uAsmFiles.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="15"/>
+        <TopLine Value="326"/>
+        <CursorPos X="38" Y="355"/>
         <UsageCount Value="205"/>
       </Unit38>
       <Unit39>
         <Filename Value="assembler/uAsmListHtml.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="14" Y="5"/>
+        <TopLine Value="29"/>
+        <CursorPos X="24" Y="59"/>
         <UsageCount Value="200"/>
       </Unit39>
       <Unit40>
@@ -497,8 +495,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="133"/>
-        <CursorPos Y="153"/>
+        <TopLine Value="116"/>
+        <CursorPos X="38" Y="145"/>
         <UsageCount Value="200"/>
       </Unit54>
       <Unit55>
@@ -571,8 +569,8 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Frame"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="56"/>
-        <CursorPos X="3" Y="86"/>
+        <TopLine Value="50"/>
+        <CursorPos X="3" Y="90"/>
         <UsageCount Value="200"/>
       </Unit61>
       <Unit62>
@@ -606,8 +604,8 @@
         <Filename Value="cpu/uCpuTypes.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="55"/>
-        <CursorPos X="16" Y="89"/>
+        <TopLine Value="4"/>
+        <CursorPos X="32" Y="35"/>
         <UsageCount Value="203"/>
       </Unit65>
       <Unit66>
@@ -656,24 +654,23 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="68"/>
-        <CursorPos Y="68"/>
+        <CursorPos X="11" Y="37"/>
         <UsageCount Value="209"/>
       </Unit70>
       <Unit71>
         <Filename Value="editor/uFormatter.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <CursorPos X="3" Y="28"/>
+        <TopLine Value="226"/>
+        <CursorPos X="3" Y="280"/>
         <UsageCount Value="220"/>
       </Unit71>
       <Unit72>
         <Filename Value="cpu/6502/uVia6522.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="270"/>
-        <CursorPos X="67" Y="309"/>
-        <UsageCount Value="194"/>
+        <CursorPos X="5" Y="333"/>
+        <UsageCount Value="219"/>
       </Unit72>
       <Unit73>
         <Filename Value="machine/microtan65/uEditScreenForm.pas"/>
@@ -683,16 +680,30 @@
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="103" Y="31"/>
-        <UsageCount Value="114"/>
+        <UsageCount Value="169"/>
       </Unit73>
       <Unit74>
+        <Filename Value="cpu/CHIP-8/uAsmChip8.pp"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos Y="5"/>
+        <UsageCount Value="46"/>
+      </Unit74>
+      <Unit75>
+        <Filename Value="assembler/uAsmTypes.pas"/>
+        <IsPartOfProject Value="True"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos Y="30"/>
+        <UsageCount Value="45"/>
+      </Unit75>
+      <Unit76>
         <Filename Value="assembler/uListing.old.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="8"/>
         <CursorPos X="69" Y="22"/>
-        <UsageCount Value="118"/>
-      </Unit74>
-      <Unit75>
+        <UsageCount Value="113"/>
+      </Unit76>
+      <Unit77>
         <Filename Value="editor/uSourceEditorForm.pas"/>
         <ComponentName Value="EditorForm"/>
         <HasResources Value="True"/>
@@ -700,46 +711,46 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="169"/>
         <CursorPos X="3" Y="201"/>
-        <UsageCount Value="130"/>
+        <UsageCount Value="125"/>
         <Bookmarks Count="1">
           <Item0 Y="431"/>
         </Bookmarks>
-      </Unit75>
-      <Unit76>
+      </Unit77>
+      <Unit78>
         <Filename Value="editor/uPageManager.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="329"/>
         <CursorPos X="3" Y="361"/>
-        <UsageCount Value="117"/>
-      </Unit76>
-      <Unit77>
+        <UsageCount Value="112"/>
+      </Unit78>
+      <Unit79>
         <Filename Value="editor/uSynHighlighterAsm.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="233"/>
         <CursorPos X="3" Y="265"/>
-        <UsageCount Value="140"/>
-      </Unit77>
-      <Unit78>
+        <UsageCount Value="135"/>
+      </Unit79>
+      <Unit80>
         <Filename Value="editor/uEditor.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="3" Y="18"/>
-        <UsageCount Value="176"/>
-      </Unit78>
-      <Unit79>
+        <UsageCount Value="171"/>
+      </Unit80>
+      <Unit81>
         <Filename Value="$ Convert SI Source/uConvertSource.pas"/>
         <ComponentName Value="ConvertForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="154"/>
-      </Unit79>
-      <Unit80>
+        <UsageCount Value="149"/>
+      </Unit81>
+      <Unit82>
         <Filename Value="cpu/uRegistersFormBase.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="45" Y="23"/>
-        <UsageCount Value="149"/>
-      </Unit80>
-      <Unit81>
+        <UsageCount Value="144"/>
+      </Unit82>
+      <Unit83>
         <Filename Value="cpu/6502/uRegistersForm6502.pas"/>
         <ComponentName Value="RegistersForm6502"/>
         <HasResources Value="True"/>
@@ -747,9 +758,9 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="64"/>
         <CursorPos X="66" Y="205"/>
-        <UsageCount Value="117"/>
-      </Unit81>
-      <Unit82>
+        <UsageCount Value="112"/>
+      </Unit83>
+      <Unit84>
         <Filename Value="debug/uTraceForm.pas"/>
         <ComponentName Value="TraceForm"/>
         <HasResources Value="True"/>
@@ -757,15 +768,15 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="105"/>
         <CursorPos X="31" Y="100"/>
-        <UsageCount Value="137"/>
-      </Unit82>
-      <Unit83>
+        <UsageCount Value="132"/>
+      </Unit84>
+      <Unit85>
         <Filename Value="uLanguage.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="13"/>
-        <UsageCount Value="113"/>
-      </Unit83>
-      <Unit84>
+        <UsageCount Value="108"/>
+      </Unit85>
+      <Unit86>
         <Filename Value="debug/uBreakpointsForm.pas"/>
         <ComponentName Value="BreakpointsForm"/>
         <HasResources Value="True"/>
@@ -773,9 +784,9 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="9"/>
         <CursorPos X="3" Y="41"/>
-        <UsageCount Value="126"/>
-      </Unit84>
-      <Unit85>
+        <UsageCount Value="121"/>
+      </Unit86>
+      <Unit87>
         <Filename Value="assembler/uAsmConfig.pas"/>
         <ComponentName Value="AsmOptions"/>
         <HasResources Value="True"/>
@@ -783,61 +794,36 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="155"/>
         <CursorPos X="5" Y="207"/>
-        <UsageCount Value="108"/>
-      </Unit85>
-      <Unit86>
+        <UsageCount Value="103"/>
+      </Unit87>
+      <Unit88>
         <Filename Value="debug/uMemoryForm.pas"/>
         <ComponentName Value="MemoryForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="3" Y="44"/>
-        <UsageCount Value="109"/>
-      </Unit86>
-      <Unit87>
+        <UsageCount Value="104"/>
+      </Unit88>
+      <Unit89>
         <Filename Value="misc/zip/unzip2.pas"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="554"/>
         <CursorPos X="98" Y="577"/>
-        <UsageCount Value="44"/>
-      </Unit87>
-      <Unit88>
+        <UsageCount Value="39"/>
+      </Unit89>
+      <Unit90>
         <Filename Value="misc/zip/ziputils2.pas"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="44"/>
-      </Unit88>
-      <Unit89>
+        <UsageCount Value="39"/>
+      </Unit90>
+      <Unit91>
         <Filename Value="uFormatter.pas"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="30" Y="6"/>
-        <UsageCount Value="37"/>
-      </Unit89>
-      <Unit90>
-        <Filename Value="../lazarus-ccr-svn-2959/applications/lazedit/editorpagecontrol.pp"/>
-        <UnitName Value="EditorPageControl"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="638"/>
-        <CursorPos X="31" Y="646"/>
-        <UsageCount Value="3"/>
-      </Unit90>
-      <Unit91>
-        <Filename Value="../lazarus-ccr-svn-2959/applications/lazedit/main.pp"/>
-        <ComponentName Value="LazEditMainForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="2041"/>
-        <CursorPos X="29" Y="2089"/>
-        <UsageCount Value="1"/>
+        <UsageCount Value="32"/>
       </Unit91>
       <Unit92>
-        <Filename Value="/usr/local/share/fpcsrc/rtl/objpas/classes/classesh.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="957"/>
-        <CursorPos X="22" Y="988"/>
-        <UsageCount Value="1"/>
-      </Unit92>
-      <Unit93>
         <Filename Value="/Developer/freepascal/lazarus/ide/findreplacedialog.pp"/>
         <ComponentName Value="LazFindReplaceDialog"/>
         <HasResources Value="True"/>
@@ -846,278 +832,50 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="63"/>
         <CursorPos Y="112"/>
-        <UsageCount Value="5"/>
-      </Unit93>
-      <Unit94>
-        <Filename Value="/Developer/freepascal/lazarus/ide/sourceeditor.pp"/>
-        <UnitName Value="SourceEditor"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="3725"/>
-        <CursorPos Y="3762"/>
-        <UsageCount Value="3"/>
-      </Unit94>
-      <Unit95>
+        <UsageCount Value="10"/>
+      </Unit92>
+      <Unit93>
         <Filename Value="../_local only/_TO BE CHECKED/_findreplace_ide.pas"/>
         <UnitName Value="uAsmErrors"/>
         <EditorIndex Value="-1"/>
         <TopLine Value="238"/>
         <CursorPos X="87" Y="283"/>
-        <UsageCount Value="5"/>
+        <UsageCount Value="10"/>
+      </Unit93>
+      <Unit94>
+        <Filename Value="/usr/local/share/fpcsrc/rtl/objpas/sysutils/sysutilh.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="83"/>
+        <CursorPos X="19" Y="113"/>
+        <UsageCount Value="8"/>
+      </Unit94>
+      <Unit95>
+        <Filename Value="/usr/local/share/fpcsrc/rtl/objpas/sysutils/syshelph.inc"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="3" Y="5"/>
+        <UsageCount Value="10"/>
       </Unit95>
       <Unit96>
-        <Filename Value="/Developer/freepascal/lazarus/components/synedit/synedit.pp"/>
-        <UnitName Value="SynEdit"/>
+        <Filename Value="cpu/8080/uDefs8080_O.inc"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="4485"/>
-        <CursorPos Y="4515"/>
-        <UsageCount Value="1"/>
+        <TopLine Value="2"/>
+        <UsageCount Value="10"/>
       </Unit96>
       <Unit97>
-        <Filename Value="/usr/local/share/fpcsrc/packages/rtl-objpas/src/inc/strutils.pp"/>
+        <Filename Value="cpu/8080/uDefs8080_Z.inc"/>
         <EditorIndex Value="-1"/>
-        <TopLine Value="3052"/>
-        <CursorPos X="14" Y="3105"/>
-        <UsageCount Value="1"/>
+        <TopLine Value="235"/>
+        <UsageCount Value="10"/>
       </Unit97>
-      <Unit98>
-        <Filename Value="/usr/local/share/fpcsrc/rtl/objpas/sysutils/finah.inc"/>
-        <EditorIndex Value="-1"/>
-        <CursorPos X="18" Y="26"/>
-        <UsageCount Value="3"/>
-      </Unit98>
-      <Unit99>
-        <Filename Value="/usr/local/share/fpcsrc/rtl/objpas/sysutils/fina.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="100"/>
-        <CursorPos X="3" Y="119"/>
-        <UsageCount Value="3"/>
-      </Unit99>
-      <Unit100>
-        <Filename Value="../_local only/BMDS support/LazEdit/main.pp"/>
-        <ComponentName Value="LazEditMainForm"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="1536"/>
-        <CursorPos X="37" Y="1560"/>
-        <UsageCount Value="2"/>
-      </Unit100>
-      <Unit101>
-        <Filename Value="../_local only/BMDS support/LazEdit/lazedit_constants.pp"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="46"/>
-        <CursorPos X="69" Y="80"/>
-        <UsageCount Value="2"/>
-      </Unit101>
-      <Unit102>
-        <Filename Value="/Developer/freepascal/lazarus/lcl/dialogs.pp"/>
-        <UnitName Value="Dialogs"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="694"/>
-        <CursorPos X="11" Y="724"/>
-        <UsageCount Value="1"/>
-      </Unit102>
-      <Unit103>
-        <Filename Value="../_local only/_Archive and Old code/editor/uConfirmReplaceDlgForm.pas"/>
-        <ComponentName Value="ConfirmReplaceDialog"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="53"/>
-        <UsageCount Value="1"/>
-      </Unit103>
-      <Unit104>
-        <Filename Value="../_local only/_Archive and Old code/editor/uEditorForm.pas"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="430"/>
-        <CursorPos X="62" Y="10"/>
-        <UsageCount Value="1"/>
-      </Unit104>
-      <Unit105>
-        <Filename Value="../_local only/_Archive and Old code/editor/uMRU.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="28"/>
-        <UsageCount Value="1"/>
-      </Unit105>
-      <Unit106>
-        <Filename Value="../_local only/_Archive and Old code/editor/uReplaceDlgForm.pas"/>
-        <ComponentName Value="TextReplaceDialog"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="19"/>
-        <UsageCount Value="1"/>
-      </Unit106>
-      <Unit107>
-        <Filename Value="../_local only/_Archive and Old code/editor/uSearchDlgForm.pas"/>
-        <ComponentName Value="TextSearchDialog"/>
-        <HasResources Value="True"/>
-        <ResourceBaseClass Value="Form"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="1"/>
-      </Unit107>
-      <Unit108>
-        <Filename Value="../_local only/_TO BE CHECKED/uAsmErrors.pas"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="132"/>
-        <UsageCount Value="1"/>
-      </Unit108>
-      <Unit109>
-        <Filename Value="../_local only/_TO BE CHECKED/uCommon.ConfirmResetDefault.pas"/>
-        <UnitName Value="uCommon"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="110"/>
-        <UsageCount Value="1"/>
-      </Unit109>
-      <Unit110>
-        <Filename Value="../_local only/_TO BE CHECKED/uMainForm.MakePreferencesForm.pas"/>
-        <UnitName Value="uMainForm"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="67"/>
-        <UsageCount Value="1"/>
-      </Unit110>
-      <Unit111>
-        <Filename Value="/Developer/freepascal/lazarus/lcl/menus.pp"/>
-        <UnitName Value="Menus"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="90"/>
-        <CursorPos X="3" Y="120"/>
-        <UsageCount Value="1"/>
-      </Unit111>
-      <Unit112>
-        <Filename Value="/usr/local/share/fpcsrc/rtl/objpas/classes/streams.inc"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="705"/>
-        <CursorPos X="3" Y="728"/>
-        <UsageCount Value="1"/>
-      </Unit112>
     </Units>
     <OtherDefines Count="1">
       <Define0 Value="Debug"/>
     </OtherDefines>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="1">
       <Position1>
         <Filename Value="uMainForm.pas"/>
-        <Caret Line="224" Column="23" TopLine="192"/>
+        <Caret Line="293" Column="3" TopLine="263"/>
       </Position1>
-      <Position2>
-        <Filename Value="uMainForm.pas"/>
-        <Caret Line="348" Column="13" TopLine="295"/>
-      </Position2>
-      <Position3>
-        <Filename Value="uMainForm.pas"/>
-        <Caret Line="747" Column="11" TopLine="694"/>
-      </Position3>
-      <Position4>
-        <Filename Value="uMainForm.pas"/>
-        <Caret Line="831" Column="100" TopLine="806"/>
-      </Position4>
-      <Position5>
-        <Filename Value="machine/CHIP-8/uMachineChip8.pas"/>
-        <Caret Line="316" Column="29" TopLine="266"/>
-      </Position5>
-      <Position6>
-        <Filename Value="machine/CHIP-8/uMachineChip8.pas"/>
-        <Caret Line="70" Column="7" TopLine="35"/>
-      </Position6>
-      <Position7>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="122" Column="20" TopLine="98"/>
-      </Position7>
-      <Position8>
-        <Filename Value="machine/CHIP-8/uMachineChip8.pas"/>
-        <Caret Line="326" TopLine="274"/>
-      </Position8>
-      <Position9>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="32" Column="126" TopLine="16"/>
-      </Position9>
-      <Position10>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="20" Column="31" TopLine="12"/>
-      </Position10>
-      <Position11>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="22" Column="71" TopLine="12"/>
-      </Position11>
-      <Position12>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="23" Column="39" TopLine="12"/>
-      </Position12>
-      <Position13>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="81" Column="52" TopLine="28"/>
-      </Position13>
-      <Position14>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="82" Column="47" TopLine="29"/>
-      </Position14>
-      <Position15>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="151" Column="6" TopLine="98"/>
-      </Position15>
-      <Position16>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="152" Column="6" TopLine="99"/>
-      </Position16>
-      <Position17>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="193" Column="69" TopLine="140"/>
-      </Position17>
-      <Position18>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="200" Column="59" TopLine="147"/>
-      </Position18>
-      <Position19>
-        <Filename Value="machine/microtan65/uMachineMicrotan.pas"/>
-        <Caret Line="282" Column="17" TopLine="229"/>
-      </Position19>
-      <Position20>
-        <Filename Value="machine/CHIP-8/uMachineChip8.pas"/>
-        <Caret Line="54" Column="21" TopLine="43"/>
-      </Position20>
-      <Position21>
-        <Filename Value="machine/CHIP-8/uMachineChip8.pas"/>
-        <Caret Line="225" Column="23" TopLine="218"/>
-      </Position21>
-      <Position22>
-        <Filename Value="cpu/CHIP-8/uCpuChip8.pas"/>
-        <Caret Line="62" Column="35" TopLine="42"/>
-      </Position22>
-      <Position23>
-        <Filename Value="cpu/CHIP-8/uCpuChip8.pas"/>
-        <Caret Line="64" Column="38" TopLine="42"/>
-      </Position23>
-      <Position24>
-        <Filename Value="cpu/CHIP-8/uCpuChip8.pas"/>
-        <Caret Line="79" Column="19" TopLine="54"/>
-      </Position24>
-      <Position25>
-        <Filename Value="cpu/CHIP-8/uCpuChip8.pas"/>
-        <Caret Line="579" Column="97" TopLine="537"/>
-      </Position25>
-      <Position26>
-        <Filename Value="cpu/CHIP-8/uCpuChip8.pas"/>
-        <Caret Line="80" Column="21" TopLine="50"/>
-      </Position26>
-      <Position27>
-        <Filename Value="cpu/CHIP-8/uCpuChip8.pas"/>
-        <Caret Line="101" Column="40" TopLine="52"/>
-      </Position27>
-      <Position28>
-        <Filename Value="cpu/CHIP-8/uCpuChip8.pas"/>
-        <Caret Line="468" Column="29" TopLine="432"/>
-      </Position28>
-      <Position29>
-        <Filename Value="machine/CHIP-8/uMachineChip8.pas"/>
-        <Caret Line="241" Column="54" TopLine="222"/>
-      </Position29>
-      <Position30>
-        <Filename Value="machine/CHIP-8/uMachineChip8.pas"/>
-        <Caret Line="256" Column="36" TopLine="211"/>
-      </Position30>
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>

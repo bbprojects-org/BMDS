@@ -132,8 +132,8 @@ type
     procedure RunForOneFrame; override;
     procedure Step; override;
     procedure ScreenRefresh; override;  
-    procedure SaveToFile(strm: TStream);
-    procedure LoadFromFile(FileName: string);
+    procedure SaveToFile({%H-}FileName: string; {%H-}FullSystem: boolean = False); override;
+    procedure LoadFromFile({%H-}FileName: string); override;
     //
     property CPU: TCpuBase read GetCPU;
 end;
@@ -598,7 +598,7 @@ begin
 end;
 
 
-procedure TMachineSpaceInvaders.SaveToFile(strm: TStream);
+procedure TMachineSpaceInvaders.SaveToFile(FileName: string; FullSystem: boolean = False);
 begin
   //
 end;

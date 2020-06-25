@@ -34,7 +34,7 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, ExtCtrls, StdCtrls,
   Buttons, ComCtrls, ActnList, SynEdit, SynEditSearch, SynEditTypes, LCLProc,
   //
-  uIniFile, uCommon;
+  uIniFile;
 
 type
 

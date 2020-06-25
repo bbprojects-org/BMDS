@@ -154,7 +154,7 @@ begin
     ct8080asmO: begin                   // 8080 with Original ASM format
                   ThisTypeMask := %01;
                   fInfo.Name := fInfo.Name + ' O';
-                  fInfo.Registers := REGISTERS_ORIG;
+                  fInfo.RegsKeywords := REGISTERS_ORIG;
                 end;
     ct8080asmZ: begin                   // 8080 with Z80 ASM format
                   ThisTypeMask := %10;

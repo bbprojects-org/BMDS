@@ -76,7 +76,8 @@ type
 const
   INFO_8080: TCpuInfo =
     ( Name:                 '8080';
-      Registers:            // Must be uppercase, for assembler
+      RegsReplace:          '';
+      RegsKeywords:         // Must be uppercase, for assembler
                             'A B C D E H L AF BC DE HL SP ' +
                             // Need flags too
                             'NZ Z NC C PO PE P M';

@@ -22,8 +22,6 @@
 
   =============================================================================}
 
-{ TODO : uDefsChip8 -> do mnemonic table, registers and details for assembler }
-
 unit uDefsChip8;
 
 {$mode objfpc}{$H+}
@@ -36,17 +34,17 @@ uses
   uCpuTypes;
 
 type
-  TAddrModeChip8 = (mNIL);
+  TAddrModeChip8 = (mNIL, mIMP, mADDR, mR, mRB, mRR, mRRN, mN);
 
 const
 
   INFO_CHIP8: TCpuInfo =
     ( Name:                 'CHIP8';
-      Registers:            'V0 V1 V2 V3 V4 V5 V6 V7 V8 V9 VA VB VC VD VE VF';
-                            // + ' I DT ST F B';
+      RegsReplace:          'V0 V1 V2 V3 V4 V5 V6 V7 V8 V9 VA VB VC VD VE VF';
+      RegsKeywords:         'I DT ST F B';
       WildChar:             '*';
       LittleEndian:         False;
-      SupportsAssembler:    False;
+      SupportsAssembler:    True;
       SupportsDisassembler: True;
       SupportsCpuTest:      False;
       TraceWidth:           702;
@@ -159,7 +157,7 @@ const
   OPCODES_CHIP8: array[0..44] of TOpcodeRawData =
   (
   ( M: 'ADD';  A: 'I,!';   S: 03{mR};    O: $F01E; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx1E
-  ( M: 'ADD';  A: '!,@';   S: 04{mRB};   O: $7000; N: 2; C: 2; R: rNIL; T: %11 ), // $7xkk
+  ( M: 'ADD';  A: '!,*';   S: 04{mRB};   O: $7000; N: 2; C: 2; R: rNIL; T: %11 ), // $7xkk
   ( M: 'ADD';  A: '!,!';   S: 05{mRR};   O: $8004; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy4
 
   ( M: 'LD';   A: 'I,*';   S: 02{mAddr}; O: $A000; N: 2; C: 2; R: rNIL; T: %11 ),
@@ -171,7 +169,7 @@ const
   ( M: 'LD';   A: 'B,!';   S: 03{mR};    O: $F033; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx33
   ( M: 'LD';   A: '[I],!'; S: 03{mR};    O: $F055; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx55
   ( M: 'LD';   A: '!,[I]'; S: 03{mR};    O: $F065; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx65
-  ( M: 'LD';   A: '!,@';   S: 04{mRB};   O: $6000; N: 2; C: 2; R: rNIL; T: %11 ), // $6xkk
+  ( M: 'LD';   A: '!,*';   S: 04{mRB};   O: $6000; N: 2; C: 2; R: rNIL; T: %11 ), // $6xkk
   ( M: 'LD';   A: '!,!';   S: 05{mRR};   O: $8000; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy0
   // SUPER CHIP-8
   ( M: 'LD';  A: 'HF,!';   S: 03{mR};    O: $F030; N: 2; C: 2; R: rNIL; T: %10 ), // $Fx30
@@ -183,12 +181,12 @@ const
   ( M: 'JP';   A: '*';     S: 02{mAddr}; O: $1000; N: 2; C: 2; R: rNIL; T: %11 ),
   ( M: 'JP';   A: 'V0,*';  S: 02{mAddr}; O: $B000; N: 2; C: 2; R: rNIL; T: %11 ),
   ( M: 'RET';  A: '';      S: 01{mIMP};  O: $00EE; N: 2; C: 2; R: rNIL; T: %11 ),
-  ( M: 'RND';  A: '!,@';   S: 04{mRB};   O: $C000; N: 2; C: 2; R: rNIL; T: %11 ), // $Cxkk
-  ( M: 'SE';   A: '!,@';   S: 04{mRB};   O: $3000; N: 2; C: 2; R: rNIL; T: %11 ), // $3xkk
+  ( M: 'RND';  A: '!,*';   S: 04{mRB};   O: $C000; N: 2; C: 2; R: rNIL; T: %11 ), // $Cxkk
+  ( M: 'SE';   A: '!,*';   S: 04{mRB};   O: $3000; N: 2; C: 2; R: rNIL; T: %11 ), // $3xkk
   ( M: 'SE';   A: '!,!';   S: 05{mRR};   O: $5000; N: 2; C: 2; R: rNIL; T: %11 ), // $5xy0
   ( M: 'SKNP'; A: '!';     S: 03{mR};    O: $E0A1; N: 2; C: 2; R: rNIL; T: %11 ), // $ExA1
   ( M: 'SKP';  A: '!';     S: 03{mR};    O: $E09E; N: 2; C: 2; R: rNIL; T: %11 ), // $Ex9E
-  ( M: 'SNE';  A: '!,@';   S: 04{mRB};   O: $4000; N: 2; C: 2; R: rNIL; T: %11 ), // $4xkk
+  ( M: 'SNE';  A: '!,*';   S: 04{mRB};   O: $4000; N: 2; C: 2; R: rNIL; T: %11 ), // $4xkk
   ( M: 'SYS';  A: '*';     S: 02{mAddr}; O: $0000; N: 2; C: 2; R: rNIL; T: %11 ),
   ( M: 'OR';   A: '!,!';   S: 05{mRR};   O: $8001; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy1
   ( M: 'AND';  A: '!,!';   S: 05{mRR};   O: $8002; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy2
@@ -199,7 +197,7 @@ const
   ( M: 'SHL';  A: '!,!';   S: 05{mRR};   O: $800E; N: 2; C: 2; R: rNIL; T: %11 ), // $8xyE
   ( M: 'SNE';  A: '!,!';   S: 05{mRR};   O: $9000; N: 2; C: 2; R: rNIL; T: %11 ), // $9xy0
 
-  ( M: 'DRW';  A: '!,!,@'; S: 06{mRRN};  O: $D000; N: 2; C: 2; R: rNIL; T: %11 ), // $Dxyn
+  ( M: 'DRW';  A: '!,!,*'; S: 06{mRRN};  O: $D000; N: 2; C: 2; R: rNIL; T: %11 ), // $Dxyn
   // SUPER CHIP-8
   ( M: 'DRW';  A: '!,!,0'; S: 05{mRR};   O: $D000; N: 2; C: 2; R: rNIL; T: %10 ), // $Dxy0
 
@@ -209,7 +207,7 @@ const
   ( M: 'EXIT'; A: '';      S: 01{mIMP};  O: $00FD; N: 2; C: 2; R: rNIL; T: %10 ),
   ( M: 'LOW';  A: '';      S: 01{mIMP};  O: $00FE; N: 2; C: 2; R: rNIL; T: %10 ),
   ( M: 'HIGH'; A: '';      S: 01{mIMP};  O: $00FF; N: 2; C: 2; R: rNIL; T: %10 ),
-  ( M: 'SCD'; A: '@';      S: 07{mN};    O: $F030; N: 2; C: 2; R: rNIL; T: %10 )  // $00Cn
+  ( M: 'SCD'; A: '*';      S: 07{mN};    O: $F030; N: 2; C: 2; R: rNIL; T: %10 )  // $00Cn
 );
 
 

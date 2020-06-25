@@ -46,9 +46,11 @@ type
     cbShowTime: TCheckBox;
     cbWriteCodeToFile: TCheckBox;
     cbWriteCodeToMemory: TCheckBox;
+    cbCaseSensitive: TCheckBox;
     comboOutputFormat: TComboBox;
     GroupBox1: TGroupBox;
     GroupBox2: TGroupBox;
+    GroupBox3: TGroupBox;
     lblFormat: TLabel;
     procedure btnResetDefaultsClick(Sender: TObject);
     procedure FlagChange(Sender: TObject);
@@ -58,6 +60,7 @@ type
   private
     procedure ReadIniItems;
     procedure WriteIniItems;
+    function GetLabelsCase: boolean;
     function GetGenerateListing: boolean;
     function GetListIncludes: boolean;
     function GetListMacros: boolean;
@@ -72,6 +75,7 @@ type
     procedure SaveChanges; override;
     procedure CancelChanges; override;
     //
+    property LabelsCaseSensitive: boolean read GetLabelsCase;
     property GenerateListing: boolean read GetGenerateListing;
     property ListIncludes: boolean read GetListIncludes;
     property ListMacros: boolean read GetListMacros;
@@ -92,6 +96,7 @@ implementation
 
 const
   SECT_ASMPREFS = 'AsmPrefs';
+  INI_LBL_CASE  = 'LabelsCase';
   INI_GENLIST   = 'GenerateListing';
   INI_LSTINC    = 'ListIncludes';
   INI_LSTMULT   = 'ListMulti';
@@ -147,6 +152,12 @@ end;
 
 
 { GET OPTION STATES }
+
+function TAsmPrefsFrame.GetLabelsCase: boolean;
+begin
+  Result := cbCaseSensitive.Checked;
+end;
+
 
 function TAsmPrefsFrame.GetGenerateListing: boolean;
 begin
@@ -234,6 +245,7 @@ end;
 
 procedure TAsmPrefsFrame.ReadIniItems;
 begin
+  cbCaseSensitive.Checked := AppIni.ReadBool(SECT_ASMPREFS, INI_LBL_CASE, False);
   cbGenerateListing.Checked := AppIni.ReadBool(SECT_ASMPREFS, INI_GENLIST, True);
   cbListIncludes.Checked := AppIni.ReadBool(SECT_ASMPREFS, INI_LSTINC, False);
   cbListMultiBytes.Checked := AppIni.ReadBool(SECT_ASMPREFS, INI_LSTMULT, False);
@@ -250,6 +262,7 @@ end;
 
 procedure TAsmPrefsFrame.WriteIniItems;
 begin
+  AppIni.WriteBool(SECT_ASMPREFS, INI_LBL_CASE, cbCaseSensitive.Checked);
   AppIni.WriteBool(SECT_ASMPREFS, INI_GENLIST, cbGenerateListing.Checked);
   AppIni.WriteBool(SECT_ASMPREFS, INI_LSTINC, cbListIncludes.Checked);
   AppIni.WriteBool(SECT_ASMPREFS, INI_LSTMULT, cbListMultiBytes.Checked);

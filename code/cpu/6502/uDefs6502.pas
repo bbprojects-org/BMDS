@@ -41,7 +41,8 @@ type
 const
   INFO_6502: TCpuInfo =
     ( Name:                 '6502';
-      Registers:            'A X Y';    // Must be uppercase, for assembler
+      RegsReplace:          '';
+      RegsKeywords:         'A X Y';    // Must be uppercase, for assembler
       WildChar:             '*';
       LittleEndian:         True;
       SupportsAssembler:    True;

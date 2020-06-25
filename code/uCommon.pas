@@ -47,7 +47,6 @@ type
 
   function  GetAppResourcesDirectory: string;
   function  GetAppDataDirectory: string;
-  procedure Split(Input: string; const Delimiter: char; const Strings: TStrings);
   function  GetRegisterIndex(aRegToFind: string; aRegisters: string): integer;
   function  MessageQuery(aCaption, aText: string): boolean;
   procedure MessageWarning(aCaption, aText: string);
@@ -115,16 +114,6 @@ begin
     // Or perhaps...
     // Result := GetEnvironmentVariableUTF8('appdata')+ '\' + AppFolder;
   {$endif}
-end;
-
-
-procedure Split(Input: string; const Delimiter: char; const Strings: TStrings);
-begin
-   Assert(Assigned(Strings));
-   Strings.Clear;
-   Strings.StrictDelimiter := true;
-   Strings.Delimiter := Delimiter;
-   Strings.DelimitedText := Input;
 end;
 
 

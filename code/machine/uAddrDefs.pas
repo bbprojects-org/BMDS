@@ -27,7 +27,6 @@
 unit uAddrDefs;
 
 {$mode objfpc}{$H+}
-{.$define adp_debug}
 
 interface
 
@@ -74,10 +73,6 @@ var
   end;
 
 begin
-  {$ifdef adp_debug}
-  AppLog.Debug('TAddrDefsProcessor.GetAddrDefs, filename=' + FileName);
-  AppLog.Debug('');
-  {$endif}
   Parser := TParser.Create(@GetSourceLine);
   AddrDefsLines := TStringList.Create;
   if (not FileExists(FileName)) then

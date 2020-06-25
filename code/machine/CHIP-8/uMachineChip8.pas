@@ -29,6 +29,7 @@
 unit uMachineChip8;
 
 {$mode objfpc}{$H+}
+{.$define machinechip8_debug}
 
 interface
 
@@ -96,6 +97,8 @@ begin
   fInfo.HasCustomMenu       := False;
 
   fMemoryMgr := TMemoryMgr.Create(MEM_SIZE_4K);
+  fMemoryMgr.AddRead($0000, $0FFF, nil, '4K RAM read');
+  fMemoryMgr.AddWrite($0000, $0FFF, nil, '4K RAM write');
 
   Gfx := TGfxManager.Create(2);         // Create screen, uses default B&W palette
   Gfx.SetWindowSize(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
@@ -221,18 +224,26 @@ end;
 
 { Checks for any user input when machine is running }
 
+{ Maps    1 2 3 C   to   1 2 3 4
+          4 5 6 D        Q W E R
+          7 8 9 E        A S D F
+          A 0 B F        Z X C V }
+
 const
   KEY_MATRIX: array[$0..$F] of byte =
-    ($31,$32,$33,$34,        // 1 2 3 4
-     $51,$57,$45,$52,        // Q W E R
-     $41,$53,$44,$46,        // A S D F
-     $5A,$58,$43,$56);       // Z X C V
+    // 0 1 2 3 4 5 6 7   8 9 A B C D E F   - original keys
+    // X 1 2 3 Q W E A   S D Z C 4 R F V   - mapped to
+    ($58, $31, $32, $33, $51, $57, $45, $41,
+     $53, $44, $5A, $43, $34, $52, $46, $56);
 
 procedure TMachineChip8.CheckInput;
 var
   sdlEvent: PSDL_Event;
   thisKey: integer;
   index: byte;
+  {$ifdef machinechip8_debug}
+  debug: string;
+  {$endif}
 begin
   New(sdlEvent);
   while (SDL_PollEvent(sdlEvent) = 1) do
@@ -240,6 +251,8 @@ begin
       if ((SdlEvent^.type_ = SDL_KEYDOWN) or (SdlEvent^.type_ = SDL_KEYUP)) then
         begin
           thisKey := sdlEvent^.key.keysym.sym;
+          if ((thisKey >= $61) and (thisKey <= $7A)) then
+            thisKey := thisKey - $20;   // Convert lowercase to uppercase
 
           if (thisKey = $1B) then       // ESC key?
             Exit;
@@ -253,6 +266,13 @@ begin
         end;
     end;
   Dispose(sdlEvent);
+
+  {$ifdef machinechip8_debug}
+  debug := '';
+  for index := 0 to 15 do
+    debug := debug + BoolToStr(fCPU.Key[index],'1','.');
+  AppLog.Debug(Format('TMachineChip8.CheckInput, key $%.2x, keys %s', [thisKey, debug]));
+  {$endif}
 end;
 
 

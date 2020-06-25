@@ -71,6 +71,7 @@ type
     fKeys: TKeys;
     fRegs: TRegsChip8;
     fPixelsArray: TPixels;
+    DoneInvalidWarning: boolean;
 
     Stack: array[0..15] of word;
     TraceList: array[0..TRACE_MAX] of TRegsChip8;
@@ -223,6 +224,7 @@ begin
     fPixelsArray[i] := 0;
 
   ResetTrace;
+  DoneInvalidWarning := False;
 end;
 
 
@@ -550,8 +552,11 @@ begin
     Unknown := True;
   end;
 
-  if (Unknown) then
-    MessageWarning('Not Found', Format('Unknown opcode: $%.4x', [Opcode]));
+  if (Unknown and (not DoneInvalidWarning)) then
+    begin
+      MessageWarning('Not Found', Format('Unknown opcode: $%.4x', [Opcode]));
+      DoneInvalidWarning := True;
+    end;
 end;
 
 

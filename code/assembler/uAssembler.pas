@@ -28,19 +28,9 @@
   =============================================================================}
 
   { TODO : uAssembler -> rework BuildIdentifierList to use new TDictionary routines }
-  { TODO : uAssembler -> for DoWord, follow ENDIAN flag to define order of bytes for
-                       each specific CPU }
   { TODO : uAssembler -> stop spare line after macro definition, same line # }
   { TODO : uAssembler -> add DEFINE to create pseudonym for given text,
                          e.g. CHIP8 register. Replaced by parser? }
-
-//
-// Have spcific CPU functionality in CPU units, supporting following Public:
-//   INIT      - setup opcode tables (if not already done), bigendian, etc
-//   MNEMONIC  - process mnemonic passed
-//   DIRECTIVE - process unknown directive passed
-//   FINISHED  - do any cleanup required
-//
 
 unit uAssembler;
 
@@ -56,8 +46,8 @@ uses Forms, Classes, SysUtils, FileUtil, SynEdit, SynPluginSyncroEdit, Controls,
     uCommon,
     {$endif}
      uParser, uSymbols, uAsmListing, uAsmFiles, uAsmPrefsFrame,
-     uPreferencesForm, uCpuTypes, uDefs6502, uDefs8080, uDefsChip8, uMachineBase,
-     uAsmErrors;
+     uPreferencesForm, uCpuTypes, uDefs6502, uDefs8080, uDefsChip8,
+     uMachineBase, uAsmErrors;
 
 type
   TMemSect = (msRAM, msCode);
@@ -100,6 +90,10 @@ type
     MemorySection: TMemSect;            // Memory type assembling to
     BytesArray: TBytes256;              // Byte buffer for program code (max 256 bytes)
     NumBytes: integer;                  // Number of bytes being generated (DB/DW)
+    AddrMode: string;                   // Address mode mask from code
+    OperandValue: integer;              // Value of current operand / expression
+    Register1: integer;                 // Register indexes, where relevant
+    Register2: integer;
     LastGlobalLabel: string;            // Last global label defined, supports local labels
     IfStackArray: array of boolean;     // Used to keep state of IF/ELSE/ENDIF
     fIsAssembling: boolean;             // Used by IF/ENDIF routines to determine state
@@ -111,6 +105,7 @@ type
     procedure AddDirectives;
     procedure AddOpcodes;
     procedure AddToMacro;
+    procedure BuildAddressMode;
     procedure DefineMacro;
     procedure DoEqu;
     procedure DoMacro;
@@ -221,7 +216,10 @@ begin
                      [fErrors.ErrorCount,   BoolToStr(fErrors.ErrorCount = 1, '', 's'),
                       fErrors.WarningCount, BoolToStr(fErrors.WarningCount = 1, '', 's')]);
         if (AsmPrefs.WriteToMemory and (not WriteToMemoryError)) then
-          DoLog(Format('Machine code for "%s" written to %s memory', [ExtractFileName(SourceFileName), Machine.Name]), True); // 'True' = msg for main form
+          begin
+            Machine.HasCode := True;
+            DoLog(Format('Machine code for "%s" written to %s memory', [ExtractFileName(SourceFileName), Machine.Name]), True); // 'True' = msg for main form
+          end;
       end
     else
       begin
@@ -462,82 +460,37 @@ end;
 
 { PROCESS A MNEMONIC }
 
-{ TODO : uAssembler -> have DoMenomic call CPU specific code }
-
 procedure TAssembler.DoMnemonic(Instruction: TInstruction);
 var
   nDataIdx, nOffset: integer;
-  Value: word;
-  sAddrMode: string;
-  bDoneExpr: boolean;
   ThisData: TOpcodeRawData;
+  ThisOpcode: word;
 begin
   AddDebugLineInfo;
 
   // Given the instruction, parse the operand text to build an address mode for
   // checking against CPU opcode data array. Source text checked for CPU
-  // register addresses, operand value (replaced by *) or any other non-space
-  // text just added to the address mode mask
-  nDataIdx := Instruction.Value;
-  sAddrMode := '';
-  bDoneExpr := False;
-  Value := 0;
+  // registers (may be replaced by !), operand value (replaced by *) or any
+  // other non-space text just added to the address mode mask
 
-  // Build address mode for checking
-  while not (fParser.PeekNextToken.Typ in [tkComment, tkEOL]) do
-    begin
-      case fParser.PeekNextToken.Typ of // Look for any token that could be
-       tkId,                            // part of an expression including
-       tkDotId,                         // unary operators
-       tkNumber,
-       tkString,                        // Single character only
-       tkPlus,
-       tkMinus,
-       tkGreater,
-       tkLower:   if ((fParser.PeekNextToken.Typ = tkId) and (Pos(Uppercase(fParser.PeekNextToken.StringVal), Machine.CPU.Info.Registers) > 0)) then
-                    begin
-                      fParser.GetToken;
-                      sAddrMode := sAddrMode + UpperCase(fParser.Token.StringVal);
-                    end
-                  else
-                    begin
-                      if (bDoneExpr = True) then
-                        begin
-                          fErrors.AddError(emOperandNotFound);
-                          Exit;
-                        end
-                      else
-                        begin
-                          Value := ParseExpr;
-                          sAddrMode := sAddrMode + '*';
-                        end;
-                      bDoneExpr := True;
-                    end;
-
-       tkComment: begin
-                    fParser.GetToken;
-                    break;
-                  end;
-      else
-        begin
-          fParser.GetToken;
-          sAddrMode := sAddrMode + fParser.Token.StringVal;
-        end;
-      end;
-    end;
+  AddrMode := '';
+  OperandValue := 0;
+  Register1 := -1;                      // -1 = unassigned
+  Register2 := -1;
+  BuildAddressMode;
 
   {$ifdef assembler_debug}
-  AppLog.Debug('TAssembler.DoMnemonic, %.4d, %s, AM=[%s]', [fFiles.CurrentLineNo + 1, Instruction.Name, sAddrMode]);
+  AppLog.Debug('TAssembler.DoMnemonic, %.4d %-5s AM=[%s]', [fFiles.CurrentLineNo + 1, Instruction.Name, fAddrMode]);
   {$endif}
 
-
-  // Now check address mode against those in OpcodesList. Note that the
+  // Check address mode against those in OpcodesList. Note that the
   // opcode data has all the address modes for a specific mnemonic grouped
   // together hence when name changes all address modes for that mnemonic
   // have been checked
 
+  nDataIdx := Instruction.Value;
   ThisData := Machine.CPU.DataByIndex[nDataIdx];
-  while (ThisData.A <> sAddrMode) and (ThisData.M = Instruction.Name) do
+  while (ThisData.A <> AddrMode) and (ThisData.M = Instruction.Name) do
     begin
       Inc(nDataIdx);
       ThisData := Machine.CPU.DataByIndex[nDataIdx];
@@ -546,37 +499,130 @@ begin
   // If still pointing at the current instruction mnemonic, can then get
   // opcode value and assign the operand bytes too. Although assign three
   // bytes, not all will apply depending on particular opcode
+
   if (ThisData.M = Instruction.Name) then
-    begin
-      NumBytes := ThisData.N;
-      { TODO : uAssembler -> need to cater for opcodes > 1 byte }
-      BytesArray[1] := ThisData.O;
-      BytesArray[2] := Lo(Value);
-      BytesArray[3] := Hi(Value);
+    case Machine.CPU.CpuType of
+
+      ct6502, ct8080asmO, ct8080asmZ:
+        begin
+          NumBytes := ThisData.N;
+          BytesArray[1] := ThisData.O;
+          BytesArray[2] := OperandValue and $FF;
+          BytesArray[3] := (OperandValue shr 8) and $FF;
+        end;
+
+      ctCHIP8, ctSCHIP8:
+        begin
+          case TAddrModeChip8(ThisData.S) of
+            mIMP:  ThisOpcode := ThisData.O;
+            mADDR: ThisOpcode := ThisData.O + OperandValue;
+            mR:    ThisOpcode := ThisData.O + (Register1 shl 8);
+            mRB:   ThisOpcode := ThisData.O + (Register1 shl 8) + OperandValue;
+            mRR:   ThisOpcode := ThisData.O + (Register1 shl 8) + (Register2 shl 4);
+            mRRN:  ThisOpcode := ThisData.O + (Register1 shl 8) + (Register2 shl 4) + (OperandValue and $FF);
+            mN:    ThisOpcode := ThisData.O + (OperandValue and $FF);
+          end;
+          NumBytes := 2;
+          BytesArray[1] := (ThisOpcode shr 8) and $FF;
+          BytesArray[2] := ThisOpcode and $FF;
+        end;
     end
   else
-    fErrors.AddErrorFmt(emAddrModeNotRecognised, [sAddrMode]);
+    fErrors.AddErrorFmt(emAddrModeNotRecognised, [AddrMode]);
 
-  // Check for any actions modifying operand
+  // Check for any actions modifying operand (6502 only, currently)
+
   case ThisData.R of
-    rNIL: ;                           // Do nothing
-    rZP:  if (BytesArray[3] = 0) then // If zero page (hi byte = 0)
+    rZP:  if (BytesArray[3] = 0) then   // If zero page (hi byte = 0)
             begin
-              Dec(NumBytes);          // ... reduce to two bytes
+              Dec(NumBytes);
               // Get opcode from next entry which is ZP version
               BytesArray[1] := Machine.CPU.DataByIndex[nDataIdx+1].O and $FF;
             end;
-    rCR: ;
     rREL: begin
-            nOffset := Value - (PC + 2);
-            if (nOffset >= -$7f) and (nOffset <= $80) then
+            nOffset := OperandValue - (PC + 2);
+            if (nOffset >= -$7F) and (nOffset <= $80) then
               BytesArray[2] := nOffset and $FF
             else
               fErrors.AddError(emBranchTooFar);
           end;
-    { TODO : uAssembler -> process registers }
   end;
+
   fListing.HexData := AddrPlus(NumBytes);
+end;
+
+
+procedure TAssembler.BuildAddressMode;
+var
+  NextTokenType: TTokenType;
+  Reg: string;
+  bDoneExpr: boolean;
+  RegIndex: integer;
+begin
+  bDoneExpr := False;
+  while not (fParser.PeekNextToken.Typ in [tkComment, tkEOL]) do
+    begin
+      NextTokenType := fParser.PeekNextToken.Typ;
+
+      // Check for a register ID
+
+      if (NextTokenType = tkId) then
+        begin
+          Reg := Uppercase(fParser.PeekNextToken.StringVal);
+          RegIndex := Machine.CPU.GetRegReplaceIndex(Reg);
+          if (RegIndex >= 0) then
+             begin                      // Register to be replaced by '!'
+               fParser.GetToken;
+               if (Register1 = -1) then
+                 Register1 := RegIndex
+               else
+                 Register2 := RegIndex;
+               AddrMode := AddrMode + '!';
+               Continue;
+             end;
+
+          if (Machine.CPU.GetRegKeywordIndex(Reg) >= 0) then
+            begin                       // If a register keyword, add to address mode
+              fParser.GetToken;
+              AddrMode := AddrMode + Reg;
+              Continue;
+            end;
+        end;
+
+      // Look for any token that could be part of an expression, including
+      // unary operators. Note string is for single characters only
+
+      if (NextTokenType in [tkId, tkDotId, tkNumber, tkString, tkPlus, tkMinus, tkGreater, tkLower]) then
+        begin
+          if (bDoneExpr = True) then
+            begin
+              fErrors.AddError(emOperandNotFound);
+              Exit;
+            end
+          else
+            begin
+              OperandValue := ParseExpr;
+              AddrMode := AddrMode + '*';
+            end;
+          bDoneExpr := True;            // Can only have one expression
+        end
+
+      // Check if it's a comment
+
+      else if (NextTokenType = tkComment) then
+        begin
+          fParser.GetToken;
+          break;                        // No more tokens allowed, exit loop
+        end
+
+      // Non of the above, just add token to address mode mask
+
+      else
+        begin
+          fParser.GetToken;
+          AddrMode := AddrMode + fParser.Token.StringVal;
+        end;
+    end;
 end;
 
 
@@ -587,6 +633,7 @@ begin
   // Debug support; builds array with an element for each executable line
   // with program counter address, source line number, and source filename
   // Used by debug to show relevant sourceline when it stops at an address
+
   if (fIsAssembling) then
     begin
       nLen := Length(fLinesInfo);       // Only add lines data if executable (i.e. mnemonic)
@@ -609,7 +656,9 @@ begin
   PC := ParseExpr;                      // Set PC this value
   fListing.HexData := AddrOnly(PC);
   MemorySection := msCode;              // Default mode is CODE
+
   // Check if memory type is specified
+
   if (fParser.PeekNextToken.Typ = tkComma) then
     begin
       fParser.GetToken;                 // Skip comma
@@ -658,13 +707,17 @@ begin
     begin
       for idx := 1 to Operand do
         fFiles.WriteDataByte(FillByte); // ... write to output file
+
       // Warn just in case user actually intended this for RAM rather than CODE
+
       fErrors.AddWarning(emReserveInCode, True);
       Count := Min(Operand, 3);         // Limit for listing
       for idx := 1 to Count do          // Save bytes for listing
         BytesArray[idx] := FillByte;
       fListing.HexData := AddrPlus(Count);
+
       // Warn user if reserving more than 3 bytes space, as only showing 3
+
       if (Operand > 3) then
         fErrors.AddWarning(emLimitedBytesList, True);
     end;
@@ -723,8 +776,16 @@ begin
     begin
       Value := ParseExpr;               // Get word value in operand field
       Inc(NumBytes, 2);
-      BytesArray[NumBytes-1] := Lo(Value);
-      BytesArray[NumBytes] := Hi(Value);
+      if (Machine.CPU.Info.LittleEndian) then
+        begin
+          BytesArray[NumBytes-1] := Lo(Value);
+          BytesArray[NumBytes] := Hi(Value);
+        end
+      else
+        begin
+          BytesArray[NumBytes-1] := Hi(Value);
+          BytesArray[NumBytes] := Lo(Value);
+        end;
       if (fParser.PeekNextToken.Typ = tkComma) then
         fParser.GetToken                // Skip comma
       else
@@ -851,9 +912,11 @@ begin
       SymbolStr := fParser.Token.StringVal;
       LastGlobalLabel := SymbolStr;
     end;
+  if (not AsmPrefs.LabelsCaseSensitive) then
+    SymbolStr := UpperCase(SymbolStr);
 
   if (fPassNumber = 1) then
-    fSymbolTable.AddSymbol(SymbolStr, PC, [symLabel, symSet], 0)  // 0 = dummy line number
+    fSymbolTable.AddSymbol(SymbolStr, PC, [symLabel, symSet], 0) // 0 = dummy line number
   else
     begin
       ThisSymbol := fSymbolTable.FindSymbol(SymbolStr);
@@ -1125,6 +1188,8 @@ begin
                 sSymbol := fParser.Token.StringVal;
                 if (fParser.Token.Typ = tkDotId) then // Expand local label name
                   sSymbol := LastGlobalLabel + sSymbol;
+                if (not AsmPrefs.LabelsCaseSensitive) then
+                  sSymbol := UpperCase(sSymbol);
                 ThisSymbol := fSymbolTable.FindSymbol(sSymbol);
                 if (ThisSymbol <> nil) then
                   Result := ThisSymbol.Value
@@ -1132,7 +1197,7 @@ begin
                   if ((fPassNumber = 1) or (not fIsAssembling)) then
                     Result := PC
                   else
-                    fErrors.AddErrorFmt(emSymbolNotDefined, [sSymbol]);
+                    fErrors.AddErrorFmt(emSymbolNotDefined, [fParser.Token.StringVal]);
               end;
 
     tkDollar,
@@ -1187,8 +1252,6 @@ end;
 { Add assembler directives to the instructions hash table. Several directives
   relate to the same functionality to support different manufacturer's standard
   assembly terminology; e.g. byte, fcb, db, defb all define a byte value }
-
-{ TODO : uAssembler -> add facility for CPU to add  special directives, eg set DP in 6809 }
 
 procedure TAssembler.AddDirectives;
 begin

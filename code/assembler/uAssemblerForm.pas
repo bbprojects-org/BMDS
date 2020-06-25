@@ -232,7 +232,7 @@ begin
   // Then add in list of assembler directives, and the CPU registers list
   list := UpperCase(list) +
           DIRECTIVES +                  // Includes a #13 at end
-          ReplaceStr(Machine.CPU.Info.Registers, ' ', #13);
+          ReplaceStr(Machine.CPU.Info.RegsKeywords + ' ' + Machine.CPU.Info.RegsReplace, ' ', #13);
   hltAsm.Keywords := list;
 end;
 

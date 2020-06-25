@@ -490,7 +490,7 @@ begin
     menuSelect.Items[Idx].Checked := False;
   Idx := MachineFactory.FindIndexForID(CurrentMachineID);
   menuSelect.Items[Idx].Checked := True;
-  actRun.Enabled := Machine.Info.HasCodeToExecute; // Enabled if ROMS loaded
+  actRun.Enabled := Machine.HasCode;    // Enabled if ROMS loaded
 
   ShowMachineStatus;
 end;
@@ -1230,6 +1230,7 @@ end;
 procedure TMainForm.DoAssemblerLog(msg: string);
 begin
   Log(msg, []);
+  actRun.Enabled := Machine.HasCode;    // Update
 end;
 
 

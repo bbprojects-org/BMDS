@@ -108,6 +108,7 @@ type
     property CPU: TCpuBase read GetCPU;
     property Info: TMachineInfo read fInfo;    
     property State: TMachineState read fInfo.State write fInfo.State;
+    property HasCode: boolean read fInfo.HasCodeToExecute write fInfo.HasCodeToExecute;
     property MemoryMgr: TMemoryMgr read fMemoryMgr write fMemoryMgr;
     property Memory: TMemory read GetMemory;
     property FPS: integer read fFPS write SetFPS;

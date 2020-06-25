@@ -22,7 +22,7 @@
       <AutoIncrementBuild Value="True"/>
       <MajorVersionNr Value="3"/>
       <MinorVersionNr Value="5"/>
-      <BuildNr Value="358"/>
+      <BuildNr Value="359"/>
       <Language Value="0809"/>
     </VersionInfo>
     <BuildModes Count="1">
@@ -48,7 +48,7 @@
         <PackageName Value="LCL"/>
       </Item3>
     </RequiredPackages>
-    <Units Count="74">
+    <Units Count="76">
       <Unit0>
         <Filename Value="BMDS.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -450,6 +450,14 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit73>
+      <Unit74>
+        <Filename Value="cpu\CHIP-8\uAsmChip8.pp"/>
+        <IsPartOfProject Value="True"/>
+      </Unit74>
+      <Unit75>
+        <Filename Value="assembler\uAsmTypes.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit75>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

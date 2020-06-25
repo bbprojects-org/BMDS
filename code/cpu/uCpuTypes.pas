@@ -98,7 +98,8 @@ type
 
   TCpuInfo = record
     Name: string;
-    Registers: string;
+    RegsReplace: string;
+    RegsKeywords: string;
     WildChar: char;
     LittleEndian: boolean;
     SupportsAssembler: boolean;

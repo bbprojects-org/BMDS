@@ -133,9 +133,6 @@ const
 
 procedure TDisassemblerForm.FormCreate(Sender: TObject);
 begin
-  {$ifdef disassembler_debug}
-  AppLog.Debug('TDisassemblerForm.FormCreate');
-  {$endif}
   Top := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, 20);
   Left := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, 320);
   Width := AppIni.ReadInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_WIDTH, 0);
@@ -153,9 +150,6 @@ end;
 
 procedure TDisassemblerForm.FormDestroy(Sender: TObject);
 begin
-  {$ifdef disassembler_debug}
-  AppLog.Debug('TDisassemblerForm.FormDestroy');
-  {$endif}
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_TOP, Top);
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_LEFT, Left);
   AppIni.WriteInteger(SECT_CUSTOM, INI_PREFIX + INI_WDW_WIDTH, Width);

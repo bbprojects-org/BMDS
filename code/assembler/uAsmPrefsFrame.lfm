@@ -6,7 +6,7 @@ inherited AsmPrefsFrame: TAsmPrefsFrame
     TabOrder = 2
   end
   object GroupBox1: TGroupBox[1]
-    Left = 16
+    Left = 224
     Height = 192
     Top = 8
     Width = 200
@@ -72,12 +72,12 @@ inherited AsmPrefsFrame: TAsmPrefsFrame
     end
   end
   object GroupBox2: TGroupBox[2]
-    Left = 224
-    Height = 192
-    Top = 8
+    Left = 16
+    Height = 112
+    Top = 88
     Width = 200
     Caption = 'Output Code'
-    ClientHeight = 174
+    ClientHeight = 94
     ClientWidth = 192
     TabOrder = 1
     object cbWriteCodeToMemory: TCheckBox
@@ -122,6 +122,25 @@ inherited AsmPrefsFrame: TAsmPrefsFrame
       Width = 47
       Caption = 'Format:'
       ParentColor = False
+    end
+  end
+  object GroupBox3: TGroupBox[3]
+    Left = 16
+    Height = 73
+    Top = 8
+    Width = 200
+    Caption = 'Source Code'
+    ClientHeight = 55
+    ClientWidth = 192
+    TabOrder = 3
+    object cbCaseSensitive: TCheckBox
+      Left = 8
+      Height = 18
+      Top = 16
+      Width = 149
+      Caption = 'Labels case sensitive?'
+      OnChange = FlagChange
+      TabOrder = 0
     end
   end
 end
