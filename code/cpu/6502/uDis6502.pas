@@ -34,7 +34,7 @@ uses
   //
   uCpu6502, uDefs6502, uCpuTypes;
 
-function Disassemble6502(CPU: TCpu6502; Addr: word): TDisassembledData;
+function Disassemble6502(CPU: TCpu6502; Addr: word; IncAddr: boolean = True): TDisassembledData;
 
 
 implementation
@@ -44,7 +44,7 @@ implementation
 
 { Return disassembled instruction in standard 6502 assembler syntax }
 
-function Disassemble6502(CPU: TCpu6502; Addr: word): TDisassembledData;
+function Disassemble6502(CPU: TCpu6502; Addr: word; IncAddr: boolean): TDisassembledData;
 var
   AddrMode: TAddrMode6502;
 begin
@@ -105,8 +105,8 @@ begin
   Result.AddBlankLine := (Pos(Result.MnemStr, 'RTS/RTI/JMP') > 0);
   Result.HasOperand := Result.HasOperand or (AddrMode >= mZP);
 
-  Result.Text := Format('%.4x %-7s = %s %s',
-                       [Addr, Result.BytesStr, Result.MnemStr,
+  Result.Text := Format(DIS_FORMAT,
+                       [Result.BytesStr, Result.MnemStr,
                         Format(Result.AddrModeStr, [Result.OperandStr])]);
 end;
 

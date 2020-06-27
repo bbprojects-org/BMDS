@@ -28,7 +28,6 @@
 unit uCpu8080;
 
 {$mode objfpc}{$H+}
-{$rangechecks off}
 
 interface
 
@@ -135,9 +134,6 @@ begin
   fRegistersFrame := TRegistersFrame8080.Create(nil);
   (fRegistersFrame as TRegistersFrame8080).CpuRef := self;
 
-  fCpuType  := ct;
-  fCpuState := csStopped;
-
   Randomize;
   fRegs.B  := Random(256);              // Randomize registers on start up
   fRegs.C  := Random(256);
@@ -150,6 +146,7 @@ begin
   fRegs.SP := Random($10000);
 
   SetInfo(INFO_8080);
+  fCpuType  := ct;
   case ct of
     ct8080asmO: begin                   // 8080 with Original ASM format
                   ThisTypeMask := %01;
@@ -452,6 +449,7 @@ end;
 
 procedure TCpu8080.Reset;
 begin
+  fCpuRunning := True;
   fRegs.PC := 0;
   SetFlags(0);
   InterruptNumber := NO_INTERRUPT;
@@ -492,9 +490,7 @@ begin
       InterruptFlag := True;
     end;
 
-  fCpuState := csRunning;
   Result := ProcessOpcode;
-  fCpuState := csStopped;
 end;
 
 
@@ -914,7 +910,7 @@ begin
     $75: WriteMem(GetHL, fRegs.L);      // LD   (HL),L
 
     $76: begin                          // HALT
-           fCpuState := csHalted;
+           fCpuRunning := False;
            Dec(fRegs.PC);               // Halt on this opcode
          end;
 
@@ -1421,8 +1417,7 @@ end;
 
 function TCpu8080.GetTrace(Index: integer): TDisassembledData;
 begin
-  if (fCpuState = csRunning)            // No response if CPU running
-     or ((fTraceIndex = 0) and (not fTraceOverflow))
+  if ((fTraceIndex = 0) and (not fTraceOverflow))
      or ((Index > fTraceIndex) and (not fTraceOverflow)) then
     Result.Text := ''
   else

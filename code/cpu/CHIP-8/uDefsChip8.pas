@@ -39,10 +39,9 @@ type
 const
 
   INFO_CHIP8: TCpuInfo =
-    ( Name:                 'CHIP8';
+    ( Name:                 'Chip-8';
       RegsReplace:          'V0 V1 V2 V3 V4 V5 V6 V7 V8 V9 VA VB VC VD VE VF';
       RegsKeywords:         'I DT ST F B';
-      WildChar:             '*';
       LittleEndian:         False;
       SupportsAssembler:    True;
       SupportsDisassembler: True;
@@ -50,12 +49,6 @@ const
       TraceWidth:           702;
       RegistersHeight:      312;
       Template:             '' );
-
-  { CPU and Register Names }
-
-  CPU_CHIP8  = 'CHIP-8';
-  CPU2_CHIP8 = 'SUPERCHIP-8';
-  CPU3_CHIP8 = '**';
 
   { Define column details for CHIP-8 trace, including regisers }
 
@@ -103,7 +96,7 @@ const
     $F0, $80, $F0, $80, $F0,            // E
     $F0, $80, $F0, $80, $80 );          // F
 
-  SCHIP8_FONT: array[0..159] of byte = (
+  SCHIP_FONT: array[0..159] of byte = (
     $7C, $C6, $CE, $DE, $D6, $F6, $E6, $C6, $7C, $00,   // 0
     $10, $30, $F0, $30, $30, $30, $30, $30, $FC, $00,   // 1
     $78, $CC, $CC, $0C, $18, $30, $60, $C4, $FC, $00,   // 2
@@ -123,7 +116,7 @@ const
 
 { =============================================================================
   This section defines the instruction set for the CHIP-8 processor, and is
-  used by the emulator, assembler and disassembler.
+  used by the emulator, assembler and disassembler
   =============================================================================
 
   See 'uCpuBase' for record definition TOpcodeRawData and TRule
@@ -131,35 +124,42 @@ const
   M: The mnemonic associated with the instruction opcode, case is irrelevant
 
   A: The address mode syntax, all characters are taken literally except '*'
-     which represents an operand expression, '!' which represents a register,
-     and '@' which represents an operand byte or operand nibble. Double quotes
-     (empty string) mean no argument expected
+     which represents an operand expression and '!' which represents a register.
+     Double quotes (empty string) mean no argument expected
 
   S: Ordinal value of the addressing mode. Use type casting to access its
      proper value
 
-  O: The opcode value in hexadecimal. Max 6 chars, each pair representing
-     single byte, right most pair being placed in the lowest memory position
+  O: The opcode value in hexadecimal. Saved in big-endian format
 
-  N: The number of bytes for the address mode in total, including the
-     opcode itself. For CHIP-8 all instructions are 2 bytes
+  N: The number of bytes. For CHIP-8 all instructions are 2 bytes
 
-  C: The basic number of cycles for each opcode. Some opcodes use extra
-     cycles depending on the operation and these are added by the relevant
-     code
+  C: Not used
 
-  R: The action / rule to be performed for this instruction and address mode
+  R: Not used
 
   T: The type field has bits set according to which CPU is supported
-       CHIP-8 = Bit 1, SUPER CHIP-8 = Bit 2
+       CHIP-8 = Bit 1, SCHIP = Bit 2
 }
 
   OPCODES_CHIP8: array[0..44] of TOpcodeRawData =
   (
-  ( M: 'ADD';  A: 'I,!';   S: 03{mR};    O: $F01E; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx1E
-  ( M: 'ADD';  A: '!,*';   S: 04{mRB};   O: $7000; N: 2; C: 2; R: rNIL; T: %11 ), // $7xkk
-  ( M: 'ADD';  A: '!,!';   S: 05{mRR};   O: $8004; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy4
+  ( M: 'SYS';  A: '*';     S: 02{mAddr}; O: $0000; N: 2; C: 2; R: rNIL; T: %11 ),
+  ( M: 'CLS';  A: '';      S: 01{mIMP};  O: $00E0; N: 2; C: 2; R: rNIL; T: %11 ),
+  ( M: 'RET';  A: '';      S: 01{mIMP};  O: $00EE; N: 2; C: 2; R: rNIL; T: %11 ),
+  ( M: 'CALL'; A: '*';     S: 02{mAddr}; O: $2000; N: 2; C: 2; R: rNIL; T: %11 ),
 
+  ( M: 'JP';   A: '*';     S: 02{mAddr}; O: $1000; N: 2; C: 2; R: rNIL; T: %11 ),
+  ( M: 'JP';   A: 'V0,*';  S: 02{mAddr}; O: $B000; N: 2; C: 2; R: rNIL; T: %11 ),
+
+  ( M: 'SE';   A: '!,*';   S: 04{mRB};   O: $3000; N: 2; C: 2; R: rNIL; T: %11 ), // $3xkk
+  ( M: 'SE';   A: '!,!';   S: 05{mRR};   O: $5000; N: 2; C: 2; R: rNIL; T: %11 ), // $5xy0
+
+  ( M: 'SNE';  A: '!,*';   S: 04{mRB};   O: $4000; N: 2; C: 2; R: rNIL; T: %11 ), // $4xkk
+  ( M: 'SNE';  A: '!,!';   S: 05{mRR};   O: $9000; N: 2; C: 2; R: rNIL; T: %11 ), // $9xy0
+
+  ( M: 'LD';   A: '!,*';   S: 04{mRB};   O: $6000; N: 2; C: 2; R: rNIL; T: %11 ), // $6xkk
+  ( M: 'LD';   A: '!,!';   S: 05{mRR};   O: $8000; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy0
   ( M: 'LD';   A: 'I,*';   S: 02{mAddr}; O: $A000; N: 2; C: 2; R: rNIL; T: %11 ),
   ( M: 'LD';   A: '!,DT';  S: 03{mR};    O: $F007; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx07
   ( M: 'LD';   A: '!,K';   S: 03{mR};    O: $F00A; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx0A
@@ -169,45 +169,38 @@ const
   ( M: 'LD';   A: 'B,!';   S: 03{mR};    O: $F033; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx33
   ( M: 'LD';   A: '[I],!'; S: 03{mR};    O: $F055; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx55
   ( M: 'LD';   A: '!,[I]'; S: 03{mR};    O: $F065; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx65
-  ( M: 'LD';   A: '!,*';   S: 04{mRB};   O: $6000; N: 2; C: 2; R: rNIL; T: %11 ), // $6xkk
-  ( M: 'LD';   A: '!,!';   S: 05{mRR};   O: $8000; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy0
-  // SUPER CHIP-8
+  // SCHIP (3)
   ( M: 'LD';  A: 'HF,!';   S: 03{mR};    O: $F030; N: 2; C: 2; R: rNIL; T: %10 ), // $Fx30
   ( M: 'LD';  A: 'R,!';    S: 03{mR};    O: $F075; N: 2; C: 2; R: rNIL; T: %10 ), // $Fx75
   ( M: 'LD';  A: '!,R';    S: 03{mR};    O: $F085; N: 2; C: 2; R: rNIL; T: %10 ), // $Fx85
 
-  ( M: 'CALL'; A: '*';     S: 02{mAddr}; O: $2000; N: 2; C: 2; R: rNIL; T: %11 ),
-  ( M: 'CLS';  A: '';      S: 01{mIMP};  O: $00E0; N: 2; C: 2; R: rNIL; T: %11 ),
-  ( M: 'JP';   A: '*';     S: 02{mAddr}; O: $1000; N: 2; C: 2; R: rNIL; T: %11 ),
-  ( M: 'JP';   A: 'V0,*';  S: 02{mAddr}; O: $B000; N: 2; C: 2; R: rNIL; T: %11 ),
-  ( M: 'RET';  A: '';      S: 01{mIMP};  O: $00EE; N: 2; C: 2; R: rNIL; T: %11 ),
-  ( M: 'RND';  A: '!,*';   S: 04{mRB};   O: $C000; N: 2; C: 2; R: rNIL; T: %11 ), // $Cxkk
-  ( M: 'SE';   A: '!,*';   S: 04{mRB};   O: $3000; N: 2; C: 2; R: rNIL; T: %11 ), // $3xkk
-  ( M: 'SE';   A: '!,!';   S: 05{mRR};   O: $5000; N: 2; C: 2; R: rNIL; T: %11 ), // $5xy0
-  ( M: 'SKNP'; A: '!';     S: 03{mR};    O: $E0A1; N: 2; C: 2; R: rNIL; T: %11 ), // $ExA1
-  ( M: 'SKP';  A: '!';     S: 03{mR};    O: $E09E; N: 2; C: 2; R: rNIL; T: %11 ), // $Ex9E
-  ( M: 'SNE';  A: '!,*';   S: 04{mRB};   O: $4000; N: 2; C: 2; R: rNIL; T: %11 ), // $4xkk
-  ( M: 'SYS';  A: '*';     S: 02{mAddr}; O: $0000; N: 2; C: 2; R: rNIL; T: %11 ),
   ( M: 'OR';   A: '!,!';   S: 05{mRR};   O: $8001; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy1
   ( M: 'AND';  A: '!,!';   S: 05{mRR};   O: $8002; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy2
   ( M: 'XOR';  A: '!,!';   S: 05{mRR};   O: $8003; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy3
+
+  ( M: 'ADD';  A: '!,*';   S: 04{mRB};   O: $7000; N: 2; C: 2; R: rNIL; T: %11 ), // $7xkk
+  ( M: 'ADD';  A: '!,!';   S: 05{mRR};   O: $8004; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy4
+  ( M: 'ADD';  A: 'I,!';   S: 03{mR};    O: $F01E; N: 2; C: 2; R: rNIL; T: %11 ), // $Fx1E
+
   ( M: 'SUB';  A: '!,!';   S: 05{mRR};   O: $8005; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy5
   ( M: 'SHR';  A: '!,!';   S: 05{mRR};   O: $8006; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy6
   ( M: 'SUBN'; A: '!,!';   S: 05{mRR};   O: $8007; N: 2; C: 2; R: rNIL; T: %11 ), // $8xy7
   ( M: 'SHL';  A: '!,!';   S: 05{mRR};   O: $800E; N: 2; C: 2; R: rNIL; T: %11 ), // $8xyE
-  ( M: 'SNE';  A: '!,!';   S: 05{mRR};   O: $9000; N: 2; C: 2; R: rNIL; T: %11 ), // $9xy0
+  ( M: 'RND';  A: '!,*';   S: 04{mRB};   O: $C000; N: 2; C: 2; R: rNIL; T: %11 ), // $Cxkk
+  ( M: 'SKP';  A: '!';     S: 03{mR};    O: $E09E; N: 2; C: 2; R: rNIL; T: %11 ), // $Ex9E
+  ( M: 'SKNP'; A: '!';     S: 03{mR};    O: $E0A1; N: 2; C: 2; R: rNIL; T: %11 ), // $ExA1
 
   ( M: 'DRW';  A: '!,!,*'; S: 06{mRRN};  O: $D000; N: 2; C: 2; R: rNIL; T: %11 ), // $Dxyn
-  // SUPER CHIP-8
+  // SCHIP (1)
   ( M: 'DRW';  A: '!,!,0'; S: 05{mRR};   O: $D000; N: 2; C: 2; R: rNIL; T: %10 ), // $Dxy0
 
-  // SUPER CHIP-8
+  // SCHIP (6)
   ( M: 'SCR';  A: '';      S: 01{mIMP};  O: $00FB; N: 2; C: 2; R: rNIL; T: %10 ),
   ( M: 'SCL';  A: '';      S: 01{mIMP};  O: $00FC; N: 2; C: 2; R: rNIL; T: %10 ),
   ( M: 'EXIT'; A: '';      S: 01{mIMP};  O: $00FD; N: 2; C: 2; R: rNIL; T: %10 ),
   ( M: 'LOW';  A: '';      S: 01{mIMP};  O: $00FE; N: 2; C: 2; R: rNIL; T: %10 ),
   ( M: 'HIGH'; A: '';      S: 01{mIMP};  O: $00FF; N: 2; C: 2; R: rNIL; T: %10 ),
-  ( M: 'SCD'; A: '*';      S: 07{mN};    O: $F030; N: 2; C: 2; R: rNIL; T: %10 )  // $00Cn
+  ( M: 'SCD'; A: '*';      S: 07{mN};    O: $00C0; N: 2; C: 2; R: rNIL; T: %10 )  // $00Cn
 );
 
 

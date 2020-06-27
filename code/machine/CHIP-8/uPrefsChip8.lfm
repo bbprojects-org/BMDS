@@ -1,13 +1,48 @@
 inherited Chip8PrefsFrame: TChip8PrefsFrame
+  DesignLeft = 2631
+  DesignTop = 968
   inherited btnResetDefault: TButton
-    TabOrder = 2
+    OnClick = btnResetDefaultClick
   end
-  object Label1: TLabel[1]
-    Left = 24
-    Height = 16
-    Top = 24
-    Width = 269
-    Caption = 'No preferences currently defined for CHIP-8'
-    ParentColor = False
+  object gbCHIP8: TGroupBox[1]
+    Left = 16
+    Height = 56
+    Top = 8
+    Width = 412
+    Caption = 'CHIP8 Mode'
+    ClientHeight = 38
+    ClientWidth = 404
+    TabOrder = 1
+    object cbCHIP8: TCheckBox
+      Left = 8
+      Height = 18
+      Top = 10
+      Width = 224
+      Caption = 'Restrict to CHIP8 instructions only?'
+      OnChange = FlagChange
+      TabOrder = 0
+    end
+  end
+  object gbCHIP9: TGroupBox[2]
+    Left = 16
+    Height = 56
+    Top = 70
+    Width = 412
+    Caption = 'Speed'
+    ClientHeight = 38
+    ClientWidth = 404
+    TabOrder = 2
+    object seStepsPerFrame: TSpinEdit
+      Left = 32
+      Height = 21
+      Top = 8
+      Width = 54
+      Increment = 2
+      MaxValue = 200
+      MinValue = 2
+      OnChange = FlagChange
+      TabOrder = 0
+      Value = 10
+    end
   end
 end

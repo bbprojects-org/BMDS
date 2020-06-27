@@ -480,12 +480,12 @@ begin
       tmpScreenPosition.Y := self.Top + self.Height + FORM_EXTRA_HEIGHT;
     end;
   Machine.ScreenPosition := tmpScreenPosition;
-  Machine.ScreenCaption := Format('%s (%d)', [CurrentMachineID, Machine.Info.Year]);
+  Machine.ScreenCaption := Format('%s (%d)', [Machine.Info.Name, Machine.Info.Year]);
   Machine.Reset;
 
   menuTestCpu.Enabled := Machine.CPU.Info.SupportsCpuTest;
 
-  Caption := Format('%s - %s',  [APP_NAME, CurrentMachineID]);
+  Caption := Format('%s - %s',  [APP_NAME, Machine.Info.Name]);
   for Idx := 0 to menuSelect.Count-1 do
     menuSelect.Items[Idx].Checked := False;
   Idx := MachineFactory.FindIndexForID(CurrentMachineID);
@@ -935,7 +935,7 @@ begin
       Inc(CalculatedFPS);               // Count each frame to report FPS
     end;
 
-  if (Machine.State = msStoppedOnBrkpt) then
+  if (Machine.State in [msStoppedOnBrkpt, msStoppedInvalid, msStoppedCpu]) then
     begin
       SetButtonsState(False);
       UpdateStatus;
@@ -1096,6 +1096,8 @@ begin
     msRunning:        StateStr := 'Running';
     msStopped:        StateStr := 'Stopped';
     msStoppedOnBrkpt: StateStr := Format('Breakpoint $%.4x', [Machine.CPU.PC]);
+    msStoppedInvalid: StateStr := Format('Invalid opcode at $%.4x', [Machine.CPU.PC]);
+    msStoppedCpu:     StateStr := Format('CPU halted at $%.4x', [Machine.CPU.PC]);
   end;
   StatusBar.Panels[0].Text := StateStr;
   if (DeveloperMode) then

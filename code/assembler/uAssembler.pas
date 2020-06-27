@@ -511,7 +511,7 @@ begin
           BytesArray[3] := (OperandValue shr 8) and $FF;
         end;
 
-      ctCHIP8, ctSCHIP8:
+      ctCHIP8, ctSCHIP:
         begin
           case TAddrModeChip8(ThisData.S) of
             mIMP:  ThisOpcode := ThisData.O;

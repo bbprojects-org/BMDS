@@ -44,7 +44,7 @@ uses
   //
   uEditorFrame, uSearchForm, uAssembler, uIniFile, uMRU, uHighlighterAsm,
   uCpuTypes, uMachineBase, uEdPrefsFrame, uEdColourPrefsFrame, uFormatter,
-  uCommon;
+  uAsmPrefsFrame, uCommon;
 
 type
   TOnLogEvent = procedure(Msg: string) of object;
@@ -199,6 +199,7 @@ begin
   MRU.OnMenuClick := @LoadFile;
   SearchForm := TSearchForm.Create(nil);
   UpdateActionStates;
+  Caption := 'BMDS Assembler for ' + Machine.CPU.Info.Name;
 end;
 
 
@@ -542,14 +543,13 @@ begin
       ThisAssembler.OnLog := @StatusLog;
       try
         ThisAssembler.Execute(ThisInputFile);
+        tmp := ChangeFileExt(ThisInputFile, '.lst');
+        if (AsmPrefs.GenerateListing and FileExists(tmp)) then
+          LoadFile(tmp);
       finally
         ThisAssembler.Free;
       end;
     end;
-
-  tmp := ChangeFileExt(ThisInputFile, '.lst');
-  if FileExists(tmp) then
-    LoadFile(tmp);
 end;
 
 

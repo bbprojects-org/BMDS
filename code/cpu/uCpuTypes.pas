@@ -32,11 +32,10 @@ uses
 type
   TCpuType = (ctNil,
               ct6502, ct65C02,          // 6502 and 65C02
-              ctCHIP8, ctSCHIP8,        // CHIP-8 and Super CHIP-8
+              ctCHIP8, ctSCHIP,         // CHIP-8 and SCHIP
               ct8080asmO,               // 8080 with asm Original format
               ct8080asmZ                // 8080 with asm Z80 format
               );
-  TCpuState = (csStopped, csRunning, csHalted, csStoppedOnBrk);
 
   // Disassembler data
   TAddrLabel = record
@@ -100,7 +99,6 @@ type
     Name: string;
     RegsReplace: string;
     RegsKeywords: string;
-    WildChar: char;
     LittleEndian: boolean;
     SupportsAssembler: boolean;
     SupportsDisassembler: boolean;
@@ -109,6 +107,10 @@ type
     RegistersHeight: integer;
     Template: string;
   end;
+
+const
+  DIS_FORMAT  = '%-8s = %-4s %s';       // opcode bytes, mnemonic, operand
+  DIS_LFORMAT = '%-13s %-5s %-18s %s';  // label, mnemonic, operand, comment
 
 
 implementation

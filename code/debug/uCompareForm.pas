@@ -30,7 +30,6 @@
 unit uCompareForm;
 
 {$mode objfpc}{$H+}
-{$R-}
 
 {.$define compare_debug}
 

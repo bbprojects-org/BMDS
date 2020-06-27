@@ -6,7 +6,7 @@
     by Joseph Weisbecker in the 1970s for use on the RCA COSMAC VIP computer.
     It is not a CPU as such.
 
-    CPU:      The 'CPU' has 16 8-bit general purpose registers, a stack
+    CPU:      The 'CPU' has 16 8-bit general purpose registers, a 16-word stack
               pointer, a 16-bit index register and program counter. It has two
               timers; a delay timer and a sound timer, both count down at 60Hz.
 
@@ -14,6 +14,9 @@
 
     Graphics: 64 x 32 pixel screen, instructions support sprites, and a built
               in hexadecimal font
+
+    This emulation includes the SCHIP with 128 x 64 pixel screen and
+    additional instructions
 
     Based on info from:
     1. How to write an emulator (CHIP-8 interpreter) by Laurence Muller
@@ -42,44 +45,52 @@
 unit uCpuChip8;
 
 {$mode objfpc}{$H+}
-{$R-}
 
 interface
 
 uses
-  Classes, SysUtils, Graphics, Dialogs,
+  Forms, Classes, SysUtils, Graphics, Dialogs,
   //
-  uCpuBase, uDefsChip8, uCommon, uCpuTypes, uMachineBase;
+  uCpuBase, uDefsChip8, uCommon, uCpuTypes, uPrefsChip8;
 
 type
   TRegsChip8 = record
     V: array[0..15] of byte;            // Sixteen 8-bit general purpose registers
-    I: word;                            // Index 16-bit register
-    PC: word;                           // Program counter 16-bit
-    SP: byte;                           // Stack pointer 8-bit
+    I: word;                            // Index register
+    PC: word;                           // Program counter
+    SP: byte;                           // Stack pointer
   end;
 
   TKeys = array[0..15] of boolean;      // Sixteen key 'keypad'
-  TPixels = array[0..64*32-1] of byte;  // Display buffer in pixels
+  TPixels = array[0..128*64] of byte; // Display buffer in pixels, big enough for SCHIP
   TStack = array[0..15] of word;
+  THP48Flags = array[0..15] of byte;
 
   { TCpuChip8 }
 
   TCpuChip8 = class(TCpuBase)
   private
-    fMachine: TMachineBase;             // Pointer to parent machine properties
     fKeys: TKeys;
     fRegs: TRegsChip8;
     fPixelsArray: TPixels;
-    DoneInvalidWarning: boolean;
-
     fStack: TStack;
+    fHP48Flags: THP48Flags;
+    fHiRes: boolean;
+    fUpdatedScreen: boolean;
+    fDelayTimer: byte;
+    fSoundTimer: byte;
+    fScreenX: byte;
+    fScreenY: byte;
+    DoneInvalidWarning: boolean;
     TraceList: array[0..TRACE_MAX] of TRegsChip8;
 
     procedure ProcessOpcode;
+    procedure ScrollRight;
+    procedure ScrollLeft;
+    procedure ScrollDown(Count: integer);
     function  GetKey(Index: byte): boolean;
+    procedure SetHiRes(aValue: boolean);
     procedure SetKey(Index: byte; Value: boolean);
-    procedure SetMachine(Value: TMachineBase);
   protected
     function GetPC: word; override;
     function GetTraceColumns: TTraceColArray; override;
@@ -95,19 +106,27 @@ type
     //
     function  MemRead(addr: word): byte;
     procedure MemWrite(addr: word; value: byte);
-
-    property  Pixels: TPixels read fPixelsArray;
-    property  Regs: TRegsChip8 read GetRegs write fRegs;
-    property  Stack: TStack read fStack;
-    property  Machine: TMachineBase read fMachine write SetMachine;
-    property  Key[Index: byte]: boolean read GetKey write SetKey;
+    //
+    property Pixels: TPixels read fPixelsArray;
+    property HiRes: boolean read fHiRes write SetHiRes;
+    property ScreenX: byte read fScreenX write fScreenX;
+    property ScreenY: byte read fScreenY write fScreenY;
+    property UpdatedScreen: boolean read fUpdatedScreen write fUpdatedScreen;
+    property Regs: TRegsChip8 read GetRegs write fRegs;
+    property Stack: TStack read fStack;
+    property Key[Index: byte]: boolean read GetKey write SetKey;
+    property DelayTimer: byte read fDelayTimer write fDelayTimer;
+    property SoundTimer: byte read fSoundTimer write fSoundTimer;
   end;
+
+const
+  HFONT_OFFSET = 80;
 
 
 implementation
 
 uses
-  uMachineChip8, uDisChip8, uRegistersFrameChip8;
+  uMachineBase, uDisChip8, uRegistersFrameChip8;
 
 
 { CREATE }
@@ -120,17 +139,17 @@ begin
   (fRegistersFrame as TRegistersFrameChip8).CpuRef := self;
 
   fCpuType  := ct;
-  fCpuState := csStopped;
-
   SetInfo(INFO_CHIP8);
   case ct of
-    ctCHIP8:  ThisTypeMask := %01;
-    ctSCHIP8: begin
-               { TODO : uCpuChip8 -> add support for SCHIP }
-               MessageWarning('Not Supported', 'SCHIP currently not supported, defaulting to CHIP8');
-               //ThisTypeMask := %11;
+    ctCHIP8: begin
                ThisTypeMask := %01;
-               fInfo.Name := 'SCHIP-8'; // Replace default name
+               SetHiRes(False);
+             end;
+    ctSCHIP: begin
+               ThisTypeMask := %11;
+               fInfo.Name := 'SCHIP';
+               fInfo.RegsKeywords := fInfo.RegsKeywords + ' HF R';
+               SetHiRes(True);
              end;
   end;
   BuildOpcodesData(OPCODES_CHIP8, ThisTypeMask);
@@ -163,15 +182,7 @@ begin
 end;
 
 
-{ SET MACHINE }
-
-procedure TCpuChip8.SetMachine(Value: TMachineBase);
-begin
-  fMachine := TMachineChip8(Value);
-end;
-
-
-{ GET / SET KEYS }
+{ GETTERS / SETTERS }
 
 function TCpuChip8.GetKey(Index: byte): boolean;
 begin
@@ -184,8 +195,6 @@ begin
   fKeys[Index] := Value;
 end;
 
-
-{ GETTERS }
 
 function TCpuChip8.GetTraceColumns: TTraceColArray;
 var
@@ -209,23 +218,46 @@ begin
 end;
 
 
+procedure TCpuChip8.SetHiRes(aValue: boolean);
+begin
+  if (fHiRes = aValue) then Exit;
+
+  fHiRes := aValue;
+  if (fHiRes) then
+    begin
+      ScreenX := 128;
+      ScreenY := 64;
+    end
+  else
+    begin
+      ScreenX := 64;
+      ScreenY := 32;
+    end;
+end;
+
+
 { RESET }
 
 procedure TCpuChip8.Reset;
 var
   i: integer;
 begin
+  fCpuRunning := True;
   for i := 0 to 15 do                   // Clear registers
     fRegs.V[i] := 0;
   fRegs.PC := $200;                     // Default start addr for CHIP8 [[For ETI-660 it was $600]]
   fRegs.I  := 0;
   fRegs.SP := 0;
-  fCpuState := csStopped;
+  fDelayTimer := 0;
+  fSoundTimer := 0;
 
-  for i := 0 to 79 do                   // Initialise character fonts
+  for i := 0 to 79 do                   // Initialise character fonts, LoRes
     MemWrite(i, CHIP8_FONT[i]);
+  for i := 0 to 159 do                  // and HiRes (together < 512 limit)
+    MemWrite(HFONT_OFFSET + i, SCHIP_FONT[i]);
   for i := 0 to length(fPixelsArray) - 1 do // Clear screen
     fPixelsArray[i] := 0;
+  fUpdatedScreen := True;
 
   ResetTrace;
   DoneInvalidWarning := False;
@@ -246,9 +278,7 @@ end;
 
 function TCpuChip8.ExecuteInstruction: integer;
 begin
-  fCpuState := csRunning;
   ProcessOpcode;
-  fCpuState := csStopped;
   Result := 0;
 end;
 
@@ -258,10 +288,18 @@ end;
 procedure TCpuChip8.ProcessOpcode;
 var
   Opcode: word;
-  i, IndexX, IndexY: byte;
-  X, Y, Row, RowOfPixels, Height: byte;
-  ThisBit, ThisPixel: integer;
+  i, OpX, OpY, OpByte, OpNibble: byte;
+  X, Y, Row, Col, RowOfPixels, Height: byte;
+  OpAddr: word;
+  ThisBit, ThisPixel, ThisRow, ThisCol, tmp: integer;
   Unknown, KeyPressed: boolean;
+
+  function AllowSCHIP: boolean;
+  begin
+    Unknown := Chip8Prefs.Chip8Only;
+    Result := not Unknown;
+  end;
+
 begin
   // Trace Execution; save the location and registers' state before we execute
   if (fTraceIndex >= TRACE_MAX) then
@@ -275,8 +313,11 @@ begin
   // Execute the current opcode
   Unknown := False;
   Opcode := (MemRead(fRegs.PC) shl 8) or MemRead(fRegs.PC+1);
-  IndexX := (Opcode and $0F00) shr 8;
-  IndexY := (Opcode and $00F0) shr 4;
+  OpX := (Opcode shr 8) and $000F;
+  OpY := (Opcode shr 4) and $000F;
+  OpAddr := Opcode and $0FFF;
+  OpByte := Opcode and $00FF;
+  OpNibble := Opcode and $000F;
 
   Inc(fRegs.PC, 2);                     // Each instruction is two bytes
 
@@ -284,129 +325,174 @@ begin
 
     $0000: // Various, check next bits
            begin
-             case (Opcode and $000F) of
+             case (Opcode) of
 
-               $0000: // $00E0: clear screen
+               $00E0: // CLS - clear screen
                   begin
                     for ThisPixel := 0 to (length(fPixelsArray) - 1) do
                       fPixelsArray[ThisPixel] := 0;
+                      fUpdatedScreen := True;
                   end;
 
-               $000E: // $00EE: return from subroutine
+               $00EE: // RET - return from subroutine
                   begin
                     Dec(fRegs.SP);      // Restore PC from stack
                     fRegs.SP := fRegs.SP and $0F; // Limit to 16 entries
                     fRegs.PC := fStack[fRegs.SP];
                   end;
 
-             else
-               Unknown := True;
+               $00FB: // SCR - scroll 4 pixels right
+                  if (AllowSCHIP) then
+                    ScrollRight;
+
+               $00FC: // SCL - scroll 4 pixels left
+                  if (AllowSCHIP) then
+                    ScrollLeft;
+
+               $00FD: // EXIT - exit CHIP interpreter
+                  if (AllowSCHIP) then
+                    begin
+                      fCpuRunning := False;
+                      Dec(fRegs.PC, 2);   // Stop on this opcode
+                    end;
+
+               $00FE: // LOW - disable extended screen mode
+                  if (AllowSCHIP) then
+                    begin
+                      if (fHiRes) then
+                        begin
+                          fUpdatedScreen := True;
+                          SetHiRes(False);
+                        end;
+                    end;
+
+               $00FF: // HIGH - enable extended screen mode
+                  if (AllowSCHIP) then
+                    begin
+                      if (not fHiRes) then
+                        begin
+                          fUpdatedScreen := True;
+                          SetHiRes(True);
+                        end;
+                    end;
+
+             else { case (Opcode) of }
+               begin
+                 if (((Opcode and $FFF0) = $00C0) and (AllowSCHIP)) then
+                   begin // $00CN: SCD - scroll N lines down
+                     ScrollDown(OpNibble);
+                   end
+
+                 else    // Otherwise opcode is not known
+                   Unknown := True;
+               end;
              end;
            end;
 
-    $1000: // $1NNN: jump to address NNN
+    $1000: // $1NNN: JP - jump to address NNN
            begin
-             fRegs.PC := Opcode and $0FFF;
+             fRegs.PC := OpAddr;
            end;
 
-    $2000: // $2NNN: call subroutine at address NNN
+    $2000: // $2NNN: CALL - call subroutine at address NNN
            begin
              fStack[fRegs.SP] := fRegs.PC; // Save current address in stack
-                                        // Note: already incremented
+                                        // Note: PC already incremented
              Inc(fRegs.SP);
              fRegs.SP := fRegs.SP and $0F; // Limit to 16 entries
-             fRegs.PC := Opcode and $0FFF;
+             fRegs.PC := OpAddr;
            end;
 
-    $3000: // $3xNN: skips the next instruction if Vx equals NN
+    $3000: // $3xNN: SE - skips the next instruction if Vx equals NN
            begin
-             if (fRegs.V[IndexX] = (Opcode and $00FF)) then
-               Inc(fRegs.PC, 2);        // Already pointing at next instr, point past it
+             if (fRegs.V[OpX] = OpByte) then
+               fRegs.PC := (fRegs.PC + 2) and $0FFF; // Already pointing at next instr, point past it
            end;
 
-    $4000: // $4xNN: skips the next instruction if Vx does not equal NN
+    $4000: // $4xNN: SNE - skips the next instruction if Vx does not equal NN
            begin
-             if (fRegs.V[IndexX] <> (Opcode and $00FF)) then
-               Inc(fRegs.PC, 2);        // Already pointing at next instr, point past it
+             if (fRegs.V[OpX] <> OpByte) then
+               fRegs.PC := (fRegs.PC + 2) and $0FFF; // Already pointing at next instr, point past it
            end;
 
-    $5000: // $5xy0: skips the next instruction if Vx equals Vy
+    $5000: // $5xy0: SE - skips the next instruction if Vx equals Vy
            begin
-             if (fRegs.V[IndexX] = (fRegs.V[IndexY])) then
-               Inc(fRegs.PC, 2);        // Already pointing at next instr, point past it
+             if (fRegs.V[OpX] = (fRegs.V[OpY])) then
+               fRegs.PC := (fRegs.PC + 2) and $0FFF; // Already pointing at next instr, point past it
            end;
 
-    $6000: // $6xNN: set Vx to value NN
+    $6000: // $6xNN: LD - set Vx to value NN
            begin
-             fRegs.V[IndexX] := Opcode and $00FF;
+             fRegs.V[OpX] := OpByte;
            end;
 
-    $7000: // $7xNN: add value NN to Vx
+    $7000: // $7xNN: ADD - add value NN to Vx
            begin
-             fRegs.V[IndexX] := fRegs.V[IndexX] + (Opcode and $00FF);
+             fRegs.V[OpX] := (fRegs.V[OpX] + OpByte) and $FF;
            end;
 
     $8000: // Various, check next bits
            begin
              case (Opcode and $000F) of
 
-               $0000: // $8xy0: set Vx to value of Vy
+               $0000: // $8xy0: LD - set Vx to value of Vy
                   begin
-                    fRegs.V[IndexX] := fRegs.V[IndexY];
+                    fRegs.V[OpX] := fRegs.V[OpY];
                   end;
 
-               $0001: // $8xy1: set Vx to (Vx or Vy)
+               $0001: // $8xy1: OR - set Vx to (Vx or Vy)
                   begin
-                    fRegs.V[IndexX] := fRegs.V[IndexX] or fRegs.V[IndexY];
+                    fRegs.V[OpX] := fRegs.V[OpX] or fRegs.V[OpY];
                   end;
 
-               $0002: // $8xy2: set Vx to (Vx and Vy)
+               $0002: // $8xy2: AND - set Vx to (Vx and Vy)
                   begin
-                    fRegs.V[IndexX] := fRegs.V[IndexX] and fRegs.V[IndexY];
+                    fRegs.V[OpX] := fRegs.V[OpX] and fRegs.V[OpY];
                   end;
 
-               $0003: // $8xy3: set Vx xor (Vx or Vy)
+               $0003: // $8xy3: XOR - set Vx xor (Vx or Vy)
                   begin
-                    fRegs.V[IndexX] := fRegs.V[IndexX] xor fRegs.V[IndexY];
+                    fRegs.V[OpX] := fRegs.V[OpX] xor fRegs.V[OpY];
                   end;
 
-               $0004: // $8xy4: Vx := Vx + Vy, VF set to 1 if carry else 0
+               $0004: // $8xy4: ADD - Vx := Vx + Vy, VF set to 1 if carry else 0
                   begin
-                    if (fRegs.V[IndexY] > ($FF - fRegs.V[IndexX])) then
+                    tmp := fRegs.V[OpX] + fRegs.V[OpY];
+                    if (tmp > 255) then
                       fRegs.V[$F] := 1
                     else
                       fRegs.V[$F] := 0;
-                    fRegs.V[IndexX] := fRegs.V[IndexX] + fRegs.V[IndexY];
+                    fRegs.V[OpX] := tmp and $FF;
                   end;
 
-               $0005: // $8xy5: Vx := Vx - Vy, VF set to 0 if borrow else 1
+               $0005: // $8xy5: SUB - Vx := Vx - Vy, VF set to 0 if borrow else 1
                   begin
-                    if (fRegs.V[IndexY] > fRegs.V[IndexX]) then
+                    if (fRegs.V[OpY] > fRegs.V[OpX]) then
                       fRegs.V[$F] := 0
                     else
                       fRegs.V[$F] := 1;
-                    fRegs.V[IndexX] := fRegs.V[IndexX] - fRegs.V[IndexY];
+                    fRegs.V[OpX] := (fRegs.V[OpX] - fRegs.V[OpY]) and $FF;
                   end;
 
-               $0006: // $8xy6: VF set to LSB of Vx, Vx := Vx shr 1
+               $0006: // $8xy6: SHR - VF set to LSB of Vx, Vx := Vx shr 1
                   begin
-                    fRegs.V[$F] :=  fRegs.V[IndexX] and $01;
-                    fRegs.V[IndexX] := fRegs.V[IndexX] shr 1;
+                    fRegs.V[$F] :=  fRegs.V[OpX] and $01;
+                    fRegs.V[OpX] := fRegs.V[OpX] shr 1;
                   end;
 
-               $0007: // $8xy7: Vx := Vy - Vx, VF set to 0 if borrow else 1
+               $0007: // $8xy7: SUBN - Vx := Vy - Vx, VF set to 0 if borrow else 1
                   begin
-                    if (fRegs.V[IndexX] > fRegs.V[IndexY]) then
+                    if (fRegs.V[OpX] > fRegs.V[OpY]) then
                       fRegs.V[$F] := 0
                     else
                       fRegs.V[$F] := 1;
-                    fRegs.V[IndexX] := fRegs.V[IndexY] - fRegs.V[IndexX];
+                    fRegs.V[OpX] := (fRegs.V[OpY] - fRegs.V[OpX]) and $FF;
                   end;
 
-               $000E: // $8xyE: VF set to MSB of Vx, Vx := Vx shl 1
+               $000E: // $8xyE: SHL - VF set to MSB of Vx, Vx := Vx shl 1
                   begin
-                    fRegs.V[$F] :=  fRegs.V[IndexX] shr 7;
-                    fRegs.V[IndexX] := fRegs.V[IndexX] shl 1;
+                    fRegs.V[$F] :=  fRegs.V[OpX] shr 7;
+                    fRegs.V[OpX] := (fRegs.V[OpX] shl 1) and $FF;
                   end;
 
              else
@@ -414,67 +500,113 @@ begin
              end;
            end;
 
-    $9000: // $9xy0: skips the next instruction if Vx does not equal Vy
+    $9000: // $9xy0: SNE - skips the next instruction if Vx does not equal Vy
            begin
-             if (fRegs.V[IndexX] <> fRegs.V[IndexY]) then
-               Inc(fRegs.PC, 2);        // Already pointing at next instr, point past it
+             if (fRegs.V[OpX] <> fRegs.V[OpY]) then
+               fRegs.PC := (fRegs.PC + 2) and $0FFF; // Already pointing at next instr, point past it
            end;
 
-    $A000: // $ANNN: set I to address NNN
+    $A000: // $ANNN: LD - set I to address NNN
            begin
-             fRegs.I := Opcode and $0FFF;
+             fRegs.I := OpAddr;
            end;
 
-    $B000: // $BNNN: jump to address (NNN + V0)
+    $B000: // $BNNN: JP - jump to address (NNN + V0)
            begin
-             fRegs.PC := (Opcode and $0FFF) + fRegs.V[0];
+             fRegs.PC := (OpAddr + fRegs.V[0]) and $0FFF;
            end;
 
-    $C000: // $CxNN: sets Vx to (RandomNumber and NN)
+    $C000: // $CxNN: RND - sets Vx to (RandomNumber and NN)
            begin
              Randomize;
-             fRegs.V[IndexX] := Random(255) and (Opcode and $00FF);
+             fRegs.V[OpX] := Random(255) and OpByte;
            end;
 
-    $D000: // $DxyN: draw sprite at coords Vx,Vy, width 8, height N
-           //        first row byte starts at memory location I
-           //        VF set to 1 if any active screen pixels collide
+    $D000: // $DxyN: DRW - draw sprite at coords Vx,Vy, width 8, height N
+           //              first row byte starts at memory location I
+           //              VF set to 1 if any active screen pixels collide
+           //
+           // If SCHIP then draw 16x16 sprite, unless LowRes then drop through
            begin
-             X := fRegs.V[IndexX];
-             Y := fRegs.V[IndexY];
-             Height := (Opcode and $000F);
+             X := fRegs.V[OpX];
+             Y := fRegs.V[OpY];
              fRegs.V[$F] := 0;
-             for Row := 0 to (Height - 1) do
-               begin
-                 RowOfPixels := MemRead(fRegs.I + Row);
-                 for ThisBit := 0 to 7 do
+             if ((OpNibble = 0) and AllowSCHIP and fHiRes) then
+               begin                    // SCHIP, show 16x16 sprite
+                 for Row := 0 to 15 do
                    begin
-                     if ((RowOfPixels and ($80 shr ThisBit)) <> 0) then
+                     ThisRow := Y + Row;
+                     if (ThisRow >= fScreenY) then // Gone off bottom?
+                       Break;
+                     ThisRow := ThisRow * fScreenX;
+                     for Col := 0 to 1 do // Left & right bytes
                        begin
-                         ThisPixel := X + ThisBit + ((Y + Row) * 64);
-                         // Check if collision occurred
-                         if (fPixelsArray[ThisPixel] = 1) then
-                           fRegs.V[$F] := 1;
-                         fPixelsArray[ThisPixel] := fPixelsArray[ThisPixel] xor 1;
+                         ThisCol := Col * 8;
+                         RowOfPixels := MemRead(fRegs.I + Row*2 + Col);
+                         for ThisBit := 0 to 7 do
+                           begin
+                             if ((RowOfPixels and ($80 shr ThisBit)) <> 0) then
+                               begin
+                                 ThisPixel := X + ThisCol + ThisBit; // Check RHS
+                                 if (ThisPixel >= fScreenX) then
+                                   Continue;
+                                 ThisPixel := ThisRow + ThisPixel;
+                                 // Check if collision occurred
+                                 if (fPixelsArray[ThisPixel] = 1) then
+                                   fRegs.V[$F] := 1;
+                                 fPixelsArray[ThisPixel] := fPixelsArray[ThisPixel] xor 1;
+                               end;
+                           end;
+                       end;
+                   end;
+               end
+
+             else
+               begin                    // Standard CHIP-8 sprite
+                 if (OpNibble = 0) then
+                   Height := 16         // SCHIP instr, LowRes set 16 pixel high sprite
+                 else
+                   Height := OpNibble;
+                 for Row := 0 to (Height - 1) do
+                   begin
+                     ThisRow := Y + Row;
+                     if (ThisRow >= fScreenY) then // Gone off bottom?
+                       Break;
+                     ThisRow := ThisRow * fScreenX;
+                     RowOfPixels := MemRead(fRegs.I + Row);
+                     for ThisBit := 0 to 7 do
+                       begin
+                         if ((RowOfPixels and ($80 shr ThisBit)) <> 0) then
+                           begin
+                             ThisPixel := X + ThisBit; // Check RHS
+                             if (ThisPixel >= fScreenX) then
+                               Continue;
+                             ThisPixel := ThisRow + ThisPixel;
+                             // Check if collision occurred
+                             if (fPixelsArray[ThisPixel] = 1) then
+                               fRegs.V[$F] := 1;
+                             fPixelsArray[ThisPixel] := fPixelsArray[ThisPixel] xor 1;
+                           end;
                        end;
                    end;
                end;
+             fUpdatedScreen := True;
            end;
 
     $E000: // Various, check next bits
            begin
              case (Opcode and $00FF) of
 
-               $009E: // $Ex9E: skip next instruction if key in Vx is pressed
+               $009E: // $Ex9E: SKP - skip next instruction if key in Vx is pressed
                   begin
-                    if (fKeys[fRegs.V[IndexX]]) then
-                      Inc(fRegs.PC, 2); // Already pointing at next instr, point past it
+                    if (fKeys[fRegs.V[OpX]]) then
+                      fRegs.PC := (fRegs.PC + 2) and $0FFF; // Already pointing at next instr, point past it
                   end;
 
-               $00A1: // $ExA1: skip next instruction if key in Vx is not pressed
+               $00A1: // $ExA1: SKNP - skip next instruction if key in Vx is not pressed
                   begin
-                    if (not fKeys[fRegs.V[IndexX]]) then
-                      Inc(fRegs.PC, 2); // Already pointing at next instr, point past it
+                    if (not fKeys[fRegs.V[OpX]]) then
+                      fRegs.PC := (fRegs.PC + 2) and $0FFF; // Already pointing at next instr, point past it
                   end;
 
              else
@@ -486,12 +618,12 @@ begin
            begin
              case (Opcode and $00FF) of
 
-               $0007: // $Fx07: set Vx to value of the delay timer
+               $0007: // $Fx07: LD - set Vx to value of the delay timer
                   begin
-                    fRegs.V[IndexX] := (fMachine as TMachineChip8).DelayTimer;
+                    fRegs.V[OpX] := fDelayTimer;
                   end;
 
-               $000A: // $Fx0A: wait for key press, store in Vx
+               $000A: // $Fx0A: LD - wait for key press, store in Vx
                   begin
                     KeyPressed := False;
                     while (not KeyPressed) do
@@ -499,55 +631,76 @@ begin
                         for i := 0 to 15 do
                           if (fKeys[i]) then
                             begin
-                              fRegs.V[IndexX] := i;
+                              fRegs.V[OpX] := i;
                               KeyPressed := True;
                             end;
                       end;
                   end;
 
-               $0015: // $Fx15: set delay timer to value in Vx
+               $0015: // $Fx15: LD - set delay timer to value in Vx
                   begin
-                    (fMachine as TMachineChip8).DelayTimer := fRegs.V[IndexX];
+                    fDelayTimer := fRegs.V[OpX];
                   end;
 
-               $0018: // $Fx18: set sound timer to value in Vx
+               $0018: // $Fx18: LD - set sound timer to value in Vx
                   begin
-                    (fMachine as TMachineChip8).SoundTimer := fRegs.V[IndexX];
+                    fSoundTimer := fRegs.V[OpX];
                   end;
 
-               $001E: // $Fx1E: add Vx to I
+               $001E: // $Fx1E: ADD - add Vx to I
                   begin
-                    if ((fRegs.I + fRegs.V[IndexX]) > $0FFF) then
+                    if ((fRegs.I + fRegs.V[OpX]) > $0FFF) then
                       fRegs.V[$F] := 1  // Check for overflow
                     else
                       fRegs.V[$F] := 0;
-                    fRegs.I := fRegs.I + fRegs.V[IndexX];
+                    fRegs.I := (fRegs.I + fRegs.V[OpX]) and $0FFF;
                   end;
 
-               $0029: // $Fx29: set I to location of sprite for font character in Vx
-                      //        characters are 4x5 pixels (but full byte width)
+               $0029: // $Fx29: LD - set I to location of sprite for font character in Vx
+                      //             characters are 4x5 pixels (but full byte width)
+                      //             This LowRes font starts at $0000
                   begin
-                    fRegs.I := fRegs.V[IndexX] * 5;
+                    fRegs.I := fRegs.V[OpX] * 5;
                   end;
 
-               $0033: // $Fx33: store BCD representation of Vx in I, I+1, I+2
+               $0030: // $Fx30: LD - set I to location of sprite for font
+                      //             character in Vx, 10 byte font sprite
+                      //             This font follows LowRes font at HFONT_OFFSET
+                  if (AllowSCHIP) then
+                    begin
+                      fRegs.I := HFONT_OFFSET + (fRegs.V[OpX] * 10);
+                    end;
+
+               $0033: // $Fx33: LD - store BCD representation of Vx in I, I+1, I+2
                   begin
-                    MemWrite(fRegs.I,   fRegs.V[IndexX] div 100);
-                    MemWrite(fRegs.I+1, fRegs.V[IndexX] div 10 mod 10);
-                    MemWrite(fRegs.I+2, fRegs.V[IndexX] mod 10);
+                    MemWrite(fRegs.I,   fRegs.V[OpX] div 100 mod 10);
+                    MemWrite(fRegs.I+1, fRegs.V[OpX] div 10 mod 10);
+                    MemWrite(fRegs.I+2, fRegs.V[OpX] mod 10);
                   end;
 
-               $0055: // $Fx55: store V0 to Vx in memory starting at address I
+               $0055: // $Fx55: LD - store V0 to Vx in memory starting at address I
                   begin
-                    for i := 0 to (IndexX) do
+                    for i := 0 to (OpX) do
                       MemWrite(fRegs.I + i, fRegs.V[i]);
                   end;
 
-               $0065: // $Fx65: load V0 to Vx from memory starting at address I
+               $0065: // $Fx65: LD - load V0 to Vx from memory starting at address I
                   begin
-                    for i := 0 to (IndexX) do
+                    for i := 0 to (OpX) do
                       fRegs.V[i] := MemRead(fRegs.I + i);
                   end;
+
+               $0075: // $Fx75: LD - store V0 to Vx in HP-48 RPL user flags (x <= 7)
+                  if (AllowSCHIP) then
+                    begin
+                      fHP48Flags[OpX] := fRegs.V[OpX];
+                    end;
+
+               $0085: // $Fx85: LD - read V0 to Vx from HP-48 RPL user flags (x <= 7)
+                  if (AllowSCHIP) then
+                    begin
+                      fRegs.V[OpX] := fHP48Flags[OpX];
+                    end;
 
              else
                Unknown := True;
@@ -566,6 +719,71 @@ begin
 end;
 
 
+{ SCROLL RIGHT 4 PX / LEFT 4 PX / DOWN nibble }
+
+procedure TCpuChip8.ScrollRight;
+var
+  x, y, ThisRow: integer;
+begin
+  for y := 0 to ScreenY-1 do
+    begin
+      ThisRow := y * ScreenX;
+      for x := ScreenX-1-4 downto 0 do
+        fPixelsArray[ThisRow + x + 4] := fPixelsArray[ThisRow + x];
+    end;
+  for y := 0 to ScreenY-1 do
+    begin
+      ThisRow := y * ScreenX;
+      for x := 0 to 3 do                // Clear left hand 4 pixels
+        fPixelsArray[ThisRow + x] := 0;
+    end;
+  fUpdatedScreen := True;
+end;
+
+
+procedure TCpuChip8.ScrollLeft;
+var
+  x, y, ThisRow: integer;
+begin
+  for y := 0 to ScreenY-1 do
+    begin
+      ThisRow := y * ScreenX;
+      for x := 0 to ScreenX-1-4 do
+        fPixelsArray[ThisRow + x] := fPixelsArray[ThisRow + x + 4];
+    end;
+  for y := 0 to ScreenY-1 do
+    begin
+      ThisRow := y * ScreenX;
+      for x := ScreenX-1-4 to ScreenX-1 do // Clear right hand 4 pixels
+        fPixelsArray[ThisRow + x] := 0;
+    end;
+  fUpdatedScreen := True;
+end;
+
+
+procedure TCpuChip8.ScrollDown(Count: integer);
+var
+  x, y, RowTo, RowFrom: integer;
+begin
+  if (Count = 0) then Exit;
+
+  for y := ScreenY-1-Count downto 0 do
+    begin
+      RowFrom := y * ScreenX;
+      RowTo := (y + Count) * ScreenX;
+      for x := 0 to ScreenX-1 do
+        fPixelsArray[RowTo + x] := fPixelsArray[RowFrom + x];
+    end;
+  for y := 0 to Count-1 do
+    begin
+      RowTo := y * ScreenX;
+      for x := 0 to ScreenX-1 do        // Clear top rows of pixels
+        fPixelsArray[RowTo + x] := 0;
+    end;
+  fUpdatedScreen := True;
+end;
+
+
 { GET TRACE }
 
 { Return execution trace for given index into trace list. If index exceeds
@@ -577,8 +795,7 @@ var
   TraceRegs: TRegsChip8;
 begin
   Result.Text := '';
-  if (fCpuState = csRunning)            // No response if CPU running
-     or ((fTraceIndex = 0) and (not fTraceOverflow))
+  if ((fTraceIndex = 0) and (not fTraceOverflow))
      or ((Index > fTraceIndex) and (not fTraceOverflow)) then
     Result.Text := ''
   else

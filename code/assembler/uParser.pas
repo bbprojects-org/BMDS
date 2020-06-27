@@ -34,6 +34,9 @@ unit uParser;
 interface
 
 uses
+  {$ifdef parser_debug}
+  uCommon,
+  {$endif}
   Classes, SysUtils, StrUtils;
 
 type
@@ -262,13 +265,13 @@ var
   c: Char;
 begin
   for c := #0 to #255 do
-  begin
-    case c of
-      '.', '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[c] := True;
-    else
-      Identifiers[c] := False;
+    begin
+      case c of
+        '.', '_', '0'..'9', 'a'..'z', 'A'..'Z': Identifiers[c] := True;
+      else
+        Identifiers[c] := False;
+      end;
     end;
-  end;
 end;
 
 

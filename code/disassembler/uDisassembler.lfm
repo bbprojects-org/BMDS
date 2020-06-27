@@ -1,7 +1,7 @@
 object DisassemblerForm: TDisassemblerForm
-  Left = 3750
+  Left = 2593
   Height = 442
-  Top = 22
+  Top = 806
   Width = 600
   Caption = 'BMDS Disassembler'
   ClientHeight = 442
@@ -41,14 +41,14 @@ object DisassemblerForm: TDisassemblerForm
     ClientWidth = 600
     TabOrder = 0
     object btnCopyToClipboard: TButton
-      Left = 448
+      Left = 434
       Height = 21
       Top = 112
       Width = 144
       Caption = 'Copy to Clipboard'
       Enabled = False
       OnClick = btnCopyToClipboardClick
-      TabOrder = 7
+      TabOrder = 6
     end
     object GroupBox1: TGroupBox
       Left = 6
@@ -146,8 +146,8 @@ object DisassemblerForm: TDisassemblerForm
       end
       object lbDataAddresses: TListBox
         Left = 168
-        Height = 48
-        Top = 0
+        Height = 56
+        Top = 2
         Width = 128
         ItemHeight = 0
         MultiSelect = True
@@ -186,37 +186,22 @@ object DisassemblerForm: TDisassemblerForm
       end
     end
     object btnSaveSettings: TButton
-      Left = 176
+      Left = 16
       Height = 21
       Top = 112
       Width = 120
       Caption = 'Save Settings'
       OnClick = btnSaveSettingsClick
-      TabOrder = 5
+      TabOrder = 4
     end
     object btnLoadSettings: TButton
-      Left = 304
+      Left = 144
       Height = 21
       Top = 112
       Width = 120
       Caption = 'Load Settings'
       OnClick = btnLoadSettingsClick
-      TabOrder = 6
-    end
-    object cbSpacings: TComboBox
-      Left = 16
-      Height = 20
-      Top = 114
-      Width = 136
-      ItemHeight = 26
-      ItemIndex = 1
-      Items.Strings = (
-        'Narrow Spacing'
-        'Wide Spacing'
-      )
-      Style = csDropDownList
-      TabOrder = 4
-      Text = 'Wide Spacing'
+      TabOrder = 5
     end
     object edDesc: TLabeledEdit
       Left = 104

@@ -37,7 +37,7 @@ uses
 
 type
   TMachineState = (msStopped, msRunning, msStoppedOnBrkpt, msStoppedOnRead,
-                   msStoppedOnWrite);
+                   msStoppedOnWrite, msStoppedInvalid, msStoppedCpu);
   TMachineChangedItem = (mcFreq);
 
   TBrkptHandler = procedure(Addr: word; out IsBrkpt: boolean) of object;
@@ -49,7 +49,7 @@ type
   TFileExtList = array[TFileExt] of string;
 
   TMachineInfo = record
-    // Name is used to register Machine class, and saved in CurrentMachineID
+    Name: string;
     Year: integer;                      // Year introduced
     CpuFreqKhz: integer;
     MemoryButtons: string;              // Optional: up to 3 buttons to put on Memory form
@@ -244,7 +244,7 @@ end;
 
 procedure TMachineBase.SetScreenCaption(Value: string);
 begin
-  Gfx.SetCaption(Value);
+  Gfx.Caption := Value;
 end;
 
 

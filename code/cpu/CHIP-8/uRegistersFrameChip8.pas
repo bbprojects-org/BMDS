@@ -36,7 +36,7 @@ uses
   LCLIntf, LCLType, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Math,
   //
-  uCpuBase, uCpuChip8, uDefsChip8, uRegistersFrameBase, uIniFile, uCommon;
+  uCpuBase, uCpuChip8, uDefsChip8, uRegistersFrameBase, uCommon;
 
 type
 
@@ -107,9 +107,6 @@ end;
 { UPDATE REGISTER DISPLAY }
 
 procedure TRegistersFrameChip8.Refresh;
-var
-  ThisRegs: TRegsChip8;
-  StatusFlags: byte;
 begin
   if Assigned(fCpuRef) then
     with fCpuRef.Regs do
@@ -163,11 +160,10 @@ procedure TRegistersFrameChip8.ShowStack;
 const
   MAX_WORDS = 5;
 var
-  tmp, nIndex: word;
+  nIndex: word;
   sText: string;
 begin
   sText := '';
-  tmp := fCpuRef.Regs.SP;
   for nIndex := 1 to Min(fCpuRef.Regs.SP, MAX_WORDS) do
     sText := sText + Format('%.4X ', [fCpuRef.Stack[fCpuRef.Regs.SP - 1]]);
   if (fCpuRef.Regs.SP > MAX_WORDS) then

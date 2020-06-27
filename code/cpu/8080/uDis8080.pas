@@ -79,7 +79,7 @@ begin
        end;
 
     3: begin
-         Result.BytesStr := Format('%.2x %.2x %.2x', [Result.Opcode,
+         Result.BytesStr := Format('%.2x %.2x%.2x', [Result.Opcode,
                               CPU.ReadMem(Addr+1), CPU.ReadMem(Addr+2)]);
          Result.Operand := CPU.ReadMem(Addr+1) + (word(CPU.ReadMem(Addr+2)) shl 8);
          // Replace '*' (=address) with 16-bit address operand
@@ -98,8 +98,8 @@ begin
                           (Result.Opcode = $C9));    // RET
   Result.HasOperand := Result.HasOperand or (AddrMode > mIMM); // Exclude mIMM or get incorrect labelling
 
-  Result.Text := Format('%.4x %-8s = %-4s %s',
-                       [Addr, Result.BytesStr, Result.MnemStr,
+  Result.Text := Format(DIS_FORMAT,
+                       [Result.BytesStr, Result.MnemStr,
                         Format(Result.AddrModeStr, [Result.OperandStr])]);
 end;
 

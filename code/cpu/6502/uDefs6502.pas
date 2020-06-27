@@ -43,7 +43,6 @@ const
     ( Name:                 '6502';
       RegsReplace:          '';
       RegsKeywords:         'A X Y';    // Must be uppercase, for assembler
-      WildChar:             '*';
       LittleEndian:         True;
       SupportsAssembler:    True;
       SupportsDisassembler: True;

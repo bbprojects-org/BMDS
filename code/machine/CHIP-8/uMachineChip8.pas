@@ -22,7 +22,6 @@
 
   =============================================================================}
 
-{ TODO : uMachineChip8 -> add 64x64 mode, and SuperChip8 128x64 mode }
 { TODO : uMachineChip8 -> STEPS_PER_FRAME is a guesstimate, need to calculate properly }
 { TODO : uMachineChip8 -> program LoadFromFile, SaveToFile }
 
@@ -40,7 +39,7 @@ uses
   uPrefsChip8, uCommon, SDL2;
 
 const
-  STEPS_PER_FRAME = 5;
+  CHIP8_NAME = 'CHIP-8';
 
 type
 
@@ -48,15 +47,15 @@ type
 
   TMachineChip8 = class(TMachineBase)
   private
+    procedure SetHiRes(IsHiRes: boolean);
+  protected
     fCPU: TCpuChip8;
-    fDelayTimer: byte;
-    fSoundTimer: byte;    
-    ScreenImage: TBitmap;                                          
+    CurrentRes: boolean;
+    ScreenImage: TBitmap;
     LastPC: word;
     procedure CheckInput;
     procedure MemRead(Sender: TObject; Addr: word; var Value: byte);
     procedure MemWrite(Sender: TObject; Addr: word; Value: byte);
-  protected
     function GetCPU: TCpuBase; override;
     function GetDescription: string; override;
   public
@@ -71,8 +70,6 @@ type
     procedure LoadFromFile(FileName: string); override;
     //
     property CPU: TCpuBase read GetCPU;
-    property DelayTimer: byte read fDelayTimer write fDelayTimer;
-    property SoundTimer: byte read fSoundTimer write fSoundTimer;
 end;
 
 
@@ -81,16 +78,27 @@ implementation
 { CREATE }
 
 constructor TMachineChip8.Create;
+var
+  CpuType: TCpuType;
 begin
   // fConfigFrame referenced by PreferencesForm for config when CHIP-8 selected
   fConfigFrame := TChip8PrefsFrame.Create(nil);
   fConfigFrame.Init;                    // Get INI settings required below
+  Chip8Prefs := fConfigFrame as TChip8PrefsFrame;
 
-  fInfo.Year                := 1975;
-  fInfo.ScreenWidthPx       := 64;
-  fInfo.ScreenHeightPx      := 32;
-  fInfo.ScaleModifier       := 5;       // Make 64x32 pixel screen a bit bigger!
-  fInfo.MemoryButtons       := 'Font=0000,Start=0200'; // Hex values
+  if (Chip8Prefs.Chip8Only) then
+    begin
+      fInfo.Name := CHIP8_NAME;
+      fInfo.Year := 1975;
+      CpuType := ctCHIP8;
+    end
+  else
+    begin
+      fInfo.Name := 'SCHIP';
+      fInfo.Year := 1990;
+      CpuType := ctSCHIP;
+    end;
+  fInfo.MemoryButtons       := 'Start=0200'; // Hex values
   fInfo.MachineDefsFileName := '';
   fInfo.HasCodeToExecute    := False;   // Needs a program to execute
   fInfo.FileExts            := [feC8, feBIN];
@@ -101,20 +109,16 @@ begin
   fMemoryMgr.AddRead($0000, $0FFF, nil, '4K RAM read');
   fMemoryMgr.AddWrite($0000, $0FFF, nil, '4K RAM write');
 
-  Gfx := TGfxManager.Create(2);         // Create screen, uses default B&W palette
-  Gfx.SetWindowSize(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
-  TexIdxScreen := Gfx.GetTexture(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
-
-  fCPU := TCpuChip8.Create(ctCHIP8);    // Create and initialise pseudo CPU
-  fCPU.Machine := self;
+  fCPU := TCpuChip8.Create(CpuType);    // Create and initialise pseudo CPU
   fCPU.OnRead := @MemRead;
   fCPU.OnWrite := @MemWrite;
   fCPU.Reset;
-  LastPC := 0;
 
+  CurrentRes := not fCPU.HiRes;         // Ensure next does action
+  SetHiRes(fCPU.HiRes);                 // CPU manages screen size (LOW/HIGH commands)
+
+  LastPC := 0;
   FPS := 60;                            // Matches counter rate
-  fDelayTimer := 0;
-  fSoundTimer := 0;
 end;
 
 
@@ -138,8 +142,6 @@ begin
 end;
 
 
-{ GET DESCRIPTION }
-
 function TMachineChip8.GetDescription: string;
 begin
   Result := 'CHIP-8' + CRLF + CRLF +
@@ -162,6 +164,42 @@ begin
 end;
 
 
+procedure TMachineChip8.SetHiRes(IsHiRes: boolean);
+var
+  OldScreenSize, OldScreenPos: TPoint;
+  OldScreenCaption: string;
+begin
+  if (CurrentRes = IsHiRes) then Exit;
+
+  CurrentRes := IsHiRes;
+  OldScreenSize.X := -1;
+  if (Gfx <> nil) then
+    begin
+      OldScreenSize := Gfx.GetWindowSize;
+      OldScreenPos := Gfx.GetWindowPosition;
+      OldScreenCaption := Gfx.Caption;
+      Gfx.Free;
+    end;
+
+  fInfo.ScreenWidthPx := fCPU.ScreenX;
+  fInfo.ScreenHeightPx := fCPU.ScreenY;
+  if (IsHiRes) then
+    fInfo.ScaleModifier := 2            // = half modifier for basic CHIP-8
+  else
+    fInfo.ScaleModifier := 4;           // Make 64x32 pixel screen a bit bigger!
+  Gfx := TGfxManager.Create(2);         // Create screen, uses default B&W palette
+  Gfx.SetWindowSize(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
+  TexIdxScreen := Gfx.GetTexture(fInfo.ScreenWidthPx, fInfo.ScreenHeightPx);
+
+  if (OldScreenSize.X <> -1) then
+    begin
+      Gfx.SetWindowSize(OldScreenSize.X, OldScreenSize.Y);
+      Gfx.SetWindowPosition(OldScreenPos.X, OldScreenPos.Y);
+      Gfx.Caption := OldScreenCaption;
+    end;
+end;
+
+
 { RUNNING FOR ONE FRAME }
 
 procedure TMachineChip8.RunForOneFrame;
@@ -174,10 +212,10 @@ begin
   LastTime := DateTimeToTimeStamp(Now).Time;
 
   // Run CPU for one frame's worth instructions
-  NumStepsToGo := STEPS_PER_FRAME;
+  NumStepsToGo := Chip8Prefs.StepsPerFrame;
   while ((fInfo.State = msRunning) and (NumStepsToGo > 0)) do
     begin
-      // If PC same as last time, stopped on breakpoint so skip check and run this time
+      // Check for breakpoint, unless PC = last time = already at breakpoint
       if Assigned(fBkptHandler) and (fCPU.PC <> LastPC) then
         begin
           LastPC := fCPU.PC;
@@ -189,6 +227,12 @@ begin
             end;
         end;
 
+      if (not fCPU.Running) then        // Catch EXIT command which halts CPU
+        begin
+          fInfo.State := msStoppedCpu;
+          Break;
+        end;
+
       fCPU.ExecuteInstruction;
       Dec(NumStepsToGo);
     end;
@@ -196,10 +240,10 @@ begin
   if (fInfo.State = msRunning) then     // Do not do next if stopping
     begin
       // Decrement timers, refresh screen, etc
-      if (fDelayTimer > 0) then
-        Dec(fDelayTimer);
-      if (fSoundTimer > 0) then
-        Dec(fSoundTimer);
+      if (fCPU.DelayTimer > 0) then
+        fCPU.DelayTimer := fCPU.DelayTimer - 1;
+      if (fCPU.SoundTimer > 0) then
+        fCPU.SoundTimer := fCPU.SoundTimer - 1;
       CheckInput;                       // Check keyboard
       ScreenRefresh;
       Application.ProcessMessages;
@@ -219,10 +263,10 @@ end;
 procedure TMachineChip8.Step;
 begin
   fCPU.ExecuteInstruction;
-  if (fDelayTimer > 0) then
-    Dec(fDelayTimer);
-  if (fSoundTimer > 0) then
-    Dec(fSoundTimer);
+  if (fCPU.DelayTimer > 0) then
+    fCPU.DelayTimer := fCPU.DelayTimer - 1;
+  if (fCPU.SoundTimer > 0) then
+    fCPU.SoundTimer := fCPU.SoundTimer - 1;
   ScreenRefresh;
 end;
 
@@ -295,16 +339,24 @@ end;
 
 procedure TMachineChip8.ScreenRefresh;
 var
-  x, y: byte;
-  Pixel: integer;
+  ThisY, x, y, Pixel: integer;
 begin
-  for y := 0 to 31 do                   // 32 rows of pixels
-    for x := 0 to 63 do                 // 64 columns of pixels
-      begin
-        Pixel := fCPU.Pixels[x + (y * 64)];
-        Gfx.SetPixel(TexIdxScreen, x, y, Gfx.Palette[Pixel]);
-      end;
-  Gfx.ShowPixels(TexIdxScreen);
+  if (CurrentRes <> fCPU.HiRes) then
+    SetHiRes(fCPU.HiRes);               // Ensure screen is right size
+
+  if (fCPU.UpdatedScreen) then
+    begin
+      for y := 0 to fCPU.ScreenY-1 do
+        begin
+          ThisY := y * fCPU.ScreenX;
+          for x := 0 to fCPU.ScreenX-1 do
+            begin
+              Pixel := fCPU.Pixels[ThisY + x];
+              Gfx.SetPixel(TexIdxScreen, x, y, Gfx.Palette[Pixel]);
+            end;
+        end;
+      Gfx.ShowPixels(TexIdxScreen);
+    end;
 end;
 
 
@@ -332,7 +384,7 @@ begin
   try
     LoadStream.LoadFromFile(FileName);  // Sets Position = 0
     // 4K memory
-    // 16B stack
+    // 16 word stack
     // Registers V0-VF, I, SP, PC
     // Display buffer
   finally
@@ -348,7 +400,7 @@ begin
   SaveStream := TMemoryStream.Create;
   try
     // 4K memory
-    // 16B stack
+    // 16 word stack
     // Registers V0-VF, I, SP, PC
     // Display buffer
     SaveStream.SaveToFile(FileName);
@@ -359,7 +411,7 @@ end;
 
 
 initialization
-  MachineFactory.RegisterMachine('CHIP-8', TMachineChip8);
+  MachineFactory.RegisterMachine(CHIP8_NAME, TMachineChip8);
 
 
 end.

@@ -31,7 +31,7 @@ interface
 uses
   Classes, Forms, SysUtils,
   //
-  uRegistersFrameBase, uCpuTypes, uSymbols;
+  uRegistersFrameBase, uCpuTypes;
 
 const
   TRACE_MAX  = $800;                    // Size this so easy to mask off overrun
@@ -61,7 +61,7 @@ type
     fCpuType: TCpuType;
     fInfo: TCpuInfo;
     fDataCount: integer;
-    fCpuState: TCpuState;
+    fCpuRunning: boolean;
     fTraceIndex: integer;
     fTraceOverflow: boolean;
     fOnRead: TOnReadEvent;
@@ -93,12 +93,12 @@ type
     function GetRegKeywordIndex(Reg: string): integer;
     //
     property RegisterFrame: TRegistersFrame read fRegistersFrame write fRegistersFrame;
-    property CpuType: TCpuType read fCpuType;
+    property CpuType: TCpuType read fCpuType write fCpuType;
     property TraceColumns: TTraceColArray read GetTraceColumns;
     property DataCount: integer read fDataCount;
     property DataByIndex[Index: integer]: TOpcodeRawData read GetDataByIndex;
     property DataByOpcode[Opcode: integer]: TOpcodeRawData read GetDataByOpcode;
-    property CpuState: TCpuState read fCpuState write fCpuState;
+    property Running: boolean read fCpuRunning write fCpuRunning;
     property PC: word read GetPC;
     property Info: TCpuInfo read fInfo;
 
@@ -173,6 +173,7 @@ end;
 
 
 { TCpuBase }
+
 
 { GET OPCODES DATA }
 

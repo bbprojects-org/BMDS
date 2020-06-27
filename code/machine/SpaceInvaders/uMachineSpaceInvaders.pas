@@ -61,7 +61,6 @@
 unit uMachineSpaceInvaders;
 
 {$mode objfpc}{$H+}
-{$R-}
 
 interface
 
@@ -139,6 +138,7 @@ type
 end;
 
 const
+  SI_NAME = 'Space Invaders';
   SI_PALETTE_COLOUR: array[0..3] of TGfxColour // Black, white, red, green
               = ($000000FF, $FFFFFFFF, $FF0000FF, $00FF00FF);
   SI_PALETTE_BW: array[0..3] of TGfxColour // Black, white, white, white
@@ -171,6 +171,7 @@ end;
 
 procedure TMachineSpaceInvaders.SetMachineInfo;
 begin
+  fInfo.Name := SI_NAME;
   fInfo.Year := 1978;
   fInfo.CpuFreqKhz := 2000;
   fInfo.ScreenWidthPx := 224;
@@ -312,7 +313,7 @@ begin
       // fInfo.State is set to msRunning in MainForm before call here
       while ((fInfo.State = msRunning) and (CyclesToGo > 0)) do
         begin
-          // If PC same as last time, stopped on breakpoint so skip check and run this time
+          // Check for breakpoint, unless PC = last time = already at breakpoint
           if Assigned(fBkptHandler) and (fCPU.PC <> LastPC) then
             begin
               LastPC := fCPU.PC;
@@ -322,6 +323,12 @@ begin
                   fInfo.State := msStoppedOnBrkpt;
                   Break;
                 end;
+            end;
+
+          if (not fCPU.Running) then    // Catch EXIT command which halts CPU
+            begin
+              fInfo.State := msStoppedCpu;
+              Break;
             end;
 
           Dec(CyclesToGo, fCPU.ExecuteInstruction);
@@ -605,7 +612,7 @@ end;
 
 
 initialization
-  MachineFactory.RegisterMachine('Space Invaders', TMachineSpaceInvaders);
+  MachineFactory.RegisterMachine(SI_NAME, TMachineSpaceInvaders);
 
 
 end.

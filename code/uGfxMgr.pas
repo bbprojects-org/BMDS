@@ -63,6 +63,7 @@ type
   private
     fPalette: TPalette;                 // Screen colours
     fCursorOn: boolean;
+    fCaption: string;
     fErrorFlag: boolean;
     fErrMsg: string;
     fSdlWindow: pSDL_Window;            // Handle for SDL2 window
@@ -72,6 +73,7 @@ type
     procedure SetCursor(ShowFlag: boolean);
     procedure SetErrMsg(ErrStr: string);
     procedure SetPalette(Value: TPalette);
+    procedure SetCaption(Caption: string);
   public
     constructor Create(NumColours: integer);
     destructor  Destroy; override;
@@ -93,11 +95,11 @@ type
     function  RGB(R, G, B: byte): longword;
     procedure Copy(Index: integer; SrcRect, DestRec: PGfxRect);
     function  GetVersion: string;
-    procedure SetCaption(Caption: string);
     procedure Focus;
 
     property Palette: TPalette read fPalette write SetPalette;
     property ShowCursor: boolean read fCursorOn write SetCursor;
+    property Caption: string read fCaption write SetCaption;
 end;
 
 
@@ -214,6 +216,7 @@ end;
 
 procedure TGfxManager.SetCaption(Caption: string);
 begin
+  fCaption := Caption;
   SDL_SetWindowTitle(fSdlWindow, pointer(Caption));
 end;
 

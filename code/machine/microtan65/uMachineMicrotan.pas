@@ -69,6 +69,9 @@ uses
   uMachineBase, uCpuBase, uCpuTypes, uCpu6502, uDefs6502, uFilesMgr, uMemoryMgr,
   uPrefsMicrotan, uCommon, uGfxMgr, uVia6522, uEditScreenForm, SDL2;
 
+const
+  M65_NAME = 'Microtan65';
+
 type
   TGraphicsBits = array[$200..$3FF] of boolean;
 
@@ -159,6 +162,7 @@ end;
 
 procedure TMachineMicrotan.SetMachineInfo;
 begin
+  fInfo.Name := M65_NAME;
   fInfo.Year := 1979;
   fInfo.CpuFreqKhz := M65Prefs.Frequency;
   fInfo.ScreenWidthPx := 256;
@@ -782,7 +786,7 @@ end;
 
 
 initialization
-  MachineFactory.RegisterMachine('Microtan65', TMachineMicrotan);
+  MachineFactory.RegisterMachine(M65_NAME, TMachineMicrotan);
 
 
 end.

@@ -37,7 +37,6 @@
 unit uCpu6502;
 
 {$mode objfpc}{$H+}
-{$R-}
 
 interface
 
@@ -134,7 +133,6 @@ begin
   (fRegistersFrame as TRegistersFrame6502).CpuRef := self;
 
   fCpuType  := ct;
-  fCpuState := csStopped;
   SetInfo(INFO_6502);
   case ct of
     ct6502:  ThisTypeMask := %01;
@@ -289,6 +287,7 @@ end;
 
 procedure TCpu6502.Reset;
 begin
+  fCpuRunning := True;
   fRegs.PC := MemRead(ADDR_RESET) + (MemRead(ADDR_RESET+1) shl 8);
   SetPSW(P_IRQ_DISABLED or P_BRK or P_RESERVED); // Ensure PSW unpacked
   IRQflag := False;
@@ -356,9 +355,7 @@ end;
 
 function TCpu6502.ExecuteInstruction: integer;
 begin
-  CpuState := csRunning;
   Result := ProcessOpcode;
-  CpuState := csStopped;
 end;
 
 
@@ -879,8 +876,7 @@ end;
 
 function TCpu6502.{%H-}GetTrace(Index: integer): TDisassembledData;
 begin
-  if (CpuState = csRunning)             // No response if CPU running
-     or ((fTraceIndex = 0) and (not fTraceOverflow))
+  if ((fTraceIndex = 0) and (not fTraceOverflow))
      or ((Index > fTraceIndex) and (not fTraceOverflow)) then
     Result.Text := ''
   else

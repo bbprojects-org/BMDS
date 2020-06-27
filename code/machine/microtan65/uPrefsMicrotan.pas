@@ -26,7 +26,6 @@
 unit uPrefsMicrotan;
 
 {$mode objfpc}{$H+}
-{$R-}
 
 interface
 

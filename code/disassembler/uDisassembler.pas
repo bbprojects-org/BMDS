@@ -40,7 +40,6 @@
 unit uDisassembler;
 
 {$mode objfpc}{$H+}
-{$R-}
 
 {.$define disassembler_debug}
 
@@ -63,7 +62,6 @@ type
   TDisassemblerForm = class(TForm)
     acLoadSymbolsFile: TAction;
     ActionListDisassembler: TActionList;
-    cbSpacings: TComboBox;
     edDesc: TLabeledEdit;
     OpenDialog1: TOpenDialog;
     Panel1: TPanel;
@@ -107,7 +105,6 @@ type
     AddrDefsProcessor: TAddrDefsProcessor;
     AddrDefsArray: TAddrDefsArray;
     AddressesUsed: array[0..$FFFF] of Boolean;
-    OutputStr: string;
     DefSpcStr: string;
     DefByteStr: string;
     procedure SetMachine;
@@ -181,18 +178,13 @@ begin
     end;
   Caption := 'BMDS Disassembler for ' + Machine.CPU.Info.Name;
 
-  case Machine.CPU.CpuType of
-    ct6502, ct65C02, ctCHIP8:
-      begin
-        DefSpcStr :=  'RMB';
-        DefByteStr := 'FCB';
-      end;
-    ct8080asmO, ct8080asmZ:
-      begin
-        DefSpcStr :=  'DS';
-        DefByteStr := 'DB';
-      end;
-  end;
+  DefSpcStr :=  'DS';
+  DefByteStr := 'DB';
+  if (Machine.CPU.CpuType in [ct6502, ct65C02]) then
+    begin
+      DefSpcStr :=  'RMB';
+      DefByteStr := 'FCB';
+    end;
 end;
 
 
@@ -323,10 +315,11 @@ end;
 
 procedure TDisassemblerForm.btnSimpleClick(Sender: TObject);
 var
-  CurrentByte: Byte;
+  CurrentByteStr: string;
   PrevAddress: Word;
   WasInDataBlock: boolean;
   DisData: TDisassembledData;
+  Line: string;
 begin
   // Make sure address range is sensible, i.e. End comes after Start
   if (not CheckAddressesOK(StartAddr, EndAddr)) then
@@ -344,9 +337,11 @@ begin
       if (InDataBlock) then
         // If in an identified data block, just output byte definitions
         begin
-          CurrentByte := Machine.Memory[CurrentAddr];
-          memoDis.Lines.Add(Format('%.4x %-8.2x= %s $%.2x  // %s', [CurrentAddr,
-                                 CurrentByte, DefByteStr, CurrentByte, GetAscii(CurrentByte)]));
+          CurrentByteStr := Format('%.2x', [Machine.Memory[CurrentAddr]]);
+          Line := Format('%.4x ', [CurrentAddr]) +
+                  Format(DIS_FORMAT + '          // %s',
+                         [CurrentByteStr, DefByteStr, '$'+CurrentByteStr, GetAscii(Machine.Memory[CurrentAddr])]);
+          memoDis.Lines.Add(Line);
           Inc(CurrentAddr);
           WasInDataBlock := True;       // Flag for when data block is finished
         end
@@ -358,7 +353,8 @@ begin
           WasInDataBlock := False;
           PrevAddress := CurrentAddr;
           DisData := Machine.CPU.GetDisassembly(CurrentAddr);
-          memoDis.Lines.Add(DisData.Text); // Add disassembled line to output
+          Line := Format('%.4x ', [CurrentAddr]) + DisData.Text;
+          memoDis.Lines.Add(Line);      // Add disassembled line to output
           if (DisData.AddBlankLine) then // Blank line after RTS/JMP like instructions
             memoDis.Lines.Add('');
           // Increment address to point at next opcode
@@ -401,12 +397,6 @@ begin
     end;
 
   memoDis.Lines.Clear;
-
-  case cbSpacings.ItemIndex of
-    // Output string for [Label, Mnemonic, Operand, Comment]
-    0: OutputStr := '%-13s %-5s %-16s %s';
-    1: OutputStr := '%-19s %-5s %-23s %s';
-  end;
 
   for i := 0 to $FFFF do
     AddressesUsed[i] := False;          // Set no addresses referenced
@@ -454,10 +444,10 @@ begin
       if (InDataBlock) then
         begin                           // If in a data section, just show byte
           CurrentByte := Machine.Memory[CurrentAddr];
-          memoDis.Lines.Add(Format(OutputStr, [LabelStr,
-                                               DefByteStr,
-                                               Format('$%.2x', [CurrentByte]),
-                                               '; ' + GetAscii(CurrentByte)]));
+          memoDis.Lines.Add(Format(DIS_LFORMAT, [LabelStr,
+                                                 DefByteStr,
+                                                 Format('$%.2x', [CurrentByte]),
+                                                 '; ' + GetAscii(CurrentByte)]));
           Inc(CurrentAddr);
           WasInDataBlock := True;
           Continue;                     // Loop to next address
@@ -495,10 +485,10 @@ begin
       WasInDataBlock := False;
 
       OperandStr := Format(DisData.AddrModeStr, [OperandStr]);
-      memoDis.Lines.Add(Format(OutputStr, [LabelStr,
-                                           MnemonicStr,
-                                           OperandStr,
-                                           CommentStr]));
+      memoDis.Lines.Add(Format(DIS_LFORMAT, [LabelStr,
+                                             MnemonicStr,
+                                             OperandStr,
+                                             CommentStr]));
       if (DisData.AddBlankLine) then
         memoDis.Lines.Add('');          // Blank line after RTS/JMP like instructions
 
@@ -550,10 +540,10 @@ begin
 
   for i := 0 to Length(AddrDefsArray) - 1 do
     if AddrDefsArray[i].Used then
-      memoDis.Lines.Add(Format(OutputStr, [AddrDefsArray[i].LabelStr,
-                                           '=',
-                                           Format('$%.4x', [AddrDefsArray[i].Address]),
-                                           '']));
+      memoDis.Lines.Add(Format(DIS_LFORMAT, [AddrDefsArray[i].LabelStr,
+                                             '=',
+                                             Format('$%.4x', [AddrDefsArray[i].Address]),
+                                             '']));
   memoDis.Lines.Add('');
 
   for i := 0 to Length(AddressesUsed) - 1 do
@@ -563,17 +553,17 @@ begin
         repeat
           Inc(Count);
         until (AddressesUsed[i + Count] or ((i + Count) = Length(AddressesUsed)-1));
-        memoDis.Lines.Add(Format(OutputStr, [Format('Lbl_%.4x', [i]),
-                                             DefSpcStr,
-                                             Format('%d', [Count]),
-                                             '']));
+        memoDis.Lines.Add(Format(DIS_LFORMAT, [Format('Lbl_%.4x', [i]),
+                                               DefSpcStr,
+                                               Format('%d', [Count]),
+                                               '']));
       end;
   memoDis.Lines.Add('');
 
-  memoDis.Lines.Add(Format(OutputStr, ['',
-                                       'ORG',
-                                       Format('$%.4x', [StartAddr]),
-                                       '']));
+  memoDis.Lines.Add(Format(DIS_LFORMAT, ['',
+                                         'ORG',
+                                         Format('$%.4x', [StartAddr]),
+                                         '']));
   memoDis.Lines.Add('');
 end;
 

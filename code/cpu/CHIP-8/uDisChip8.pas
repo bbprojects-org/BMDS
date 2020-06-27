@@ -49,6 +49,7 @@ var
   X, Y: byte;
   Operand0FFF, Operand00FF, Operand000F: word;
   MnemonicStr, OperandStr: string;
+  IsSCHIP: boolean;
 begin
   Opcode := (CPU.MemRead(Addr) shl 8) or CPU.MemRead(Addr+1);
   X := (Opcode and $0F00) shr 8;
@@ -61,16 +62,44 @@ begin
   Result.HasOperand := False;
   OperandStr := '';
   Result.AddrModeStr := '%s';           // Default = just print string
+  IsSCHIP := False;
 
   case (Opcode and $F000) of            // Mask off instruction bits
 
     $0000: // Various, check next bits
        begin
-         case (Opcode and $000F) of
-           $0000: MnemonicStr := 'CLS';
-           $000E: MnemonicStr := 'RET';
+         case (Opcode) of
+           $00E0: MnemonicStr := 'CLS';
+           $00EE: MnemonicStr := 'RET';
+           $00FB: begin                 // Scroll 4 pixels right
+                    MnemonicStr := 'SCR';
+                    IsSCHIP := True;
+                  end;
+           $00FC: begin                 // Scroll 4 pixels left
+                    MnemonicStr := 'SCL';
+                    IsSCHIP := True;
+                  end;
+           $00FD: begin                 // Exit CHIP interpreter
+                    MnemonicStr := 'EXIT';
+                    IsSCHIP := True;
+                  end;
+           $00FE: begin                 // Disable extended screen mode
+                    MnemonicStr := 'LOW';
+                    IsSCHIP := True;
+                  end;
+           $00FF: begin                 // Enable extended screen mode
+                    MnemonicStr := 'HIGH';
+                    IsSCHIP := True;
+                  end;
          else
-           MnemonicStr := 'UNK';
+           if ((Opcode and $FFF0) = $00C0) then
+             begin                      // $00CN: scroll N lines down
+               MnemonicStr := 'SCD';
+               OperandStr := Format('$%.1x', [Operand000F]);
+               IsSCHIP := True;
+             end
+           else
+             MnemonicStr := 'UNK';
          end;
        end;
 
@@ -219,6 +248,8 @@ begin
            begin
              MnemonicStr := 'DRW';
              OperandStr := Format('V%x,V%x,%d', [X, Y, Operand000F]);
+             if (Operand000F = 0) then
+               IsSCHIP := True;         // If extended screen mode, show 16x16 sprite
            end;
 
     $E000: // Various, check next bits
@@ -281,6 +312,14 @@ begin
                 OperandStr := Format('F,V%x', [X]);
               end;
 
+           $0030: // $Fx30: set I to location of sprite for font character in Vx
+                  //        10 byte font sprite
+              begin
+                MnemonicStr := 'LD';
+                OperandStr := Format('HF,V%x', [X]);
+                IsSCHIP := True;
+              end;
+
            $0033: // $Fx33: store BCD representation of Vx in I, I+1, I+2
               begin
                 MnemonicStr := 'LD';
@@ -301,6 +340,20 @@ begin
                 OperandStr := Format('V%x,[I]', [X]);
               end;
 
+           $0075: // $Fx75: store V0 to Vx in HP-48 RPL user flags (x <= 7)
+              begin
+                MnemonicStr := 'LD';
+                OperandStr := Format('R,V%x', [X]);
+                IsSCHIP := True;
+              end;
+
+           $0085: // $Fx85: read V0 to Vx from HP-48 RPL user flags (x <= 7)
+              begin
+                MnemonicStr := 'LD';
+                OperandStr := Format('V%x,R', [X]);
+                IsSCHIP := True;
+              end;
+
          else
            MnemonicStr := 'UNK';
          end;
@@ -308,6 +361,12 @@ begin
   else
     MnemonicStr := 'UNK';
   end;
+
+  if ((IsSCHIP) and (CPU.CpuType <> ctSCHIP)) then
+    begin
+      MnemonicStr := 'UNK';
+      OperandStr := '';
+    end;
 
   Result.Opcode := Opcode;
   Result.BytesStr := Format('%.4x', [Opcode]);
@@ -317,7 +376,8 @@ begin
   Result.AddBlankLine := (Pos(MnemonicStr, 'RET,JP') > 0);
   if (MnemonicStr = 'UNK') then
     MnemonicStr := Format('Unknown opcode: $%.4x', [Opcode]);
-  Result.Text := Format('%.4x %.4x = %-5s %s', [Addr, Opcode, MnemonicStr, OperandStr]);
+  Result.Text := Format(DIS_FORMAT,
+                        [Result.BytesStr, Result.MnemStr, Result.OperandStr]);
 end;
 
 
